@@ -10,6 +10,7 @@
 
 namespace mario {
     // Common base class for game states like play, menu, and pause
+    // Each state has its own logic, input handling, and rendering
     class GameState {
     public:
         virtual ~GameState() = default;
