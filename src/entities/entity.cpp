@@ -27,7 +27,7 @@ float Entity::vy() const { return _vy; }
 float Entity::width() const { return _width; }
 float Entity::height() const { return _height; }
 
-void Entity::integrate(float dt)
+void Entity::update_position(float dt)
 {
     _x += _vx * dt;
     _y += _vy * dt;

@@ -22,10 +22,9 @@ namespace mario {
         float vy() const;
         float width() const;
         float height() const;
+        void update_position(float dt);
 
     protected:
-        void integrate(float dt);
-
         float _x = 0.0f;
         float _y = 0.0f;
         float _vx = 0.0f;

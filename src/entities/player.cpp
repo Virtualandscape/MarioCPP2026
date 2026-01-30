@@ -1,32 +1,27 @@
 #include "mario/entities/Player.hpp"
 
 namespace mario {
-
-Player::Player()
-{
-    set_size(16.0f, 24.0f);
-}
-
-void Player::handle_input()
-{
-    set_velocity(_move_axis * _move_speed, vy());
-
-    if (_jump_pressed) {
-        set_velocity(vx(), -_jump_speed);
-        _jump_pressed = false;
+    Player::Player() {
+        set_size(16.0f, 24.0f);
     }
-}
 
-void Player::set_move_axis(float axis) { _move_axis = axis; }
+    void Player::handle_input() {
+        set_velocity(_move_axis * _move_speed, vy());
 
-void Player::set_jump_pressed(bool pressed) { _jump_pressed = pressed; }
+        if (_jump_pressed) {
+            set_velocity(vx(), -_jump_speed);
+            _jump_pressed = false;
+        }
+    }
 
-void Player::update(float dt)
-{
-    set_velocity(vx(), vy() + _gravity * dt);
-    integrate(dt);
-}
+    void Player::set_move_axis(float axis) { _move_axis = axis; }
 
-void Player::render() {}
+    void Player::set_jump_pressed(bool pressed) { _jump_pressed = pressed; }
 
+    void Player::update(float dt) {
+        (void)dt;
+    }
+
+    void Player::render() {
+    }
 } // namespace mario

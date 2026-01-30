@@ -3,6 +3,8 @@
 #include "mario/entities/Player.hpp"
 #include "mario/input/InputManager.hpp"
 #include "mario/render/Renderer.hpp"
+#include "mario/systems/CollisionSystem.hpp"
+#include "mario/systems/PhysicsSystem.hpp"
 #include "mario/world/TileMap.hpp"
 
 namespace mario {
@@ -37,6 +39,8 @@ namespace mario {
     private:
         InputManager _input;
         Player _player;
+        PhysicsSystem _physics;
+        CollisionSystem _collision;
         Renderer _renderer;
         TileMap _tile_map;
         bool _running = true;

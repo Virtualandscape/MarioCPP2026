@@ -1,10 +1,13 @@
 #pragma once
 
 namespace mario {
+    class Entity;
+    class TileMap;
+
     //  Broadphase/narrowphase, tile + entity collisions.
     class CollisionSystem {
     public:
-        void update();
+        void resolve(Entity& entity, const TileMap& map, float dt) const;
     };
 
     //  shapes + collision flags (solid, trigger).

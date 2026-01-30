@@ -23,6 +23,5 @@ namespace mario {
         bool _jump_pressed = false;
         float _move_speed = 220.0f;
         float _jump_speed = 360.0f;
-        float _gravity = 1200.0f;
     };
 } // namespace mario
