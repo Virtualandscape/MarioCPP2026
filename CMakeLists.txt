@@ -12,8 +12,30 @@ FetchContent_Declare(SFML
         SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(Mario main.cpp)
+add_executable(Mario
+        main.cpp
+        src/audio/audio_manager.cpp
+        src/core/game.cpp
+        src/core/game_state.cpp
+        src/entities/enemy.cpp
+        src/entities/entity.cpp
+        src/entities/player.cpp
+        src/gameplay/power_up.cpp
+        src/input/input_manager.cpp
+        src/render/renderer.cpp
+        src/render/sprite.cpp
+        src/resources/asset_manager.cpp
+        src/systems/collision_system.cpp
+        src/systems/physics_system.cpp
+        src/ui/hud.cpp
+        src/util/timer.cpp
+        src/world/camera.cpp
+        src/world/level.cpp
+        src/world/tile_map.cpp
+        src/audio/audio_manager.cpp
+)
 target_compile_features(Mario PRIVATE cxx_std_17)
+target_include_directories(Mario PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(Mario PRIVATE SFML::Graphics)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT main)
