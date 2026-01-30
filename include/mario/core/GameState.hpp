@@ -3,6 +3,7 @@
 #include "mario/entities/Player.hpp"
 #include "mario/input/InputManager.hpp"
 #include "mario/render/Renderer.hpp"
+#include "mario/world/TileMap.hpp"
 
 namespace mario {
     // Common base class for game states like play, menu, and pause
@@ -37,6 +38,7 @@ namespace mario {
         InputManager _input;
         Player _player;
         Renderer _renderer;
+        TileMap _tile_map;
     };
 
     class MenuState : public GameState {
