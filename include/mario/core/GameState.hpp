@@ -5,6 +5,7 @@
 #include "mario/render/Renderer.hpp"
 #include "mario/systems/CollisionSystem.hpp"
 #include "mario/systems/PhysicsSystem.hpp"
+#include "mario/world/Camera.hpp"
 #include "mario/world/TileMap.hpp"
 
 namespace mario {
@@ -42,6 +43,7 @@ namespace mario {
         PhysicsSystem _physics;
         CollisionSystem _collision;
         Renderer _renderer;
+        Camera _camera;
         TileMap _tile_map;
         bool _running = true;
     };

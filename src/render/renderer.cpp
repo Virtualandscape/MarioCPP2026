@@ -45,6 +45,12 @@ void Renderer::end_frame()
     _window.display();
 }
 
+void Renderer::set_camera(float x, float y)
+{
+    _camera_x = x;
+    _camera_y = y;
+}
+
 void Renderer::draw_sprite(int sprite_id, float x, float y)
 {
     (void)sprite_id;
@@ -59,7 +65,7 @@ void Renderer::draw_rect(float x, float y, float width, float height)
     }
 
     sf::RectangleShape shape({width, height});
-    shape.setPosition({x, y});
+    shape.setPosition({x - _camera_x, y - _camera_y});
     shape.setFillColor(sf::Color(240, 240, 240));
     _window.draw(shape);
 }
@@ -72,11 +78,22 @@ void Renderer::draw_ellipse(float x, float y, float width, float height)
 
     sf::CircleShape shape(0.5f);
     shape.setScale({width, height});
-    shape.setPosition({x, y});
+    shape.setPosition({x - _camera_x, y - _camera_y});
     shape.setFillColor(sf::Color(120, 200, 120));
     _window.draw(shape);
 }
 
 bool Renderer::is_open() const { return _window.isOpen(); }
+
+sf::Vector2f Renderer::viewport_size() const
+{
+#if SFML_VERSION_MAJOR >= 3
+    const auto size = _window.getSize();
+    return {static_cast<float>(size.x), static_cast<float>(size.y)};
+#else
+    const auto size = _window.getSize();
+    return {static_cast<float>(size.x), static_cast<float>(size.y)};
+#endif
+}
 
 } // namespace mario

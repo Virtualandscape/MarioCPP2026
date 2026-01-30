@@ -13,6 +13,8 @@ namespace mario {
 
         void end_frame();
 
+        void set_camera(float x, float y);
+
         void draw_sprite(int sprite_id, float x, float y);
 
         void draw_rect(float x, float y, float width, float height);
@@ -21,8 +23,12 @@ namespace mario {
 
         bool is_open() const;
 
+        sf::Vector2f viewport_size() const;
+
     private:
         sf::RenderWindow _window;
         sf::Color _clear_color = sf::Color(30, 30, 36);
+        float _camera_x = 0.0f;
+        float _camera_y = 0.0f;
     };
 } // namespace mario
