@@ -113,6 +113,7 @@ namespace mario {
     void PlayState::on_enter() {
         _tile_map.load("assets/levels/demo.json");
         _player.set_position(32.0f, 32.0f);
+        _running = true;
     }
 
     void PlayState::on_exit() {
@@ -134,6 +135,10 @@ namespace mario {
         _player.handle_input();
         _player.update(dt);
         resolve_player_vs_world(_player, _tile_map, dt);
+
+        if (_input.is_pressed(InputManager::Action::Escape)) {
+            _running = false;
+        }
     }
 
     void PlayState::render() {
@@ -155,7 +160,7 @@ namespace mario {
         _renderer.end_frame();
     }
 
-    bool PlayState::is_running() const { return _renderer.is_open(); }
+    bool PlayState::is_running() const { return _running && _renderer.is_open(); }
 
     void MenuState::on_enter() {
     }

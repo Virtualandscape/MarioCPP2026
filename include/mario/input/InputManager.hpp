@@ -11,6 +11,7 @@ namespace mario {
             MoveLeft,
             MoveRight,
             Jump,
+            Escape,
             Count
         };
 

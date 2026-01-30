@@ -39,6 +39,7 @@ namespace mario {
         Player _player;
         Renderer _renderer;
         TileMap _tile_map;
+        bool _running = true;
     };
 
     class MenuState : public GameState {

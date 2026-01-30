@@ -12,6 +12,8 @@ void InputManager::poll()
         sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D));
     set_action_state(Action::Jump,
         sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up));
+    set_action_state(Action::Escape,
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape));
 }
 
 bool InputManager::is_pressed(Action action) const
