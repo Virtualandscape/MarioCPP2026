@@ -34,9 +34,9 @@ namespace mario {
         bool is_running() const override;
 
     private:
-        InputManager input_;
-        Player player_;
-        Renderer renderer_;
+        InputManager _input;
+        Player _player;
+        Renderer _renderer;
     };
 
     class MenuState : public GameState {

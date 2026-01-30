@@ -4,33 +4,33 @@ namespace mario {
 
 void Entity::set_position(float x, float y)
 {
-    x_ = x;
-    y_ = y;
+    _x = x;
+    _y = y;
 }
 
 void Entity::set_velocity(float vx, float vy)
 {
-    vx_ = vx;
-    vy_ = vy;
+    _vx = vx;
+    _vy = vy;
 }
 
 void Entity::set_size(float width, float height)
 {
-    width_ = width;
-    height_ = height;
+    _width = width;
+    _height = height;
 }
 
-float Entity::x() const { return x_; }
-float Entity::y() const { return y_; }
-float Entity::vx() const { return vx_; }
-float Entity::vy() const { return vy_; }
-float Entity::width() const { return width_; }
-float Entity::height() const { return height_; }
+float Entity::x() const { return _x; }
+float Entity::y() const { return _y; }
+float Entity::vx() const { return _vx; }
+float Entity::vy() const { return _vy; }
+float Entity::width() const { return _width; }
+float Entity::height() const { return _height; }
 
 void Entity::integrate(float dt)
 {
-    x_ += vx_ * dt;
-    y_ += vy_ * dt;
+    _x += _vx * dt;
+    _y += _vy * dt;
 }
 
 } // namespace mario

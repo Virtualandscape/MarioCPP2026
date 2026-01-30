@@ -19,10 +19,10 @@ namespace mario {
         void render() override;
 
     private:
-        float move_axis_ = 0.0f;
-        bool jump_pressed_ = false;
-        float move_speed_ = 220.0f;
-        float jump_speed_ = 360.0f;
-        float gravity_ = 1200.0f;
+        float _move_axis = 0.0f;
+        bool _jump_pressed = false;
+        float _move_speed = 220.0f;
+        float _jump_speed = 360.0f;
+        float _gravity = 1200.0f;
     };
 } // namespace mario

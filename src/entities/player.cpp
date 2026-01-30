@@ -9,21 +9,21 @@ Player::Player()
 
 void Player::handle_input()
 {
-    set_velocity(move_axis_ * move_speed_, vy());
+    set_velocity(_move_axis * _move_speed, vy());
 
-    if (jump_pressed_) {
-        set_velocity(vx(), -jump_speed_);
-        jump_pressed_ = false;
+    if (_jump_pressed) {
+        set_velocity(vx(), -_jump_speed);
+        _jump_pressed = false;
     }
 }
 
-void Player::set_move_axis(float axis) { move_axis_ = axis; }
+void Player::set_move_axis(float axis) { _move_axis = axis; }
 
-void Player::set_jump_pressed(bool pressed) { jump_pressed_ = pressed; }
+void Player::set_jump_pressed(bool pressed) { _jump_pressed = pressed; }
 
 void Player::update(float dt)
 {
-    set_velocity(vx(), vy() + gravity_ * dt);
+    set_velocity(vx(), vy() + _gravity * dt);
     integrate(dt);
 }
 

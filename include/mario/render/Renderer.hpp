@@ -22,7 +22,7 @@ namespace mario {
         bool is_open() const;
 
     private:
-        sf::RenderWindow window_;
-        sf::Color clear_color_ = sf::Color(30, 30, 36);
+        sf::RenderWindow _window;
+        sf::Color _clear_color = sf::Color(30, 30, 36);
     };
 } // namespace mario

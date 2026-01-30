@@ -22,7 +22,7 @@ namespace mario {
         std::shared_ptr<GameState> current_state();
 
     private:
-        bool running_ = false;
-        std::vector<std::shared_ptr<GameState>> states_;
+        bool _running = false;
+        std::vector<std::shared_ptr<GameState>> _states;
     };
 } // namespace mario

@@ -16,12 +16,12 @@ void InputManager::poll()
 
 bool InputManager::is_pressed(Action action) const
 {
-    return pressed_[static_cast<std::size_t>(action)];
+    return _pressed[static_cast<std::size_t>(action)];
 }
 
 void InputManager::set_action_state(Action action, bool pressed)
 {
-    pressed_[static_cast<std::size_t>(action)] = pressed;
+    _pressed[static_cast<std::size_t>(action)] = pressed;
 }
 
 } // namespace mario

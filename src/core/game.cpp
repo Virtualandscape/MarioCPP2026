@@ -5,12 +5,12 @@
 
 namespace mario {
     void Game::initialize() {
-        running_ = true;
+        _running = true;
     }
 
     void Game::shutdown() {
-        states_.clear();
-        running_ = false;
+        _states.clear();
+        _running = false;
     }
 
     void Game::run() {
@@ -21,14 +21,14 @@ namespace mario {
         }
 
         sf::Clock clock;
-        while (running_ && current_state()) {
+        while (_running && current_state()) {
             const float dt = clock.restart().asSeconds();
             auto state = current_state();
             state->update(dt);
             state->render();
 
             if (!state->is_running()) {
-                running_ = false;
+                _running = false;
             }
         }
 
@@ -44,28 +44,28 @@ namespace mario {
             current->on_exit();
         }
 
-        states_.push_back(std::move(state));
-        states_.back()->on_enter();
+        _states.push_back(std::move(state));
+        _states.back()->on_enter();
     }
 
     void Game::pop_state() {
-        if (states_.empty()) {
+        if (_states.empty()) {
             return;
         }
 
-        states_.back()->on_exit();
-        states_.pop_back();
+        _states.back()->on_exit();
+        _states.pop_back();
 
-        if (states_.empty()) {
-            running_ = false;
+        if (_states.empty()) {
+            _running = false;
         }
     }
 
     std::shared_ptr<GameState> Game::current_state() {
-        if (states_.empty()) {
+        if (_states.empty()) {
             return {};
         }
 
-        return states_.back();
+        return _states.back();
     }
 } // namespace mario

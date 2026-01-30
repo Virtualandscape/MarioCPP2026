@@ -21,6 +21,6 @@ namespace mario {
         void set_action_state(Action action, bool pressed);
 
     private:
-        std::array<bool, static_cast<std::size_t>(Action::Count)> pressed_ = {};
+        std::array<bool, static_cast<std::size_t>(Action::Count)> _pressed = {};
     };
 } // namespace mario

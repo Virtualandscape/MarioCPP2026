@@ -26,11 +26,11 @@ namespace mario {
     protected:
         void integrate(float dt);
 
-        float x_ = 0.0f;
-        float y_ = 0.0f;
-        float vx_ = 0.0f;
-        float vy_ = 0.0f;
-        float width_ = 1.0f;
-        float height_ = 1.0f;
+        float _x = 0.0f;
+        float _y = 0.0f;
+        float _vx = 0.0f;
+        float _vy = 0.0f;
+        float _width = 1.0f;
+        float _height = 1.0f;
     };
 } // namespace mario
