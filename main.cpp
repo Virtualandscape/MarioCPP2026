@@ -3,5 +3,7 @@
 int main()
 {
     mario::Game game;
+    game.run();
+    game.shutdown();
     return 0;
 }

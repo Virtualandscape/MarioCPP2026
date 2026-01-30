@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 namespace mario {
     class GameState;
@@ -19,5 +20,9 @@ namespace mario {
         void pop_state();
 
         std::shared_ptr<GameState> current_state();
+
+    private:
+        bool running_ = false;
+        std::vector<std::shared_ptr<GameState>> states_;
     };
 } // namespace mario

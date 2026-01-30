@@ -1,13 +1,28 @@
 #pragma once
 
+#include <SFML/Config.hpp>
+#include <SFML/Graphics.hpp>
+
 namespace mario {
     // Draw calls, sprites, layers, parallax
     class Renderer {
     public:
+        Renderer();
+
         void begin_frame();
 
         void end_frame();
 
         void draw_sprite(int sprite_id, float x, float y);
+
+        void draw_rect(float x, float y, float width, float height);
+
+        void draw_ellipse(float x, float y, float width, float height);
+
+        bool is_open() const;
+
+    private:
+        sf::RenderWindow window_;
+        sf::Color clear_color_ = sf::Color(30, 30, 36);
     };
 } // namespace mario

@@ -1,12 +1,27 @@
 #include "mario/input/InputManager.hpp"
 
+#include <SFML/Window/Keyboard.hpp>
+
 namespace mario {
 
-void InputManager::poll() {}
-bool InputManager::is_pressed(int action) const
+void InputManager::poll()
 {
-    (void)action;
-    return false;
+    set_action_state(Action::MoveLeft,
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A));
+    set_action_state(Action::MoveRight,
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D));
+    set_action_state(Action::Jump,
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up));
+}
+
+bool InputManager::is_pressed(Action action) const
+{
+    return pressed_[static_cast<std::size_t>(action)];
+}
+
+void InputManager::set_action_state(Action action, bool pressed)
+{
+    pressed_[static_cast<std::size_t>(action)] = pressed;
 }
 
 } // namespace mario
