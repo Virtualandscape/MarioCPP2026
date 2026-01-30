@@ -1,14 +1,13 @@
 #include "mario/core/Game.hpp"
 #include "mario/core/GameState.hpp"
+
 #include <SFML/System/Clock.hpp>
 
 namespace mario {
-    // Redundant for now, but will be useful later.
     void Game::initialize() {
         _running = true;
     }
 
-    // Cleanup resources and set the running flag to false.
     void Game::shutdown() {
         _states.clear();
         _running = false;
@@ -17,13 +16,11 @@ namespace mario {
     void Game::run() {
         initialize();
 
-        // Initialize the game with a default play state if none is set.
         if (!current_state()) {
             push_state(std::make_shared<PlayState>());
         }
 
         sf::Clock clock;
-        // While the game is running and there is a current state, process updates and rendering.
         while (_running && current_state()) {
             const float dt = clock.restart().asSeconds();
             auto state = current_state();
@@ -38,18 +35,16 @@ namespace mario {
         shutdown();
     }
 
-    // Push a new game state onto the stack, exiting the current state if any.
     void Game::push_state(std::shared_ptr<GameState> state) {
         if (!state) {
             return;
         }
-        // Ensure the current state is exited before pushing a new one.
+
         if (auto current = current_state()) {
             current->on_exit();
         }
-        // Push the new state onto the stack and initialize it.
+
         _states.push_back(std::move(state));
-        // Access the last element of the stack and call on_enter to initialize the new state.
         _states.back()->on_enter();
     }
 
@@ -57,9 +52,8 @@ namespace mario {
         if (_states.empty()) {
             return;
         }
-        // Ensure the current state is exited before removing it.
+
         _states.back()->on_exit();
-        // Remove the current state from the stack.
         _states.pop_back();
 
         if (_states.empty()) {
@@ -67,7 +61,6 @@ namespace mario {
         }
     }
 
-    // Returns the current game state, or nullptr if no state is active.
     std::shared_ptr<GameState> Game::current_state() {
         if (_states.empty()) {
             return {};
