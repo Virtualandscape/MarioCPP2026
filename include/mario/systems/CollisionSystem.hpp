@@ -7,8 +7,10 @@ namespace mario {
     //  Broadphase/narrowphase, tile + entity collisions.
     class CollisionSystem {
     public:
-        void resolve(Entity& entity, const TileMap& map, float dt) const;
+        void check_entity_collision(Entity& entity, const TileMap& map, float dt) const;
     };
+
+
 
     //  shapes + collision flags (solid, trigger).
     class Collider {

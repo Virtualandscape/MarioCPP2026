@@ -8,14 +8,14 @@
 
 namespace mario {
     namespace {
-        void build_default(TileMap& map)
-        {
+        // Load a default tile map with a single solid tile.
+        void build_default(TileMap &map) {
             map.unload();
             map.load({});
         }
 
-        bool extract_int_field(const std::string& text, const char* key, int& value)
-        {
+        // Extract an integer field from a JSON-like string.
+        bool extract_int_field(const std::string &text, const char *key, int &value) {
             const std::string needle = std::string("\"") + key + "\"";
             std::size_t pos = text.find(needle);
             if (pos == std::string::npos) {
@@ -54,8 +54,8 @@ namespace mario {
             return true;
         }
 
-        std::vector<std::string> extract_string_array(const std::string& text, const char* key)
-        {
+        // Extract an array of strings from a JSON-like string.
+        std::vector<std::string> extract_string_array(const std::string &text, const char *key) {
             std::vector<std::string> result;
             const std::string needle = std::string("\"") + key + "\"";
             std::size_t pos = text.find(needle);
@@ -91,8 +91,8 @@ namespace mario {
             return result;
         }
 
-        std::ifstream open_level_file(std::string_view path)
-        {
+        // Open a level file from a given path, searching in multiple locations if necessary.
+        std::ifstream open_level_file(std::string_view path) {
             std::filesystem::path base(path);
             std::ifstream file{base.string()};
             if (file) {
@@ -107,7 +107,7 @@ namespace mario {
                 cwd / ".." / ".." / ".." / base,
             };
 
-            for (const auto& candidate : tries) {
+            for (const auto &candidate: tries) {
                 file = std::ifstream{candidate.string()};
                 if (file) {
                     return file;
@@ -118,6 +118,7 @@ namespace mario {
         }
     }
 
+    // Load a tile map from a given identifier, either by ID or by file path.
     void TileMap::load(std::string_view map_id) {
         if (map_id.empty()) {
             _width = 50;
@@ -136,6 +137,8 @@ namespace mario {
         }
 
         std::ifstream file = open_level_file(map_id);
+
+        // If the file cannot be opened, build a default tile map.
         if (!file) {
             build_default(*this);
             return;
@@ -143,6 +146,7 @@ namespace mario {
 
         std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
+        // If there is no width or height, build a default tile map.
         int width = 0;
         int height = 0;
         int tile_size = 16;
@@ -155,6 +159,7 @@ namespace mario {
         extract_int_field(content, "tileSize", tile_size);
         const auto rows = extract_string_array(content, "rows");
 
+        // If there is no tile size or rows, build a default tile map.
         if (width <= 0 || height <= 0 || tile_size <= 0 || rows.empty()) {
             build_default(*this);
             return;
@@ -165,9 +170,10 @@ namespace mario {
         _tile_size = tile_size;
         _tiles.assign(static_cast<std::size_t>(_width * _height), 0);
 
+        // Build the tile map from the parsed data.
         const int row_count = std::min(static_cast<int>(rows.size()), _height);
         for (int y = 0; y < row_count; ++y) {
-            const std::string& row = rows[static_cast<std::size_t>(y)];
+            const std::string &row = rows[static_cast<std::size_t>(y)];
             const int col_count = std::min(static_cast<int>(row.size()), _width);
             for (int x = 0; x < col_count; ++x) {
                 if (row[static_cast<std::size_t>(x)] == '1') {
@@ -194,6 +200,7 @@ namespace mario {
 
     int TileMap::tile_size() const { return _tile_size; }
 
+    // Check if a tile at the given coordinates is solid.
     bool TileMap::is_solid(int tx, int ty) const {
         if (tx < 0 || ty < 0 || tx >= _width || ty >= _height) {
             return false;

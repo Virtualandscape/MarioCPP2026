@@ -37,7 +37,10 @@ namespace mario {
         _player.handle_input();
         _player.update(dt);
         _physics.update(_player, dt);
-        _collision.resolve(_player, _tile_map, dt);
+        _collision.check_entity_collision(_player, _tile_map, dt);
+        if (_player.is_on_ground(_tile_map)) {
+            _player.reset_jump();
+        }
 
         const auto viewport = _renderer.viewport_size();
         _camera.set_viewport(viewport.x, viewport.y);

@@ -16,21 +16,18 @@ namespace mario {
         };
 
         // Make an axis-aligned bounding box (AABB) from position and dimensions
-        Aabb make_aabb(float x, float y, float w, float h)
-        {
+        Aabb make_aabb(float x, float y, float w, float h) {
             return {x, y, x + w, y + h};
         }
 
         // Check if two axis-aligned bounding boxes (AABBs) intersect
-        bool intersects(const Aabb& a, const Aabb& b)
-        {
+        bool intersects(const Aabb &a, const Aabb &b) {
             return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
         }
     }
 
     // Check if the entity collides with any tiles in the tile map
-    void CollisionSystem::resolve(Entity& entity, const TileMap& map, float dt) const
-    {
+    void CollisionSystem::check_entity_collision(Entity &entity, const TileMap &map, float dt) const {
         const float w = entity.width();
         const float h = entity.height();
         const float current_x = entity.x();
@@ -57,13 +54,13 @@ namespace mario {
             const int start_y = static_cast<int>(std::floor(prev_y / tile_size));
             const int end_y = static_cast<int>(std::floor((prev_y + h) / tile_size));
 
-            //
+            // Iterate over tiles that the entity might collide with
             for (int ty = start_y; ty <= end_y; ++ty) {
                 for (int tx = start_x; tx <= end_x; ++tx) {
                     if (!map.is_solid(tx, ty)) {
                         continue;
                     }
-
+                    // Build collision detection for the entity with the tile
                     const float tile_left = static_cast<float>(tx * tile_size);
                     const float tile_top = static_cast<float>(ty * tile_size);
                     const Aabb tile_box = {tile_left, tile_top, tile_left + tile_size, tile_top + tile_size};
@@ -72,8 +69,10 @@ namespace mario {
                         continue;
                     }
 
+                    // If the entity is moving right, stop at the left edge of the tile
                     if (vx > 0.0f) {
                         new_x = tile_left - w;
+                    // If the entity is moving left, stop at the right edge of the tile
                     } else {
                         new_x = tile_left + tile_size;
                     }
@@ -118,7 +117,10 @@ namespace mario {
         entity.set_velocity(vx, vy);
     }
 
-    void Collider::set_solid(bool solid) { (void)solid; }
-    void Hitbox::set_size(float w, float h) { (void)w; (void)h; }
+    void Collider::set_solid(bool solid) { (void) solid; }
 
+    void Hitbox::set_size(float w, float h) {
+        (void) w;
+        (void) h;
+    }
 } // namespace mario
