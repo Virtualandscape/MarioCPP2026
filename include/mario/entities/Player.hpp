@@ -24,6 +24,8 @@ namespace mario {
         void update(float dt) override;
 
         void render(Renderer& renderer)  override;
+        
+        EntityType type() const override { return EntityType::Player; }
 
     private:
         int _jump_count = 0;

@@ -19,6 +19,7 @@ namespace mario {
         Goomba();
         void render(Renderer& renderer) override;
         void on_stomped() override;
+        EntityType type() const override { return EntityType::Goomba; }
     };
 
     class Koopa : public Enemy {
@@ -26,5 +27,6 @@ namespace mario {
         Koopa();
         void render(Renderer& renderer) override;
         void on_stomped() override;
+        EntityType type() const override { return EntityType::Koopa; }
     };
 } // namespace mario

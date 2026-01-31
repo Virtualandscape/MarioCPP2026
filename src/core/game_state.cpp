@@ -6,7 +6,9 @@
 #include <cctype>
 #include <string>
 
+// Helpers
 namespace {
+    // Cast to lowercase
     std::string to_lower(std::string value) {
         std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
             return static_cast<char>(std::tolower(ch));
@@ -14,6 +16,7 @@ namespace {
         return value;
     }
 
+    // Create entities from spawn data with a type and position using a factory pattern
     std::unique_ptr<mario::Entity> create_entity_for_spawn(const mario::EntitySpawn &spawn, float tile_size) {
         const std::string type = to_lower(spawn.type);
         const float pos_x = spawn.tile_x * tile_size;
@@ -37,32 +40,39 @@ namespace {
 
 namespace mario {
     void PlayState::on_enter() {
+
         _entities.clear();
         // Initialize player position
         _player.set_position(32.0f, 32.0f);
-
         // Load level
         _level.load("assets/levels/demo.json");
 
+        // Check if the player entity belongs to the level and is spawned
         bool player_spawned = false;
+        // Looking at the level tile map
         if (auto tile_map = _level.tile_map()) {
+            // Getting the tile size
             const float tile_size = static_cast<float>(tile_map->tile_size());
             if (tile_size > 0.0f) {
+                // For each entity spawn in the level
                 for (const auto &spawn : _level.entity_spawns()) {
                     const auto type = to_lower(spawn.type);
+                    // If the entity type is player
                     if (type == "player") {
+                        // Set player position based on spawn coordinates
                         _player.set_position(spawn.tile_x * tile_size, spawn.tile_y * tile_size);
                         player_spawned = true;
                         continue;
                     }
-
+                    // If entity creation succeeds
                     if (auto entity = create_entity_for_spawn(spawn, tile_size)) {
+                        // Insert the entity into the entities list
                         _entities.push_back(std::move(entity));
                     }
                 }
             }
         }
-
+        // If no player entity is found, set its default position
         if (!player_spawned) {
             _player.set_position(32.0f, 32.0f);
         }
@@ -114,6 +124,12 @@ namespace mario {
                 _collision.check_entity_collision(*entity, *tile_map, dt);
             }
         }
+
+        // Check for entity vs entity collisions (Player vs Enemies)
+        for (auto &entity : _entities) {
+            _collision.check_entity_vs_entity_collision(_player, *entity);
+        }
+
         // Reset jump if player is on ground
         if (tile_map && _player.is_on_ground(*tile_map)) _player.reset_jump();
 

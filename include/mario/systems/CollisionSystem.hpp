@@ -8,10 +8,8 @@ namespace mario {
     class CollisionSystem {
     public:
         void check_entity_collision(Entity& entity, const TileMap& map, float dt) const;
+        void check_entity_vs_entity_collision(Entity& a, Entity& b) const;
     };
-
-
-
     //  shapes + collision flags (solid, trigger).
     class Collider {
     public:

@@ -26,6 +26,9 @@ namespace mario {
 
     // Check if the entity collides with any tiles in the tile map
     void CollisionSystem::check_entity_collision(Entity &entity, const TileMap &map, float dt) const {
+        // Clear previous collision info
+        entity.clear_collision_info();
+
         const float w = entity.width();
         const float h = entity.height();
         const float current_x = entity.x();
@@ -114,6 +117,41 @@ namespace mario {
         entity.set_position(new_x, new_y);
         entity.set_velocity(vx, vy);
     }
+
+    void CollisionSystem::check_entity_vs_entity_collision(Entity &a, Entity &b) const {
+        const Aabb box_a = make_aabb(a.x(), a.y(), a.width(), a.height());
+        const Aabb box_b = make_aabb(b.x(), b.y(), b.width(), b.height());
+
+        if (intersects(box_a, box_b)) {
+        a.set_collision_info({true, b.type()});
+        b.set_collision_info({true, a.type()});
+
+        if (a.type() == EntityType::Player) {
+            // Calculate intersection depths
+            float overlapLeft = box_b.right - box_a.left;
+            float overlapRight = box_a.right - box_b.left;
+            float overlapTop = box_b.bottom - box_a.top;
+            float overlapBottom = box_a.bottom - box_b.top;
+
+            // Find the smallest overlap on x and y axes
+            float minOverlapX = (overlapLeft < overlapRight) ? overlapLeft : -overlapRight;
+            float minOverlapY = (overlapTop < overlapBottom) ? overlapTop : -overlapBottom;
+
+            // Resolve along the axis of least penetration
+            if (std::abs(minOverlapX) < std::abs(minOverlapY)) {
+                // Move player horizontally out of collision
+                a.set_position(a.x() + minOverlapX, a.y());
+                // Stop horizontal velocity
+                a.set_velocity(0.0f, a.vy());
+            } else {
+                // Move the player vertically out of collision
+                a.set_position(a.x(), a.y() + minOverlapY);
+                // Stop vertical velocity
+                a.set_velocity(a.vx(), 0.0f);
+            }
+        }
+    }
+}
 
     void Collider::set_solid(bool solid) { (void) solid; }
 
