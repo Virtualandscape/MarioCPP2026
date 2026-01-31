@@ -9,9 +9,9 @@
 namespace mario {
     namespace {
         // Load a default tile map with a single solid tile.
-        void build_default(TileMap &map) {
+        void build_default(TileMap &map, std::vector<EntitySpawn>* entity_spawns) {
             map.unload();
-            map.load({});
+            map.load({}, entity_spawns);
         }
 
         // Extract an integer field from a JSON-like string.
@@ -52,6 +52,96 @@ namespace mario {
 
             value = negative ? -result : result;
             return true;
+        }
+
+        // Extract a quoted string field from a JSON-like string.
+        bool extract_string_field(const std::string &text, const char *key, std::string &value) {
+            const std::string needle = std::string("\"") + key + "\"";
+            std::size_t pos = text.find(needle);
+            if (pos == std::string::npos) {
+                return false;
+            }
+
+            pos = text.find(':', pos);
+            if (pos == std::string::npos) {
+                return false;
+            }
+
+            ++pos;
+            while (pos < text.size() && std::isspace(static_cast<unsigned char>(text[pos]))) {
+                ++pos;
+            }
+
+            if (pos >= text.size() || text[pos] != '"') {
+                return false;
+            }
+
+            const std::size_t start = pos + 1;
+            const std::size_t end = text.find('"', start);
+            if (end == std::string::npos) {
+                return false;
+            }
+
+            value = text.substr(start, end - start);
+            return true;
+        }
+
+        bool extract_int_field_any(const std::string &text, const char *const keys[], std::size_t key_count, int &value) {
+            for (std::size_t i = 0; i < key_count; ++i) {
+                if (extract_int_field(text, keys[i], value)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        std::vector<EntitySpawn> extract_entity_spawns(const std::string &text) {
+            std::vector<EntitySpawn> result;
+            const std::string needle = "\"entities\"";
+            std::size_t pos = text.find(needle);
+            if (pos == std::string::npos) {
+                return result;
+            }
+
+            pos = text.find('[', pos);
+            if (pos == std::string::npos) {
+                return result;
+            }
+
+            while (pos < text.size()) {
+                pos = text.find('{', pos);
+                if (pos == std::string::npos) {
+                    break;
+                }
+
+                const std::size_t end = text.find('}', pos);
+                if (end == std::string::npos) {
+                    break;
+                }
+
+                const std::string object = text.substr(pos, end - pos + 1);
+                EntitySpawn spawn;
+                constexpr const char *x_keys[] = {"x", "tileX"};
+                constexpr const char *y_keys[] = {"y", "tileY"};
+                constexpr std::size_t x_key_count = sizeof(x_keys) / sizeof(x_keys[0]);
+                constexpr std::size_t y_key_count = sizeof(y_keys) / sizeof(y_keys[0]);
+                int tile_x = 0;
+                int tile_y = 0;
+
+                if (!extract_string_field(object, "type", spawn.type) ||
+                    !extract_int_field_any(object, x_keys, x_key_count, tile_x) ||
+                    !extract_int_field_any(object, y_keys, y_key_count, tile_y)) {
+                    pos = end + 1;
+                    continue;
+                }
+
+                spawn.tile_x = tile_x;
+                spawn.tile_y = tile_y;
+                result.push_back(spawn);
+                pos = end + 1;
+            }
+
+            return result;
         }
 
         // Extract an array of strings from a JSON-like string.
@@ -119,7 +209,7 @@ namespace mario {
     }
 
     // Load a tile map from a given identifier, either by ID or by file path.
-    void TileMap::load(std::string_view map_id) {
+    void TileMap::load(std::string_view map_id, std::vector<EntitySpawn>* entity_spawns) {
         if (map_id.empty()) {
             _width = 50;
             _height = 18;
@@ -133,6 +223,9 @@ namespace mario {
             for (int x = 10; x < 16; ++x) {
                 _tiles[static_cast<std::size_t>((_height - 5) * _width + x)] = 1;
             }
+            if (entity_spawns) {
+                entity_spawns->clear();
+            }
             return;
         }
 
@@ -140,7 +233,7 @@ namespace mario {
 
         // If the file cannot be opened, build a default tile map.
         if (!file) {
-            build_default(*this);
+            build_default(*this, entity_spawns);
             return;
         }
 
@@ -152,16 +245,19 @@ namespace mario {
         int tile_size = 16;
         if (!extract_int_field(content, "width", width) ||
             !extract_int_field(content, "height", height)) {
-            build_default(*this);
+            build_default(*this, entity_spawns);
             return;
         }
 
         extract_int_field(content, "tileSize", tile_size);
         const auto rows = extract_string_array(content, "rows");
+        if (entity_spawns) {
+            *entity_spawns = extract_entity_spawns(content);
+        }
 
         // If there is no tile size or rows, build a default tile map.
         if (width <= 0 || height <= 0 || tile_size <= 0 || rows.empty()) {
-            build_default(*this);
+            build_default(*this, entity_spawns);
             return;
         }
 

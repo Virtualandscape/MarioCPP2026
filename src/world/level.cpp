@@ -4,12 +4,15 @@
 #include "mario/render/Renderer.hpp"
 
 #include <algorithm>
+#include <utility>
 
 namespace mario {
     // Loads a level from a JSON file and initializes camera bounds
     void Level::load(std::string_view level_id) {
         _tile_map = std::make_shared<TileMap>();
-        _tile_map->load(level_id);
+        std::vector<EntitySpawn> spawns;
+        _tile_map->load(level_id, &spawns);
+        _entity_spawns = std::move(spawns);
 
         _camera = std::make_shared<Camera>();
         
@@ -24,6 +27,7 @@ namespace mario {
         if (_tile_map) _tile_map->unload();
         _tile_map.reset();
         _camera.reset();
+        _entity_spawns.clear();
     }
 
     // Updates camera and level state
@@ -64,4 +68,5 @@ namespace mario {
 
     std::shared_ptr<TileMap> Level::tile_map() const { return _tile_map; }
     std::shared_ptr<Camera> Level::camera() const { return _camera; }
+    const std::vector<EntitySpawn>& Level::entity_spawns() const { return _entity_spawns; }
 } // namespace mario

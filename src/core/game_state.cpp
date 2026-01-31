@@ -1,13 +1,71 @@
 #include "mario/core/GameState.hpp"
+#include "mario/entities/Enemy.hpp"
 #include "mario/world/Camera.hpp"
+
+#include <algorithm>
+#include <cctype>
+#include <string>
+
+namespace {
+    std::string to_lower(std::string value) {
+        std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
+            return static_cast<char>(std::tolower(ch));
+        });
+        return value;
+    }
+
+    std::unique_ptr<mario::Entity> create_entity_for_spawn(const mario::EntitySpawn &spawn, float tile_size) {
+        const std::string type = to_lower(spawn.type);
+        const float pos_x = spawn.tile_x * tile_size;
+        const float pos_y = spawn.tile_y * tile_size;
+
+        if (type == "goomba") {
+            auto entity = std::make_unique<mario::Goomba>();
+            entity->set_position(pos_x, pos_y);
+            return entity;
+        }
+
+        if (type == "koopa") {
+            auto entity = std::make_unique<mario::Koopa>();
+            entity->set_position(pos_x, pos_y);
+            return entity;
+        }
+
+        return nullptr;
+    }
+}
 
 namespace mario {
     void PlayState::on_enter() {
+        _entities.clear();
         // Initialize player position
         _player.set_position(32.0f, 32.0f);
-        
+
         // Load level
         _level.load("assets/levels/demo.json");
+
+        bool player_spawned = false;
+        if (auto tile_map = _level.tile_map()) {
+            const float tile_size = static_cast<float>(tile_map->tile_size());
+            if (tile_size > 0.0f) {
+                for (const auto &spawn : _level.entity_spawns()) {
+                    const auto type = to_lower(spawn.type);
+                    if (type == "player") {
+                        _player.set_position(spawn.tile_x * tile_size, spawn.tile_y * tile_size);
+                        player_spawned = true;
+                        continue;
+                    }
+
+                    if (auto entity = create_entity_for_spawn(spawn, tile_size)) {
+                        _entities.push_back(std::move(entity));
+                    }
+                }
+            }
+        }
+
+        if (!player_spawned) {
+            _player.set_position(32.0f, 32.0f);
+        }
         
         // Initialize camera target
         if (auto camera = _level.camera()) {
@@ -23,6 +81,7 @@ namespace mario {
 
     void PlayState::on_exit() {
         _level.unload();
+        _entities.clear();
     }
 
     void PlayState::update(float dt) {

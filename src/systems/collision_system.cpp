@@ -1,10 +1,8 @@
-#include "mario/systems/CollisionSystem.hpp"
-
-#include "mario/entities/Entity.hpp"
-#include "mario/world/TileMap.hpp"
-
 #include <algorithm>
 #include <cmath>
+#include "mario/systems/CollisionSystem.hpp"
+#include "mario/entities/Entity.hpp"
+#include "mario/world/TileMap.hpp"
 
 namespace mario {
     namespace {

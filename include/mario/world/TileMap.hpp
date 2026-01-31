@@ -3,11 +3,13 @@
 #include <vector>
 #include <string_view>
 
+#include "mario/world/EntitySpawn.hpp"
+
 namespace mario {
     //  Tile grid data, collision layer, rendering chunks.
     class TileMap {
     public:
-        void load(std::string_view map_id);
+        void load(std::string_view map_id, std::vector<EntitySpawn>* entity_spawns = nullptr);
 
         void unload();
 

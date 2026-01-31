@@ -5,7 +5,7 @@ namespace mario {
 #if SFML_VERSION_MAJOR >= 3
         : _window(sf::VideoMode({800u, 480u}), "Mario Prototype", sf::Style::Titlebar | sf::Style::Close)
 #else
-    : _window(sf::VideoMode(800, 480), "Mario Prototype", sf::Style::Titlebar | sf::Style::Close)
+        : _window(sf::VideoMode(800, 480), "Mario Prototype", sf::Style::Titlebar | sf::Style::Close)
 #endif
     {
         _window.setVerticalSyncEnabled(true);
@@ -79,12 +79,7 @@ namespace mario {
     bool Renderer::is_open() const { return _window.isOpen(); }
 
     sf::Vector2f Renderer::viewport_size() const {
-#if SFML_VERSION_MAJOR >= 3
         const auto size = _window.getSize();
         return {static_cast<float>(size.x), static_cast<float>(size.y)};
-#else
-        const auto size = _window.getSize();
-        return {static_cast<float>(size.x), static_cast<float>(size.y)};
-#endif
     }
 } // namespace mario

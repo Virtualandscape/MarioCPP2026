@@ -2,6 +2,9 @@
 
 #include <memory>
 #include <string_view>
+#include <vector>
+
+#include "mario/world/EntitySpawn.hpp"
 
 namespace mario {
     class TileMap;
@@ -23,8 +26,11 @@ namespace mario {
 
         std::shared_ptr<Camera> camera() const;
 
+        const std::vector<EntitySpawn>& entity_spawns() const;
+
     private:
         std::shared_ptr<TileMap> _tile_map;
         std::shared_ptr<Camera> _camera;
+        std::vector<EntitySpawn> _entity_spawns;
     };
 } // namespace mario
