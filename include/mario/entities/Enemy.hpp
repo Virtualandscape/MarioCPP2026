@@ -16,11 +16,15 @@ namespace mario {
 
     class Goomba : public Enemy {
     public:
+        Goomba();
+        void render(Renderer& renderer) override;
         void on_stomped() override;
     };
 
     class Koopa : public Enemy {
     public:
+        Koopa();
+        void render(Renderer& renderer) override;
         void on_stomped() override;
     };
 } // namespace mario

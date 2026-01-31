@@ -53,14 +53,14 @@ namespace mario {
         (void) y;
     }
 
-    void Renderer::draw_rect(float x, float y, float width, float height) {
+    void Renderer::draw_rect(float x, float y, float width, float height, sf::Color color) {
         if (!_window.isOpen()) {
             return;
         }
 
         sf::RectangleShape shape({width, height});
         shape.setPosition({x - _camera_x, y - _camera_y});
-        shape.setFillColor(sf::Color(240, 240, 240));
+        shape.setFillColor(color);
         _window.draw(shape);
     }
 

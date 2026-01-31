@@ -272,8 +272,17 @@ namespace mario {
             const std::string &row = rows[static_cast<std::size_t>(y)];
             const int col_count = std::min(static_cast<int>(row.size()), _width);
             for (int x = 0; x < col_count; ++x) {
-                if (row[static_cast<std::size_t>(x)] == '1') {
+                char tile_char = row[static_cast<std::size_t>(x)];
+                if (tile_char == '1') {
                     _tiles[static_cast<std::size_t>(y * _width + x)] = 1;
+                } else if (tile_char == 'G' || tile_char == 'K') {
+                    if (entity_spawns) {
+                        EntitySpawn spawn;
+                        spawn.type = (tile_char == 'G') ? "goomba" : "koopa";
+                        spawn.tile_x = x;
+                        spawn.tile_y = y;
+                        entity_spawns->push_back(spawn);
+                    }
                 }
             }
         }

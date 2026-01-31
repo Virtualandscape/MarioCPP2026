@@ -17,7 +17,7 @@ namespace mario {
 
         void draw_sprite(int sprite_id, float x, float y);
 
-        void draw_rect(float x, float y, float width, float height);
+        void draw_rect(float x, float y, float width, float height, sf::Color color = sf::Color(240, 240, 240));
 
         void draw_ellipse(float x, float y, float width, float height);
 
