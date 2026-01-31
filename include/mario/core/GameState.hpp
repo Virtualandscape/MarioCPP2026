@@ -5,8 +5,7 @@
 #include "mario/render/Renderer.hpp"
 #include "mario/systems/CollisionSystem.hpp"
 #include "mario/systems/PhysicsSystem.hpp"
-#include "mario/world/Camera.hpp"
-#include "mario/world/TileMap.hpp"
+#include "mario/world/Level.hpp"
 
 #include <memory>
 #include <vector>
@@ -47,8 +46,7 @@ namespace mario {
         PhysicsSystem _physics;
         CollisionSystem _collision;
         Renderer _renderer;
-        Camera _camera;
-        TileMap _tile_map;
+        Level _level;
         std::vector<std::unique_ptr<Entity>> _entities;
         bool _running = true;
     };

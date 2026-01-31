@@ -5,7 +5,7 @@
 #include "mario/world/TileMap.hpp"
 
 namespace mario {
-    Player::Player() : _jump_count(0) {
+    Player::Player() {
         set_size(16.0f, 24.0f);
     }
 
@@ -24,6 +24,7 @@ namespace mario {
     void Player::reset_jump() {
         _jump_count = 0;
     }
+
     // Set move axis i.e., direction of movement
     void Player::set_move_axis(float axis) { _move_axis = axis; }
 
@@ -36,7 +37,7 @@ namespace mario {
 
     void Player::update(float dt) { (void) dt; }
 
-    bool Player::is_on_ground(const TileMap& map) const {
+    bool Player::is_on_ground(const TileMap &map) const {
         const int tile_size = map.tile_size();
         if (tile_size <= 0) {
             return false;
@@ -60,7 +61,7 @@ namespace mario {
         return false;
     }
 
-    void Player::render(Renderer& renderer) {
+    void Player::render(Renderer &renderer) {
         renderer.draw_ellipse(x(), y(), width(), height());
     }
 } // namespace mario

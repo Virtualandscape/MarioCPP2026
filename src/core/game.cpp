@@ -26,7 +26,7 @@ namespace mario {
         sf::Clock clock;
         const sf::Time target_frame_time = sf::seconds(1.0f / 60.0f);
         sf::Time previous_time = clock.getElapsedTime();
-        // While the game is running and there is a current state, process updates and rendering.
+        // While the game is running and there is a current state, processes updates and rendering.
         while (_running && current_state()) {
             const sf::Time current_time = clock.getElapsedTime();
             const float dt = (current_time - previous_time).asSeconds();
