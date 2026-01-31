@@ -130,6 +130,15 @@ namespace mario {
         if (_input.is_pressed(InputManager::Action::Escape)) {
             _running = false;
         }
+
+        // Reset the level if the player falls below the map
+        if (tile_map) {
+            float map_bottom = static_cast<float>(tile_map->height() * tile_map->tile_size());
+            if (_player.y() > map_bottom) {
+                on_exit();
+                on_enter();
+            }
+        }
     }
 
     void PlayState::render() {

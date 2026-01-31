@@ -8,7 +8,7 @@
 
 namespace mario {
     namespace {
-        // Load a default tile map with a single solid tile.
+        // Loads a default tile map with a single solid tile and entities.
         void build_default(TileMap &map, std::vector<EntitySpawn>* entity_spawns) {
             map.unload();
             map.load({}, entity_spawns);
@@ -94,54 +94,52 @@ namespace mario {
             }
             return false;
         }
-
-        std::vector<EntitySpawn> extract_entity_spawns(const std::string &text) {
-            std::vector<EntitySpawn> result;
+        bool extract_player_spawn(const std::string &text, EntitySpawn &spawn) {
             const std::string needle = "\"entities\"";
             std::size_t pos = text.find(needle);
             if (pos == std::string::npos) {
-                return result;
+                return false;
             }
 
-            pos = text.find('[', pos);
-            if (pos == std::string::npos) {
-                return result;
-            }
-
-            while (pos < text.size()) {
-                pos = text.find('{', pos);
-                if (pos == std::string::npos) {
-                    break;
-                }
-
+            pos = text.find('{', pos);
+            while (pos != std::string::npos) {
                 const std::size_t end = text.find('}', pos);
                 if (end == std::string::npos) {
                     break;
                 }
 
                 const std::string object = text.substr(pos, end - pos + 1);
-                EntitySpawn spawn;
                 constexpr const char *x_keys[] = {"x", "tileX"};
                 constexpr const char *y_keys[] = {"y", "tileY"};
                 constexpr std::size_t x_key_count = sizeof(x_keys) / sizeof(x_keys[0]);
                 constexpr std::size_t y_key_count = sizeof(y_keys) / sizeof(y_keys[0]);
                 int tile_x = 0;
                 int tile_y = 0;
+                std::string type;
 
-                if (!extract_string_field(object, "type", spawn.type) ||
+                if (!extract_string_field(object, "type", type) ||
                     !extract_int_field_any(object, x_keys, x_key_count, tile_x) ||
                     !extract_int_field_any(object, y_keys, y_key_count, tile_y)) {
                     pos = end + 1;
                     continue;
                 }
 
+                std::transform(type.begin(), type.end(), type.begin(), [](unsigned char ch) {
+                    return static_cast<char>(std::tolower(ch));
+                });
+
+                if (type != "player") {
+                    pos = end + 1;
+                    continue;
+                }
+
+                spawn.type = "player";
                 spawn.tile_x = tile_x;
                 spawn.tile_y = tile_y;
-                result.push_back(spawn);
-                pos = end + 1;
+                return true;
             }
 
-            return result;
+            return false;
         }
 
         // Extract an array of strings from a JSON-like string.
@@ -252,7 +250,11 @@ namespace mario {
         extract_int_field(content, "tileSize", tile_size);
         const auto rows = extract_string_array(content, "rows");
         if (entity_spawns) {
-            *entity_spawns = extract_entity_spawns(content);
+            entity_spawns->clear();
+            EntitySpawn player_spawn;
+            if (extract_player_spawn(content, player_spawn)) {
+                entity_spawns->push_back(player_spawn);
+            }
         }
 
         // If there is no tile size or rows, build a default tile map.
