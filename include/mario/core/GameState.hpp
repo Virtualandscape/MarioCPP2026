@@ -8,7 +8,11 @@
 #include "mario/world/Camera.hpp"
 #include "mario/world/TileMap.hpp"
 
+#include <memory>
+#include <vector>
+
 namespace mario {
+    class Entity;
     // Common base class for game states like play, menu, and pause
     class GameState {
     public:
@@ -45,6 +49,7 @@ namespace mario {
         Renderer _renderer;
         Camera _camera;
         TileMap _tile_map;
+        std::vector<std::unique_ptr<Entity>> _entities;
         bool _running = true;
     };
 

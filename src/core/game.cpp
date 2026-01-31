@@ -1,6 +1,7 @@
 #include "mario/core/Game.hpp"
 #include "mario/core/GameState.hpp"
 #include <SFML/System/Clock.hpp>
+#include <SFML/System/Sleep.hpp>
 
 namespace mario {
     // Redundant for now, but will be useful later.
@@ -23,12 +24,22 @@ namespace mario {
         }
 
         sf::Clock clock;
+        const sf::Time target_frame_time = sf::seconds(1.0f / 60.0f);
+        sf::Time previous_time = clock.getElapsedTime();
         // While the game is running and there is a current state, process updates and rendering.
         while (_running && current_state()) {
-            const float dt = clock.restart().asSeconds();
+            const sf::Time current_time = clock.getElapsedTime();
+            const float dt = (current_time - previous_time).asSeconds();
+            previous_time = current_time;
+
             auto state = current_state();
             state->update(dt);
             state->render();
+
+            const sf::Time work_time = clock.getElapsedTime() - current_time;
+            if (work_time < target_frame_time) {
+                sf::sleep(target_frame_time - work_time);
+            }
 
             if (!state->is_running()) {
                 _running = false;

@@ -48,6 +48,12 @@ namespace mario {
                            _player.y() + _player.height() * 0.5f);
         _camera.update(dt);
 
+        for (auto& entity : _entities) {
+            entity->update(dt);
+            _physics.update(*entity, dt);
+            _collision.check_entity_collision(*entity, _tile_map, dt);
+        }
+
         if (_input.is_pressed(InputManager::Action::Escape)) {
             _running = false;
         }
@@ -83,6 +89,15 @@ namespace mario {
         }
 
         _renderer.draw_ellipse(_player.x(), _player.y(), _player.width(), _player.height());
+
+        for (auto& entity : _entities) {
+            entity->render();
+            // Assuming entity->render() doesn't take renderer, 
+            // but normally it should or we draw it here.
+            // Since entities have x, y, width, height, we can draw them here for now.
+            _renderer.draw_rect(entity->x(), entity->y(), entity->width(), entity->height());
+        }
+
         _renderer.end_frame();
     }
 
