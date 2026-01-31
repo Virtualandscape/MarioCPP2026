@@ -1,6 +1,7 @@
 #include <cmath>
 
 #include "mario/entities/Player.hpp"
+#include "mario/render/Renderer.hpp"
 #include "mario/world/TileMap.hpp"
 
 namespace mario {
@@ -23,7 +24,7 @@ namespace mario {
     void Player::reset_jump() {
         _jump_count = 0;
     }
-
+    // Set move axis i.e., direction of movement
     void Player::set_move_axis(float axis) { _move_axis = axis; }
 
     void Player::set_jump_pressed(bool pressed) {
@@ -40,7 +41,7 @@ namespace mario {
         if (tile_size <= 0) {
             return false;
         }
-
+        // Check if player is on ground by collision with solid tiles
         constexpr float epsilon = 0.1f;
         const float bottom = y() + height();
         const int ty = static_cast<int>(std::floor((bottom + epsilon) / tile_size));
@@ -59,6 +60,7 @@ namespace mario {
         return false;
     }
 
-    void Player::render() {
+    void Player::render(Renderer& renderer) {
+        renderer.draw_ellipse(x(), y(), width(), height());
     }
 } // namespace mario

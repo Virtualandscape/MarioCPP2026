@@ -9,7 +9,7 @@ namespace mario {
     public:
         void update(float dt) override;
 
-        void render() override;
+        void render(Renderer& renderer) override;
 
         virtual void on_stomped() = 0;
     };

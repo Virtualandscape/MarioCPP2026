@@ -1,13 +1,14 @@
 #pragma once
 
 #include "mario/entities/Entity.hpp"
+#include "mario/render/Renderer.hpp"
 
 namespace mario {
     // Mushroom, fire flower, etc.
     class PowerUp : public Entity {
     public:
         void update(float dt) override;
-        void render() override;
+        void render(Renderer& renderer) override;
         virtual void apply_to_player() = 0;
     };
 
@@ -15,7 +16,7 @@ namespace mario {
     class Item : public Entity {
     public:
         void update(float dt) override;
-        void render() override;
+        void render(Renderer& renderer) override;
         void collect();
     };
 
@@ -23,6 +24,6 @@ namespace mario {
     class Projectile : public Entity {
     public:
         void update(float dt) override;
-        void render() override;
+        void render(Renderer& renderer) override;
     };
 } // namespace mario

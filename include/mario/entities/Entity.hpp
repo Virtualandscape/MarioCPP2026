@@ -1,6 +1,8 @@
 #pragma once
 
 namespace mario {
+    class Renderer;  // Forward declaration
+    
     // Position/velocity, update/render hooks, bounding box.
     class Entity {
     public:
@@ -8,7 +10,7 @@ namespace mario {
 
         virtual void update(float dt) = 0;
 
-        virtual void render() = 0;
+        virtual void render(Renderer& renderer) = 0;
 
         void set_position(float x, float y);
 

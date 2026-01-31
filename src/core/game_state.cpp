@@ -4,11 +4,14 @@
 
 namespace mario {
     void PlayState::on_enter() {
-        _tile_map.load("assets/levels/demo.json");
+        // Initialize player position
         _player.set_position(32.0f, 32.0f);
+        // Tile map initialization
+        _tile_map.load("assets/levels/demo.json");
         const int tile_size = _tile_map.tile_size();
-        const float map_width = static_cast<float>(_tile_map.width() * tile_size);
-        const float map_height = static_cast<float>(_tile_map.height() * tile_size);
+        const auto map_width = static_cast<float>(_tile_map.width() * tile_size);
+        const auto map_height = static_cast<float>(_tile_map.height() * tile_size);
+        // Initialize camera with map bounds
         const auto viewport = _renderer.viewport_size();
         _camera.set_viewport(viewport.x, viewport.y);
         _camera.set_bounds(0.0f, 0.0f, map_width, map_height);
@@ -23,37 +26,34 @@ namespace mario {
 
     void PlayState::update(float dt) {
         _input.poll();
-
         float axis = 0.0f;
-        if (_input.is_pressed(InputManager::Action::MoveLeft)) {
-            axis -= 1.0f;
-        }
-        if (_input.is_pressed(InputManager::Action::MoveRight)) {
-            axis += 1.0f;
-        }
+        if (_input.is_pressed(InputManager::Action::MoveLeft)) axis -= 1.0f;
+        if (_input.is_pressed(InputManager::Action::MoveRight)) axis += 1.0f;
 
+        // Set move axis i.e., direction of movement
         _player.set_move_axis(axis);
+        // Check if the player is jumping and the jump button is pressed
         _player.set_jump_pressed(_input.is_pressed(InputManager::Action::Jump));
+        // Player velocity update and double jump handling
         _player.handle_input();
-        _player.update(dt);
         _physics.update(_player, dt);
         _collision.check_entity_collision(_player, _tile_map, dt);
-        if (_player.is_on_ground(_tile_map)) {
-            _player.reset_jump();
+        // Update player and entities and physics
+        for (auto &entity: _entities) {
+            entity->update(dt);
+            _physics.update(*entity, dt);
+            _collision.check_entity_collision(*entity, _tile_map, dt);
         }
+        // Reset jump if player is on ground
+        if (_player.is_on_ground(_tile_map)) _player.reset_jump();
 
+        // Handle camera movement and target for scrolling effect
         const auto viewport = _renderer.viewport_size();
         _camera.set_viewport(viewport.x, viewport.y);
         _camera.set_target(_player.x() + _player.width() * 0.5f,
                            _player.y() + _player.height() * 0.5f);
         _camera.update(dt);
-
-        for (auto& entity : _entities) {
-            entity->update(dt);
-            _physics.update(*entity, dt);
-            _collision.check_entity_collision(*entity, _tile_map, dt);
-        }
-
+        // Exit the game if the escape key is pressed
         if (_input.is_pressed(InputManager::Action::Escape)) {
             _running = false;
         }
@@ -88,14 +88,10 @@ namespace mario {
             }
         }
 
-        _renderer.draw_ellipse(_player.x(), _player.y(), _player.width(), _player.height());
+        _player.render(_renderer);
 
-        for (auto& entity : _entities) {
-            entity->render();
-            // Assuming entity->render() doesn't take renderer, 
-            // but normally it should or we draw it here.
-            // Since entities have x, y, width, height, we can draw them here for now.
-            _renderer.draw_rect(entity->x(), entity->y(), entity->width(), entity->height());
+        for (auto &entity: _entities) {
+            entity->render(_renderer);
         }
 
         _renderer.end_frame();

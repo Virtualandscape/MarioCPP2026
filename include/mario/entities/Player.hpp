@@ -23,7 +23,7 @@ namespace mario {
 
         void update(float dt) override;
 
-        void render() override;
+        void render(Renderer& renderer)  override;
 
     private:
         int _jump_count = 0;
