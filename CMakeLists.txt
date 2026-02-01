@@ -16,7 +16,9 @@ add_executable(Mario
         main.cpp
         src/audio/audio_manager.cpp
         src/core/game.cpp
-        src/core/game_state.cpp
+        src/core/menu_state.cpp
+        src/core/pause_state.cpp
+        src/core/play_state.cpp
         src/entities/enemy.cpp
         src/entities/entity.cpp
         src/entities/player.cpp
@@ -33,6 +35,7 @@ add_executable(Mario
         src/world/level.cpp
         src/world/tile_map.cpp
         src/audio/audio_manager.cpp
+        src/core/menu_state.cpp
 )
 target_compile_features(Mario PRIVATE cxx_std_17)
 target_include_directories(Mario PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

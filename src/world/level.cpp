@@ -15,7 +15,7 @@ namespace mario {
         _entity_spawns = std::move(spawns);
 
         _camera = std::make_shared<Camera>();
-        
+
         const int tile_size = _tile_map->tile_size();
         const auto map_width = static_cast<float>(_tile_map->width() * tile_size);
         const auto map_height = static_cast<float>(_tile_map->height() * tile_size);
@@ -36,7 +36,7 @@ namespace mario {
     }
 
     // Renders level tiles within the camera viewport
-    void Level::render(Renderer& renderer) {
+    void Level::render(Renderer &renderer) {
         if (!_tile_map || !_camera) return;
 
         const int tile_size = _tile_map->tile_size();
@@ -68,5 +68,5 @@ namespace mario {
 
     std::shared_ptr<TileMap> Level::tile_map() const { return _tile_map; }
     std::shared_ptr<Camera> Level::camera() const { return _camera; }
-    const std::vector<EntitySpawn>& Level::entity_spawns() const { return _entity_spawns; }
+    const std::vector<EntitySpawn> &Level::entity_spawns() const { return _entity_spawns; }
 } // namespace mario

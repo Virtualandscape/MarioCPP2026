@@ -1,5 +1,6 @@
 #include "mario/core/Game.hpp"
 #include "mario/core/GameState.hpp"
+#include "mario/core/MenuState.hpp"
 #include <SFML/System/Clock.hpp>
 #include <SFML/System/Sleep.hpp>
 

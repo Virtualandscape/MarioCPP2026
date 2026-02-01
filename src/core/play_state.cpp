@@ -1,4 +1,4 @@
-#include "mario/core/GameState.hpp"
+#include "mario/core/PlayState.hpp"
 #include "mario/core/Game.hpp"
 #include "mario/entities/Enemy.hpp"
 #include "mario/world/Camera.hpp"
@@ -6,9 +6,7 @@
 #include <algorithm>
 #include <cctype>
 #include <string>
-#include <SFML/Window/Keyboard.hpp>
 
-// Helpers
 namespace {
     // Cast to lowercase
     std::string to_lower(std::string value) {
@@ -19,7 +17,7 @@ namespace {
     }
 
     // Create entities from spawn data with a type and position using a factory pattern
-    std::unique_ptr<mario::Entity> create_entity_for_spawn(const mario::EntitySpawn &spawn, float tile_size) {
+    std::unique_ptr<mario::Entity> create_entity_for_spawn(const mario::EntitySpawn &spawn, const float tile_size) {
         const std::string type = to_lower(spawn.type);
         const float pos_x = spawn.tile_x * tile_size;
         const float pos_y = spawn.tile_y * tile_size;
@@ -34,19 +32,18 @@ namespace {
             auto entity = std::make_unique<mario::Koopa>();
             entity->set_position(pos_x, pos_y);
             return entity;
-    }
+        }
 
-    return nullptr;
-}
+        return nullptr;
+    }
     constexpr float LevelTransitionCooldown = 0.5f;
 }
 
 namespace mario {
-    PlayState::PlayState(Game& game) : _game(game) {}
-    PlayState::PlayState(Game& game, std::string level_path) : _game(game), _current_level_path(std::move(level_path)) {}
+    PlayState::PlayState(Game& game) : _game(game), _hud(game.renderer()) {}
+    PlayState::PlayState(Game& game, std::string level_path) : _game(game), _current_level_path(std::move(level_path)), _hud(game.renderer()) {}
 
     void PlayState::on_enter() {
-
         _entities.clear();
         _player.set_move_axis(0.0f);
         _player.set_velocity(0.0f, 0.0f);
@@ -59,9 +56,9 @@ namespace mario {
         // Check if the player entity belongs to the level and is spawned
         bool player_spawned = false;
         // Looking at the level tile map
-        if (auto tile_map = _level.tile_map()) {
+        if (const auto tile_map = _level.tile_map()) {
             // Getting the tile size
-            const float tile_size = static_cast<float>(tile_map->tile_size());
+            const auto tile_size = static_cast<float>(tile_map->tile_size());
             if (tile_size > 0.0f) {
                 // For each entity spawn in the level
                 for (const auto &spawn : _level.entity_spawns()) {
@@ -172,7 +169,7 @@ namespace mario {
 
             if (_level_transition_delay <= 0.0f) {
                 // Load next level if the player reaches the right end
-                float map_right = static_cast<float>(tile_map->width() * tile_map->tile_size());
+                auto map_right = static_cast<float>(tile_map->width() * tile_map->tile_size());
                 if (_player.x() + _player.width() > map_right) {
                     if (_current_level_path == "assets/levels/level1.json") {
                         _current_level_path = "assets/levels/level2.json";
@@ -196,9 +193,7 @@ namespace mario {
         }
 
         _level.render(_game.renderer());
-
         _player.render(_game.renderer());
-
         for (auto &entity: _entities) {
             entity->render(_game.renderer());
         }
@@ -208,104 +203,11 @@ namespace mario {
         if (_current_level_path.find("level2") != std::string::npos) {
             level_name = "Level 2";
         }
-        _game.renderer().draw_text(level_name, 10, 10, 24, sf::Color::White);
+        _hud.set_level_name(level_name);
+        _hud.render();
 
         _game.renderer().end_frame();
     }
 
     bool PlayState::is_running() const { return _running && _game.renderer().is_open(); }
-
-    MenuState::MenuState(Game& game) : _game(game) {
-        _levels = {"assets/levels/level1.json", "assets/levels/level2.json"};
-    }
-
-    void MenuState::on_enter() {
-        _running = true;
-    }
-
-    void MenuState::on_exit() {
-    }
-
-    void MenuState::update(float dt) {
-        (void)dt;
-        _game.input().poll();
-
-        bool up = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W);
-        bool down = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S);
-        bool enter = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space);
-
-        if (up && !_up_pressed) {
-            _selected_index = (_selected_index - 1 + static_cast<int>(_levels.size())) % static_cast<int>(_levels.size());
-        }
-        if (down && !_down_pressed) {
-            _selected_index = (_selected_index + 1) % static_cast<int>(_levels.size());
-        }
-        if (enter && !_enter_pressed) {
-            _game.push_state(std::make_shared<PlayState>(_game, _levels[_selected_index]));
-            return;
-        }
-
-        _up_pressed = up;
-        _down_pressed = down;
-        _enter_pressed = enter;
-
-        // Mouse handling
-        sf::Vector2i mouse_pos = sf::Mouse::getPosition(_game.renderer().window());
-        for (size_t i = 0; i < _levels.size(); ++i) {
-            float x = 300;
-            float y = 150 + static_cast<float>(i) * 100;
-            float w = 200;
-            float h = 50;
-
-            if (mouse_pos.x >= x && mouse_pos.x <= x + w && mouse_pos.y >= y && mouse_pos.y <= y + h) {
-                _selected_index = static_cast<int>(i);
-                if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-                    _game.push_state(std::make_shared<PlayState>(_game, _levels[_selected_index]));
-                    return;
-                }
-            }
-        }
-
-        if (_game.input().is_pressed(InputManager::Action::Escape)) {
-            _running = false;
-        }
-    }
-
-    void MenuState::render() {
-        _game.renderer().begin_frame();
-
-        // Draw background
-        _game.renderer().draw_rect(0, 0, 800, 480, sf::Color(50, 50, 50));
-
-        // Draw level options as rectangles and text
-        for (size_t i = 0; i < _levels.size(); ++i) {
-            sf::Color color = (static_cast<int>(i) == _selected_index) ? sf::Color::Yellow : sf::Color::White;
-            float x = 300;
-            float y = 150 + static_cast<float>(i) * 100;
-            _game.renderer().draw_rect(x, y, 200, 50, color);
-            
-            std::string label = "Level " + std::to_string(i + 1);
-            _game.renderer().draw_text(label, x + 50, y + 10, 24, sf::Color::Black);
-
-            // Draw a small indicator for selection
-            if (static_cast<int>(i) == _selected_index) {
-                _game.renderer().draw_rect(270, y + 10, 20, 30, sf::Color::Red);
-            }
-        }
-
-        _game.renderer().end_frame();
-    }
-
-    bool MenuState::is_running() const { return _running && _game.renderer().is_open(); }
-
-    void PauseState::on_enter() {
-    }
-
-    void PauseState::on_exit() {
-    }
-
-    void PauseState::update(float dt) { (void) dt; }
-
-    void PauseState::render() {
-    }
 } // namespace mario
