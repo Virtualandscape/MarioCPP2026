@@ -1,10 +1,12 @@
 #include "mario/core/GameState.hpp"
+#include "mario/core/Game.hpp"
 #include "mario/entities/Enemy.hpp"
 #include "mario/world/Camera.hpp"
 
 #include <algorithm>
 #include <cctype>
 #include <string>
+#include <SFML/Window/Keyboard.hpp>
 
 // Helpers
 namespace {
@@ -32,20 +34,27 @@ namespace {
             auto entity = std::make_unique<mario::Koopa>();
             entity->set_position(pos_x, pos_y);
             return entity;
-        }
-
-        return nullptr;
     }
+
+    return nullptr;
+}
+    constexpr float LevelTransitionCooldown = 0.5f;
 }
 
 namespace mario {
+    PlayState::PlayState(Game& game) : _game(game) {}
+    PlayState::PlayState(Game& game, std::string level_path) : _game(game), _current_level_path(std::move(level_path)) {}
+
     void PlayState::on_enter() {
 
         _entities.clear();
+        _player.set_move_axis(0.0f);
+        _player.set_velocity(0.0f, 0.0f);
+        _player.reset_jump();
         // Initialize player position
         _player.set_position(32.0f, 32.0f);
         // Load level
-        _level.load("assets/levels/demo.json");
+        _level.load(_current_level_path);
 
         // Check if the player entity belongs to the level and is spawned
         bool player_spawned = false;
@@ -79,7 +88,7 @@ namespace mario {
         
         // Initialize camera target
         if (auto camera = _level.camera()) {
-            const auto viewport = _renderer.viewport_size();
+            const auto viewport = _game.renderer().viewport_size();
             camera->set_viewport(viewport.x, viewport.y);
             camera->set_target(_player.x() + _player.width() * 0.5f,
                                _player.y() + _player.height() * 0.5f);
@@ -87,6 +96,7 @@ namespace mario {
         }
         
         _running = true;
+        _level_transition_delay = LevelTransitionCooldown;
     }
 
     void PlayState::on_exit() {
@@ -95,15 +105,18 @@ namespace mario {
     }
 
     void PlayState::update(float dt) {
-        _input.poll();
+        _game.input().poll();
+        if (_level_transition_delay > 0.0f) {
+            _level_transition_delay = std::max(0.0f, _level_transition_delay - dt);
+        }
         float axis = 0.0f;
-        if (_input.is_pressed(InputManager::Action::MoveLeft)) axis -= 1.0f;
-        if (_input.is_pressed(InputManager::Action::MoveRight)) axis += 1.0f;
+        if (_game.input().is_pressed(InputManager::Action::MoveLeft)) axis -= 1.0f;
+        if (_game.input().is_pressed(InputManager::Action::MoveRight)) axis += 1.0f;
 
         // Set move axis i.e., direction of movement
         _player.set_move_axis(axis);
         // Check if the player is jumping and the jump button is pressed
-        _player.set_jump_pressed(_input.is_pressed(InputManager::Action::Jump));
+        _player.set_jump_pressed(_game.input().is_pressed(InputManager::Action::Jump));
         // Player velocity update and double jump handling
         _player.handle_input();
         
@@ -135,7 +148,7 @@ namespace mario {
 
         // Handle camera movement and target for scrolling effect
         if (auto camera = _level.camera()) {
-            const auto viewport = _renderer.viewport_size();
+            const auto viewport = _game.renderer().viewport_size();
             camera->set_viewport(viewport.x, viewport.y);
             camera->set_target(_player.x() + _player.width() * 0.5f,
                                _player.y() + _player.height() * 0.5f);
@@ -143,8 +156,9 @@ namespace mario {
         _level.update(dt);
 
         // Exit the game if the escape key is pressed
-        if (_input.is_pressed(InputManager::Action::Escape)) {
-            _running = false;
+        if (_game.input().is_pressed(InputManager::Action::Escape)) {
+            _game.pop_state();
+            return;
         }
 
         // Reset the level if the player falls below the map
@@ -153,40 +167,136 @@ namespace mario {
             if (_player.y() > map_bottom) {
                 on_exit();
                 on_enter();
+                return;
+            }
+
+            if (_level_transition_delay <= 0.0f) {
+                // Load next level if the player reaches the right end
+                float map_right = static_cast<float>(tile_map->width() * tile_map->tile_size());
+                if (_player.x() + _player.width() > map_right) {
+                    if (_current_level_path == "assets/levels/level1.json") {
+                        _current_level_path = "assets/levels/level2.json";
+                    } else {
+                        // Loop back to level 1 for now if we reach the end of level 2
+                        _current_level_path = "assets/levels/level1.json";
+                    }
+                    on_exit();
+                    on_enter();
+                    return;
+                }
             }
         }
     }
 
     void PlayState::render() {
-        _renderer.begin_frame();
+        _game.renderer().begin_frame();
         
         if (auto camera = _level.camera()) {
-            _renderer.set_camera(camera->x(), camera->y());
+            _game.renderer().set_camera(camera->x(), camera->y());
         }
 
-        _level.render(_renderer);
+        _level.render(_game.renderer());
 
-        _player.render(_renderer);
+        _player.render(_game.renderer());
 
         for (auto &entity: _entities) {
-            entity->render(_renderer);
+            entity->render(_game.renderer());
         }
 
-        _renderer.end_frame();
+        // Draw HUD
+        std::string level_name = "Level 1";
+        if (_current_level_path.find("level2") != std::string::npos) {
+            level_name = "Level 2";
+        }
+        _game.renderer().draw_text(level_name, 10, 10, 24, sf::Color::White);
+
+        _game.renderer().end_frame();
     }
 
-    bool PlayState::is_running() const { return _running && _renderer.is_open(); }
+    bool PlayState::is_running() const { return _running && _game.renderer().is_open(); }
+
+    MenuState::MenuState(Game& game) : _game(game) {
+        _levels = {"assets/levels/level1.json", "assets/levels/level2.json"};
+    }
 
     void MenuState::on_enter() {
+        _running = true;
     }
 
     void MenuState::on_exit() {
     }
 
-    void MenuState::update(float dt) { (void) dt; }
+    void MenuState::update(float dt) {
+        (void)dt;
+        _game.input().poll();
+
+        bool up = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W);
+        bool down = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S);
+        bool enter = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space);
+
+        if (up && !_up_pressed) {
+            _selected_index = (_selected_index - 1 + static_cast<int>(_levels.size())) % static_cast<int>(_levels.size());
+        }
+        if (down && !_down_pressed) {
+            _selected_index = (_selected_index + 1) % static_cast<int>(_levels.size());
+        }
+        if (enter && !_enter_pressed) {
+            _game.push_state(std::make_shared<PlayState>(_game, _levels[_selected_index]));
+            return;
+        }
+
+        _up_pressed = up;
+        _down_pressed = down;
+        _enter_pressed = enter;
+
+        // Mouse handling
+        sf::Vector2i mouse_pos = sf::Mouse::getPosition(_game.renderer().window());
+        for (size_t i = 0; i < _levels.size(); ++i) {
+            float x = 300;
+            float y = 150 + static_cast<float>(i) * 100;
+            float w = 200;
+            float h = 50;
+
+            if (mouse_pos.x >= x && mouse_pos.x <= x + w && mouse_pos.y >= y && mouse_pos.y <= y + h) {
+                _selected_index = static_cast<int>(i);
+                if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+                    _game.push_state(std::make_shared<PlayState>(_game, _levels[_selected_index]));
+                    return;
+                }
+            }
+        }
+
+        if (_game.input().is_pressed(InputManager::Action::Escape)) {
+            _running = false;
+        }
+    }
 
     void MenuState::render() {
+        _game.renderer().begin_frame();
+
+        // Draw background
+        _game.renderer().draw_rect(0, 0, 800, 480, sf::Color(50, 50, 50));
+
+        // Draw level options as rectangles and text
+        for (size_t i = 0; i < _levels.size(); ++i) {
+            sf::Color color = (static_cast<int>(i) == _selected_index) ? sf::Color::Yellow : sf::Color::White;
+            float x = 300;
+            float y = 150 + static_cast<float>(i) * 100;
+            _game.renderer().draw_rect(x, y, 200, 50, color);
+            
+            std::string label = "Level " + std::to_string(i + 1);
+            _game.renderer().draw_text(label, x + 50, y + 10, 24, sf::Color::Black);
+
+            // Draw a small indicator for selection
+            if (static_cast<int>(i) == _selected_index) {
+                _game.renderer().draw_rect(270, y + 10, 20, 30, sf::Color::Red);
+            }
+        }
+
+        _game.renderer().end_frame();
     }
+
+    bool MenuState::is_running() const { return _running && _game.renderer().is_open(); }
 
     void PauseState::on_enter() {
     }

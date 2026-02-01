@@ -18,9 +18,9 @@ namespace mario {
     void Game::run() {
         initialize();
 
-        // Initialize the game with a default play state if none is set.
+        // Initialize the game with a default menu state if none is set.
         if (!current_state()) {
-            push_state(std::make_shared<PlayState>());
+            push_state(std::make_shared<MenuState>(*this));
         }
 
         sf::Clock clock;

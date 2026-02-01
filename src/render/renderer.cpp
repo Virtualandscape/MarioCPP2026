@@ -1,4 +1,5 @@
 #include "mario/render/Renderer.hpp"
+#include <iostream>
 
 namespace mario {
     Renderer::Renderer()
@@ -9,6 +10,31 @@ namespace mario {
 #endif
     {
         _window.setVerticalSyncEnabled(true);
+        
+        const std::vector<std::string> font_paths = {
+            "assets/fonts/arial.ttf",
+            "../assets/fonts/arial.ttf",
+            "../../assets/fonts/arial.ttf"
+        };
+        
+        bool loaded = false;
+        for (const auto& path : font_paths) {
+#if SFML_VERSION_MAJOR >= 3
+            if (_font.openFromFile(path)) {
+                loaded = true;
+                break;
+            }
+#else
+            if (_font.loadFromFile(path)) {
+                loaded = true;
+                break;
+            }
+#endif
+        }
+        
+        if (!loaded) {
+            std::cerr << "Failed to load font from any of the standard paths." << std::endl;
+        }
     }
 
     void Renderer::begin_frame() {
@@ -62,6 +88,24 @@ namespace mario {
         shape.setPosition({x - _camera_x, y - _camera_y});
         shape.setFillColor(color);
         _window.draw(shape);
+    }
+
+    void Renderer::draw_text(const std::string& text, float x, float y, unsigned int size, sf::Color color) {
+        if (!_window.isOpen()) {
+            return;
+        }
+
+#if SFML_VERSION_MAJOR >= 3
+        sf::Text sf_text(_font, text, size);
+#else
+        sf::Text sf_text;
+        sf_text.setFont(_font);
+        sf_text.setString(text);
+        sf_text.setCharacterSize(size);
+#endif
+        sf_text.setFillColor(color);
+        sf_text.setPosition({x, y}); // Text is usually UI-space
+        _window.draw(sf_text);
     }
 
     void Renderer::draw_ellipse(float x, float y, float width, float height) {
