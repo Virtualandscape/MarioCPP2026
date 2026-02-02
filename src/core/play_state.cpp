@@ -12,7 +12,7 @@
 #include "mario/ecs/components/EnemyComponent.hpp"
 #include "mario/ecs/components/SpriteComponent.hpp"
 #include "mario/util/Spawner.hpp"
-#include "mario/entities/PlayerConstants.hpp"
+#include "mario/world/TileMap.hpp"
 
 #include <cmath>
 #include <algorithm>
@@ -34,7 +34,8 @@ namespace mario {
         // Spawn entities
         bool player_spawned = false;
         if (const auto tile_map = _level.tile_map()) {
-            const auto tile_size = static_cast<float>(tile_map->tile_size());
+            TileMap &tm = *tile_map;
+            const auto tile_size = static_cast<float>(tm.tile_size());
             if (tile_size > 0.0f) {
                 for (const auto &spawn: _level.entity_spawns()) {
                     if (spawn.type == "player" || spawn.type == "Player") {

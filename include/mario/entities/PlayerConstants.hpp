@@ -2,7 +2,7 @@
 
 namespace mario {
     namespace player {
-        // Taille du joueur en pixels (largeur x hauteur)
+        // Player size in pixels (width x height)
         constexpr float Width = 16.0f;
         constexpr float Height = 24.0f;
     } // namespace player

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "mario/core/GameState.hpp"
-#include "mario/entities/Player.hpp"
 #include "mario/systems/CollisionSystem.hpp"
 #include "mario/systems/PhysicsSystem.hpp"
 #include "mario/systems/PlayerInputSystem.hpp"
@@ -9,6 +8,7 @@
 #include "mario/systems/EnemySystem.hpp"
 #include "mario/systems/LevelSystem.hpp"
 #include "mario/world/Level.hpp"
+#include "mario/world/TileMap.hpp"
 #include "mario/ui/HUD.hpp"
 #include "mario/ecs/Registry.hpp"
 #include "mario/ecs/components/SpriteComponent.hpp"

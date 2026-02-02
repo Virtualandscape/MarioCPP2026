@@ -31,13 +31,13 @@ namespace mario {
                                              static_cast<float>(spawn.tile_y) * tile_size
                                          });
         registry.add_component<VelocityComponent>(id, {0.0f, 0.0f});
-        registry.add_component<SizeComponent>(id, {player::Width, player::Height});
+        registry.add_component<SizeComponent>(id, SizeComponent{mario::player::Width, mario::player::Height});
         registry.add_component<PlayerInputComponent>(id, {});
         registry.add_component<JumpStateComponent>(id, {});
         registry.add_component<PlayerStatsComponent>(id, {});
         registry.add_component<TypeComponent>(id, {EntityTypeComponent::Player});
         registry.add_component<CollisionInfoComponent>(id, {});
-        registry.add_component<SpriteComponent>(id, {SpriteComponent::Shape::Ellipse, sf::Color(200, 0, 0)});
+        registry.add_component<SpriteComponent>(id, {SpriteComponent::Shape::Ellipse, sf::Color(50, 100, 80)});
         return id;
     }
 
@@ -45,7 +45,7 @@ namespace mario {
         EntityID id = registry.create_entity();
         registry.add_component<PositionComponent>(id, {32.0f, 32.0f});
         registry.add_component<VelocityComponent>(id, {0.0f, 0.0f});
-        registry.add_component<SizeComponent>(id, {player::Width, player::Height});
+        registry.add_component<SizeComponent>(id, SizeComponent{mario::player::Width, mario::player::Height});
         registry.add_component<PlayerInputComponent>(id, {});
         registry.add_component<JumpStateComponent>(id, {});
         registry.add_component<PlayerStatsComponent>(id, {});
