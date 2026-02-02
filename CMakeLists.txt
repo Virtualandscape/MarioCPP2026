@@ -19,18 +19,16 @@ set(SOURCES
         src/core/menu_state.cpp
         src/core/pause_state.cpp
         src/core/play_state.cpp
-        src/entities/enemy.cpp
-        src/entities/entity.cpp
-        src/entities/player.cpp
-        src/gameplay/power_up.cpp
         src/input/input_manager.cpp
         src/render/renderer.cpp
-        src/render/sprite.cpp
         src/resources/asset_manager.cpp
         src/systems/collision_system.cpp
         src/systems/physics_system.cpp
         src/systems/player_input_system.cpp
         src/systems/player_movement_system.cpp
+        src/systems/enemy_system.cpp
+        src/systems/level_system.cpp
+        src/util/spawner.cpp
         src/ui/hud.cpp
         src/util/timer.cpp
         src/world/camera.cpp
@@ -49,8 +47,13 @@ set(HEADERS
         include/mario/ecs/components/JumpState.hpp
         include/mario/ecs/components/PlayerStats.hpp
         include/mario/ecs/components/Type.hpp
+        include/mario/ecs/components/Sprite.hpp
+        include/mario/ecs/components/EnemyComponent.hpp
         include/mario/systems/PlayerInputSystem.hpp
         include/mario/systems/PlayerMovementSystem.hpp
+        include/mario/systems/EnemySystem.hpp
+        include/mario/systems/LevelSystem.hpp
+        include/mario/util/Spawner.hpp
         src/systems/player_movement_system.cpp
 )
 

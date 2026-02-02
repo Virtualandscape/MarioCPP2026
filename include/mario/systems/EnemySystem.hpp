@@ -3,15 +3,8 @@
 #include "mario/ecs/Registry.hpp"
 
 namespace mario {
-
-    // Integrates movement, gravity, friction.
-    class PhysicsSystem {
+    class EnemySystem {
     public:
         void update(Registry& registry, float dt) const;
-
-        void set_gravity(float g);
-
-    private:
-        float _gravity = 1200.0f;
     };
 } // namespace mario

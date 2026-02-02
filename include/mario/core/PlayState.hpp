@@ -6,15 +6,16 @@
 #include "mario/systems/PhysicsSystem.hpp"
 #include "mario/systems/PlayerInputSystem.hpp"
 #include "mario/systems/PlayerMovementSystem.hpp"
+#include "mario/systems/EnemySystem.hpp"
+#include "mario/systems/LevelSystem.hpp"
 #include "mario/world/Level.hpp"
 #include "mario/ui/HUD.hpp"
 #include "mario/ecs/Registry.hpp"
+#include "mario/ecs/components/Sprite.hpp"
 #include <memory>
-#include <vector>
 #include <string>
 
 namespace mario {
-    class Entity;
     class Game;
 
     class PlayState : public GameState {
@@ -29,17 +30,20 @@ namespace mario {
         bool is_running() const override;
 
     private:
+        void update_camera();
+        void handle_level_transitions();
+        void handle_input();
+
         Game& _game;
-        Player _player;
         EntityID _player_id;
         PhysicsSystem _physics;
         CollisionSystem _collision;
         PlayerInputSystem _player_input;
         PlayerMovementSystem _player_movement;
+        EnemySystem _enemy_system;
         Level _level;
         HUD _hud;
         Registry _registry;
-        std::vector<std::unique_ptr<Entity>> _entities;
         bool _running = true;
         float _level_transition_delay = 0.0f;
         std::string _current_level_path = "assets/levels/level1.json";
