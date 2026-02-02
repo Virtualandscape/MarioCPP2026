@@ -55,7 +55,6 @@ set(HEADERS
         include/mario/systems/LevelSystem.hpp
         include/mario/util/Spawner.hpp
         src/systems/player_movement_system.cpp
-        include/mario/entities/PlayerConstants.hpp
 )
 
 add_executable(Mario ${SOURCES} ${HEADERS})

@@ -10,7 +10,6 @@
 #include "mario/ecs/components/CollisionInfoComponent.hpp"
 #include "mario/ecs/components/EnemyComponent.hpp"
 #include "mario/ecs/components/SpriteComponent.hpp"
-#include "mario/entities/PlayerConstants.hpp"
 #include <algorithm>
 #include <cctype>
 
@@ -31,7 +30,7 @@ namespace mario {
                                              static_cast<float>(spawn.tile_y) * tile_size
                                          });
         registry.add_component<VelocityComponent>(id, {0.0f, 0.0f});
-        registry.add_component<SizeComponent>(id, SizeComponent{mario::player::Width, mario::player::Height});
+        registry.add_component<SizeComponent>(id, SizeComponent{16.0f, 24.0f});
         registry.add_component<PlayerInputComponent>(id, {});
         registry.add_component<JumpStateComponent>(id, {});
         registry.add_component<PlayerStatsComponent>(id, {});
@@ -45,7 +44,7 @@ namespace mario {
         EntityID id = registry.create_entity();
         registry.add_component<PositionComponent>(id, {32.0f, 32.0f});
         registry.add_component<VelocityComponent>(id, {0.0f, 0.0f});
-        registry.add_component<SizeComponent>(id, SizeComponent{mario::player::Width, mario::player::Height});
+        registry.add_component<SizeComponent>(id, SizeComponent{16.0f, 24.0f});
         registry.add_component<PlayerInputComponent>(id, {});
         registry.add_component<JumpStateComponent>(id, {});
         registry.add_component<PlayerStatsComponent>(id, {});
