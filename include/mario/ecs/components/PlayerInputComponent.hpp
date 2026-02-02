@@ -1,7 +1,7 @@
 #pragma once
 
 namespace mario {
-    struct PlayerInput {
+    struct PlayerInputComponent {
         float move_axis = 0.0f;
         bool jump_pressed = false;
         bool jump_held = false;

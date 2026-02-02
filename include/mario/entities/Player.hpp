@@ -25,7 +25,7 @@ namespace mario {
 
         void render(Renderer& renderer)  override;
         
-        EntityType type() const override { return EntityType::Player; }
+        EntityTypeComponent type() const override { return EntityTypeComponent::Player; }
 
     private:
         int _jump_count = 0;

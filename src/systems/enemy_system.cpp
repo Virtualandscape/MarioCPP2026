@@ -1,19 +1,19 @@
 #include <cmath>
 #include "mario/systems/EnemySystem.hpp"
 #include "mario/ecs/components/EnemyComponent.hpp"
-#include "mario/ecs/components/Velocity.hpp"
-#include "mario/ecs/components/Position.hpp"
-#include "mario/ecs/components/CollisionInfo.hpp"
+#include "mario/ecs/components/VelocityComponent.hpp"
+#include "mario/ecs/components/PositionComponent.hpp"
+#include "mario/ecs/components/CollisionInfoComponent.hpp"
 
 namespace mario {
     void EnemySystem::update(Registry& registry, float dt) const {
         auto entities = registry.get_entities_with<EnemyComponent>();
         for (auto entity : entities) {
-            auto* vel = registry.get_component<Velocity>(entity);
-            auto* coll = registry.get_component<CollisionInfo>(entity);
+            auto* vel = registry.get_component<VelocityComponent>(entity);
+            auto* coll = registry.get_component<CollisionInfoComponent>(entity);
 
             if (vel && coll) {
-                // If hit something horizontally, reverse direction
+                // If hit something horizontally, reverse the direction
                 if (coll->collided) {
                     // Check if the collision was horizontal (crude check but better than before)
                     // If we collided and our velocity is 0 or reversed, it means we hit a wall/entity

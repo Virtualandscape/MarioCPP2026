@@ -1,7 +1,7 @@
 #pragma once
 
 namespace mario {
-    enum class EntityType {
+    enum class EntityTypeComponent {
         Unknown,
         Player,
         Goomba,

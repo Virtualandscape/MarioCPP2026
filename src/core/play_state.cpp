@@ -1,16 +1,16 @@
 #include "mario/core/PlayState.hpp"
 #include "mario/core/Game.hpp"
 #include "mario/world/Camera.hpp"
-#include "mario/ecs/components/Position.hpp"
-#include "mario/ecs/components/Velocity.hpp"
-#include "mario/ecs/components/Size.hpp"
-#include "mario/ecs/components/PlayerInput.hpp"
-#include "mario/ecs/components/JumpState.hpp"
-#include "mario/ecs/components/PlayerStats.hpp"
-#include "mario/ecs/components/Type.hpp"
-#include "mario/ecs/components/CollisionInfo.hpp"
+#include "mario/ecs/components/PositionComponent.hpp"
+#include "mario/ecs/components/VelocityComponent.hpp"
+#include "mario/ecs/components/SizeComponent.hpp"
+#include "mario/ecs/components/PlayerInputComponent.hpp"
+#include "mario/ecs/components/JumpStateComponent.hpp"
+#include "mario/ecs/components/PlayerStatsComponent.hpp"
+#include "mario/ecs/components/TypeComponent.hpp"
+#include "mario/ecs/components/CollisionInfoComponent.hpp"
 #include "mario/ecs/components/EnemyComponent.hpp"
-#include "mario/ecs/components/Sprite.hpp"
+#include "mario/ecs/components/SpriteComponent.hpp"
 #include "mario/util/Spawner.hpp"
 #include "mario/entities/PlayerConstants.hpp"
 
@@ -87,8 +87,8 @@ namespace mario {
         if (auto camera = _level.camera()) {
             const auto viewport = _game.renderer().viewport_size();
             camera->set_viewport(viewport.x, viewport.y);
-            auto* pos = _registry.get_component<Position>(_player_id);
-            auto* size = _registry.get_component<Size>(_player_id);
+            auto* pos = _registry.get_component<PositionComponent>(_player_id);
+            auto* size = _registry.get_component<SizeComponent>(_player_id);
             if (pos && size) {
                 camera->set_target(pos->x + size->width * 0.5f,
                                    pos->y + size->height * 0.5f);
@@ -120,15 +120,15 @@ namespace mario {
         _level.render(_game.renderer());
 
         // ECS Rendering
-        auto renderables = _registry.get_entities_with<Sprite>();
+        auto renderables = _registry.get_entities_with<SpriteComponent>();
         for (auto entity : renderables) {
-            auto* pos = _registry.get_component<Position>(entity);
-            auto* size = _registry.get_component<Size>(entity);
-            auto* sprite = _registry.get_component<Sprite>(entity);
+            auto* pos = _registry.get_component<PositionComponent>(entity);
+            auto* size = _registry.get_component<SizeComponent>(entity);
+            auto* sprite = _registry.get_component<SpriteComponent>(entity);
 
             if (!pos || !size) continue;
 
-            if (sprite->shape == Sprite::Shape::Rectangle) {
+            if (sprite->shape == SpriteComponent::Shape::Rectangle) {
                 _game.renderer().draw_rect(pos->x, pos->y, size->width, size->height, sprite->color);
             } else {
                 _game.renderer().draw_ellipse(pos->x, pos->y, size->width, size->height, sprite->color);

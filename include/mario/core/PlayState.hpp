@@ -11,7 +11,7 @@
 #include "mario/world/Level.hpp"
 #include "mario/ui/HUD.hpp"
 #include "mario/ecs/Registry.hpp"
-#include "mario/ecs/components/Sprite.hpp"
+#include "mario/ecs/components/SpriteComponent.hpp"
 #include <memory>
 #include <string>
 

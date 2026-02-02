@@ -1,7 +1,7 @@
 #pragma once
 
 namespace mario {
-    struct JumpState {
+    struct JumpStateComponent {
         int jump_count = 0;
     };
 } // namespace mario

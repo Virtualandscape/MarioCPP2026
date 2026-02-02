@@ -1,24 +1,24 @@
 #include "mario/systems/LevelSystem.hpp"
 #include "mario/world/Level.hpp"
 #include "mario/world/TileMap.hpp"
-#include "mario/ecs/components/Position.hpp"
-#include "mario/ecs/components/Size.hpp"
-#include "mario/ecs/components/JumpState.hpp"
+#include "mario/ecs/components/PositionComponent.hpp"
+#include "mario/ecs/components/SizeComponent.hpp"
+#include "mario/ecs/components/JumpStateComponent.hpp"
 #include <cmath>
 #include <algorithm>
 
 namespace mario {
 
 void LevelSystem::check_ground_status(Registry& registry, const TileMap& map) {
-    auto entities = registry.get_entities_with<JumpState>();
+    auto entities = registry.get_entities_with<JumpStateComponent>();
     const int tile_size = map.tile_size();
     if (tile_size <= 0) return;
 
     for (auto entity : entities) {
-        auto* pos = registry.get_component<Position>(entity);
-        auto* size = registry.get_component<Size>(entity);
-        auto* jump = registry.get_component<JumpState>(entity);
-        
+        auto* pos = registry.get_component<PositionComponent>(entity);
+        auto* size = registry.get_component<SizeComponent>(entity);
+        auto* jump = registry.get_component<JumpStateComponent>(entity);
+
         if (pos && size && jump) {
             constexpr float epsilon = 0.1f;
             const float bottom = pos->y + size->height;
@@ -46,8 +46,8 @@ bool LevelSystem::handle_transitions(Registry& registry, EntityID player_id, Lev
     auto tile_map = level.tile_map();
     if (!tile_map) return false;
 
-    auto* pos = registry.get_component<Position>(player_id);
-    auto* size = registry.get_component<Size>(player_id);
+    auto* pos = registry.get_component<PositionComponent>(player_id);
+    auto* size = registry.get_component<SizeComponent>(player_id);
     if (!pos || !size) return false;
 
     if (transition_delay > 0.0f) {

@@ -1,20 +1,20 @@
 #include "mario/systems/PlayerMovementSystem.hpp"
 
-#include "mario/ecs/components/PlayerInput.hpp"
-#include "mario/ecs/components/Velocity.hpp"
-#include "mario/ecs/components/JumpState.hpp"
-#include "mario/ecs/components/PlayerStats.hpp"
+#include "mario/ecs/components/PlayerInputComponent.hpp"
+#include "mario/ecs/components/VelocityComponent.hpp"
+#include "mario/ecs/components/JumpStateComponent.hpp"
+#include "mario/ecs/components/PlayerStatsComponent.hpp"
 
 namespace mario {
 
 void PlayerMovementSystem::update(Registry& registry, float dt) const
 {
-    auto entities = registry.get_entities_with<PlayerInput>();
+    auto entities = registry.get_entities_with<PlayerInputComponent>();
     for (auto entity : entities) {
-        auto* input = registry.get_component<PlayerInput>(entity);
-        auto* vel = registry.get_component<Velocity>(entity);
-        auto* jump = registry.get_component<JumpState>(entity);
-        auto* stats = registry.get_component<PlayerStats>(entity);
+        auto* input = registry.get_component<PlayerInputComponent>(entity);
+        auto* vel = registry.get_component<VelocityComponent>(entity);
+        auto* jump = registry.get_component<JumpStateComponent>(entity);
+        auto* stats = registry.get_component<PlayerStatsComponent>(entity);
         if (input && vel && jump && stats) {
             // Handle movement
             if (input->move_axis != 0.0f) {

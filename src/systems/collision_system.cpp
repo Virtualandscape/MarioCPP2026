@@ -1,12 +1,12 @@
 #include <algorithm>
 #include <cmath>
 #include "mario/systems/CollisionSystem.hpp"
-#include "mario/ecs/components/Position.hpp"
-#include "mario/ecs/components/Velocity.hpp"
-#include "mario/ecs/components/Size.hpp"
-#include "mario/ecs/components/CollisionInfo.hpp"
-#include "mario/ecs/components/Type.hpp"
-#include "mario/ecs/EntityType.hpp"
+#include "mario/ecs/components/PositionComponent.hpp"
+#include "mario/ecs/components/VelocityComponent.hpp"
+#include "mario/ecs/components/SizeComponent.hpp"
+#include "mario/ecs/components/CollisionInfoComponent.hpp"
+#include "mario/ecs/components/TypeComponent.hpp"
+#include "mario/ecs/EntityTypeComponent.hpp"
 #include "mario/world/TileMap.hpp"
 
 namespace mario {
@@ -86,7 +86,7 @@ namespace mario {
             }
             return {new_x, new_y, new_vx, new_vy};
         }
-        void resolve_player_collision(Position& pos_player, Velocity& vel_player, const Size& size_player, const Position& pos_other, const Size& size_other) {
+        void resolve_player_collision(PositionComponent& pos_player, VelocityComponent& vel_player, const SizeComponent& size_player, const PositionComponent& pos_other, const SizeComponent& size_other) {
             float left_p = pos_player.x;
             float top_p = pos_player.y;
             float right_p = rect_right(pos_player.x, size_player.width);
@@ -127,7 +127,7 @@ namespace mario {
     }
 
     // Check if the entity collides with any tiles in the tile map
-    void check_entity_tile_collision(Position& pos, Velocity& vel, const Size& size, const TileMap& map, float dt) {
+    void check_entity_tile_collision(PositionComponent& pos, VelocityComponent& vel, const SizeComponent& size, const TileMap& map, float dt) {
         auto result = resolve_tile_collision(pos.x, pos.y, vel.vx, vel.vy, size.width, size.height, map, dt);
         pos.x = result.x;
         pos.y = result.y;
@@ -137,11 +137,11 @@ namespace mario {
 
     void CollisionSystem::update(Registry& registry, const TileMap& map, float dt) {
         // First, handle tile collisions for entities with Position, Velocity, Size
-        auto entities = registry.get_entities_with<Position>();
+        auto entities = registry.get_entities_with<PositionComponent>();
         for (auto entity : entities) {
-            auto* pos = registry.get_component<Position>(entity);
-            auto* vel = registry.get_component<Velocity>(entity);
-            auto* size = registry.get_component<Size>(entity);
+            auto* pos = registry.get_component<PositionComponent>(entity);
+            auto* vel = registry.get_component<VelocityComponent>(entity);
+            auto* size = registry.get_component<SizeComponent>(entity);
             if (pos && vel && size) {
                 check_entity_tile_collision(*pos, *vel, *size, map, dt);
             }
@@ -149,22 +149,22 @@ namespace mario {
 
         // Then, handle entity vs entity collisions
         // Get all entities with Position, Size, CollisionInfo, Type
-        auto collidable_entities = registry.get_entities_with<Position>();
+        auto collidable_entities = registry.get_entities_with<PositionComponent>();
 
         for (size_t i = 0; i < collidable_entities.size(); ++i) {
             auto entity_a = collidable_entities[i];
-            auto* pos_a = registry.get_component<Position>(entity_a);
-            auto* size_a = registry.get_component<Size>(entity_a);
-            auto* coll_a = registry.get_component<CollisionInfo>(entity_a);
-            auto* type_a = registry.get_component<Type>(entity_a);
+            auto* pos_a = registry.get_component<PositionComponent>(entity_a);
+            auto* size_a = registry.get_component<SizeComponent>(entity_a);
+            auto* coll_a = registry.get_component<CollisionInfoComponent>(entity_a);
+            auto* type_a = registry.get_component<TypeComponent>(entity_a);
             if (!pos_a || !size_a || !coll_a || !type_a) continue;
 
             for (size_t j = i + 1; j < collidable_entities.size(); ++j) {
                 auto entity_b = collidable_entities[j];
-                auto* pos_b = registry.get_component<Position>(entity_b);
-                auto* size_b = registry.get_component<Size>(entity_b);
-                auto* coll_b = registry.get_component<CollisionInfo>(entity_b);
-                auto* type_b = registry.get_component<Type>(entity_b);
+                auto* pos_b = registry.get_component<PositionComponent>(entity_b);
+                auto* size_b = registry.get_component<SizeComponent>(entity_b);
+                auto* coll_b = registry.get_component<CollisionInfoComponent>(entity_b);
+                auto* type_b = registry.get_component<TypeComponent>(entity_b);
                 if (!pos_b || !size_b || !coll_b || !type_b) continue;
 
                 const float left_a = pos_a->x;
@@ -184,11 +184,11 @@ namespace mario {
                     coll_b->other_type = type_a->type;
 
                     // Special resolution for player
-                    if (type_a->type == EntityType::Player) {
-                        auto* vel_a = registry.get_component<Velocity>(entity_a);
+                    if (type_a->type == EntityTypeComponent::Player) {
+                        auto* vel_a = registry.get_component<VelocityComponent>(entity_a);
                         if (vel_a) resolve_player_collision(*pos_a, *vel_a, *size_a, *pos_b, *size_b);
-                    } else if (type_b->type == EntityType::Player) {
-                        auto* vel_b = registry.get_component<Velocity>(entity_b);
+                    } else if (type_b->type == EntityTypeComponent::Player) {
+                        auto* vel_b = registry.get_component<VelocityComponent>(entity_b);
                         if (vel_b) resolve_player_collision(*pos_b, *vel_b, *size_b, *pos_a, *size_a);
                     }
                 }

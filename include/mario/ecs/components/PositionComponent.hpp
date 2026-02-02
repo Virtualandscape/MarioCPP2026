@@ -1,7 +1,7 @@
 #pragma once
 
 namespace mario {
-    struct Position {
+    struct PositionComponent {
         float x = 0.0f;
         float y = 0.0f;
     };

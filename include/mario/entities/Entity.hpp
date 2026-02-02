@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mario/ecs/EntityType.hpp"
+#include "mario/ecs/EntityTypeComponent.hpp"
 
 namespace mario {
     class Renderer;  // Forward declaration
@@ -15,7 +15,7 @@ namespace mario {
 
         virtual void render(Renderer& renderer) = 0;
 
-        virtual EntityType type() const { return EntityType::Unknown; }
+        virtual EntityTypeComponent type() const { return EntityTypeComponent::Unknown; }
 
         void set_position(float x, float y);
 
@@ -33,7 +33,7 @@ namespace mario {
 
         struct CollisionInfo {
             bool collided = false;
-            EntityType other_type = EntityType::Unknown;
+            EntityTypeComponent other_type = EntityTypeComponent::Unknown;
         };
 
         void set_collision_info(const CollisionInfo& info) { _last_collision = info; }

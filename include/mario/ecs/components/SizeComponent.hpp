@@ -1,7 +1,7 @@
 #pragma once
 
 namespace mario {
-    struct Size {
+    struct SizeComponent {
         float width = 1.0f;
         float height = 1.0f;
     };

@@ -3,7 +3,7 @@
 #include <SFML/Graphics/Color.hpp>
 
 namespace mario {
-    struct Sprite {
+    struct SpriteComponent {
         enum class Shape {
             Rectangle,
             Ellipse

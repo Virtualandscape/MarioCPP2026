@@ -37,17 +37,17 @@ set(SOURCES
         )
 
 set(HEADERS
-        include/mario/ecs/EntityType.hpp
+        include/mario/ecs/EntityTypeComponent.hpp
         include/mario/ecs/Registry.hpp
-        include/mario/ecs/components/Position.hpp
-        include/mario/ecs/components/Velocity.hpp
-        include/mario/ecs/components/Size.hpp
-        include/mario/ecs/components/CollisionInfo.hpp
-        include/mario/ecs/components/PlayerInput.hpp
-        include/mario/ecs/components/JumpState.hpp
-        include/mario/ecs/components/PlayerStats.hpp
-        include/mario/ecs/components/Type.hpp
-        include/mario/ecs/components/Sprite.hpp
+        include/mario/ecs/components/PositionComponent.hpp
+        include/mario/ecs/components/VelocityComponent.hpp
+        include/mario/ecs/components/SizeComponent.hpp
+        include/mario/ecs/components/CollisionInfoComponent.hpp
+        include/mario/ecs/components/PlayerInputComponent.hpp
+        include/mario/ecs/components/JumpStateComponent.hpp
+        include/mario/ecs/components/PlayerStatsComponent.hpp
+        include/mario/ecs/components/TypeComponent.hpp
+        include/mario/ecs/components/SpriteComponent.hpp
         include/mario/ecs/components/EnemyComponent.hpp
         include/mario/systems/PlayerInputSystem.hpp
         include/mario/systems/PlayerMovementSystem.hpp
