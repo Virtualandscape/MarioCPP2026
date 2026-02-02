@@ -61,11 +61,14 @@ namespace mario {
         float x = static_cast<float>(spawn.tile_x) * tile_size;
         float y = static_cast<float>(spawn.tile_y) * tile_size;
 
+        // Create enemy component first so we can use its move_speed when initializing velocity
+        EnemyComponent enemy_comp{};
+
         registry.add_component<PositionComponent>(entity, {x, y});
-        registry.add_component<VelocityComponent>(entity, {0.0f, 0.0f});
+        registry.add_component<VelocityComponent>(entity, {-enemy_comp.move_speed, 0.0f}); // start moving left
         registry.add_component<SizeComponent>(entity, {16.0f, 16.0f});
         registry.add_component<CollisionInfoComponent>(entity, {});
-        registry.add_component<EnemyComponent>(entity, {});
+        registry.add_component<EnemyComponent>(entity, enemy_comp);
 
         if (type_str == "goomba") {
             registry.add_component<TypeComponent>(entity, {EntityTypeComponent::Goomba});

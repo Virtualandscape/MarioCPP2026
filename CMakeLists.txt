@@ -34,7 +34,8 @@ set(SOURCES
         src/world/camera.cpp
         src/world/level.cpp
         src/world/tile_map.cpp
-        )
+        src/systems/player_movement_system.cpp
+)
 
 set(HEADERS
         include/mario/ecs/EntityTypeComponent.hpp
@@ -54,7 +55,6 @@ set(HEADERS
         include/mario/systems/EnemySystem.hpp
         include/mario/systems/LevelSystem.hpp
         include/mario/util/Spawner.hpp
-        src/systems/player_movement_system.cpp
 )
 
 add_executable(Mario ${SOURCES} ${HEADERS})
