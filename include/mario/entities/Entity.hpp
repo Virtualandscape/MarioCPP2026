@@ -1,14 +1,10 @@
 #pragma once
 
+#include "mario/ecs/EntityType.hpp"
+
 namespace mario {
     class Renderer;  // Forward declaration
     
-    enum class EntityType {
-        Unknown,
-        Player,
-        Goomba,
-        Koopa
-    };
 
     // Position/velocity, update/render hooks, bounding box.
     class Entity {

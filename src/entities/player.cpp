@@ -3,10 +3,11 @@
 #include "mario/entities/Player.hpp"
 #include "mario/render/Renderer.hpp"
 #include "mario/world/TileMap.hpp"
+#include "mario/entities/PlayerConstants.hpp"
 
 namespace mario {
     Player::Player() {
-        set_size(16.0f, 24.0f);
+        set_size(player::Width, player::Height);
     }
 
     void Player::handle_input() {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "mario/ecs/Registry.hpp"
+
 namespace mario {
     class Entity;
 
@@ -7,6 +9,8 @@ namespace mario {
     class PhysicsSystem {
     public:
         void update(Entity& entity, float dt) const;
+
+        void update(Registry& registry, float dt) const;
 
         void set_gravity(float g);
 

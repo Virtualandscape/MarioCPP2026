@@ -2,6 +2,15 @@
 #include "mario/core/Game.hpp"
 #include "mario/entities/Enemy.hpp"
 #include "mario/world/Camera.hpp"
+#include "mario/ecs/components/Position.hpp"
+#include "mario/ecs/components/Velocity.hpp"
+#include "mario/ecs/components/Size.hpp"
+#include "mario/ecs/components/PlayerInput.hpp"
+#include "mario/ecs/components/JumpState.hpp"
+#include "mario/ecs/components/PlayerStats.hpp"
+#include "mario/ecs/components/Type.hpp"
+#include "mario/ecs/components/CollisionInfo.hpp"
+#include "mario/entities/PlayerConstants.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -36,20 +45,20 @@ namespace {
 
         return nullptr;
     }
+
     constexpr float LevelTransitionCooldown = 0.5f;
 }
 
 namespace mario {
-    PlayState::PlayState(Game& game) : _game(game), _hud(game.renderer()) {}
-    PlayState::PlayState(Game& game, std::string level_path) : _game(game), _current_level_path(std::move(level_path)), _hud(game.renderer()) {}
+    PlayState::PlayState(Game &game) : _game(game), _hud(game.renderer()) {
+    }
+
+    PlayState::PlayState(Game &game, std::string level_path) : _game(game), _current_level_path(std::move(level_path)),
+                                                               _hud(game.renderer()) {
+    }
 
     void PlayState::on_enter() {
         _entities.clear();
-        _player.set_move_axis(0.0f);
-        _player.set_velocity(0.0f, 0.0f);
-        _player.reset_jump();
-        // Initialize player position
-        _player.set_position(32.0f, 32.0f);
         // Load level
         _level.load(_current_level_path);
 
@@ -61,13 +70,24 @@ namespace mario {
             const auto tile_size = static_cast<float>(tile_map->tile_size());
             if (tile_size > 0.0f) {
                 // For each entity spawn in the level
-                for (const auto &spawn : _level.entity_spawns()) {
+                for (const auto &spawn: _level.entity_spawns()) {
                     const auto type = to_lower(spawn.type);
                     // If the entity type is player
                     if (type == "player") {
-                        // Set player position based on spawn coordinates
-                        _player.set_position(spawn.tile_x * tile_size, spawn.tile_y * tile_size);
                         player_spawned = true;
+                        // Create the ECS player
+                        _player_id = _registry.create_entity();
+                        _registry.add_component<Position>(_player_id, {
+                                                              spawn.tile_x * tile_size, spawn.tile_y * tile_size
+                                                          });
+                        _registry.add_component<Velocity>(_player_id, {0.0f, 0.0f});
+                        // Use the real player sprite/collision size (pixels)
+                        _registry.add_component<Size>(_player_id, {player::Width, player::Height});
+                        _registry.add_component<PlayerInput>(_player_id, {});
+                        _registry.add_component<JumpState>(_player_id, {});
+                        _registry.add_component<PlayerStats>(_player_id, {});
+                        _registry.add_component<Type>(_player_id, {EntityType::Player});
+                        _registry.add_component<CollisionInfo>(_player_id, {});
                         continue;
                     }
                     // If entity creation succeeds
@@ -80,9 +100,21 @@ namespace mario {
         }
         // If no player entity is found, set its default position
         if (!player_spawned) {
+            // Create the ECS player
+            _player_id = _registry.create_entity();
+            _registry.add_component<Position>(_player_id, {32.0f, 32.0f});
+            _registry.add_component<Velocity>(_player_id, {0.0f, 0.0f});
+            // Use the real player sprite/collision size (pixels)
+            _registry.add_component<Size>(_player_id, {player::Width, player::Height});
+            _registry.add_component<PlayerInput>(_player_id, {});
+            _registry.add_component<JumpState>(_player_id, {});
+            _registry.add_component<PlayerStats>(_player_id, {});
+            _registry.add_component<Type>(_player_id, {EntityType::Player});
+            _registry.add_component<CollisionInfo>(_player_id, {});
+            // Sync player position for rendering
             _player.set_position(32.0f, 32.0f);
         }
-        
+
         // Initialize camera target
         if (auto camera = _level.camera()) {
             const auto viewport = _game.renderer().viewport_size();
@@ -91,7 +123,7 @@ namespace mario {
                                _player.y() + _player.height() * 0.5f);
             camera->update(0.0f);
         }
-        
+
         _running = true;
         _level_transition_delay = LevelTransitionCooldown;
     }
@@ -106,42 +138,63 @@ namespace mario {
         if (_level_transition_delay > 0.0f) {
             _level_transition_delay = std::max(0.0f, _level_transition_delay - dt);
         }
-        float axis = 0.0f;
-        if (_game.input().is_pressed(InputManager::Action::MoveLeft)) axis -= 1.0f;
-        if (_game.input().is_pressed(InputManager::Action::MoveRight)) axis += 1.0f;
 
-        // Set move axis i.e., direction of movement
-        _player.set_move_axis(axis);
-        // Check if the player is jumping and the jump button is pressed
-        _player.set_jump_pressed(_game.input().is_pressed(InputManager::Action::Jump));
-        // Player velocity update and double jump handling
-        _player.handle_input();
-        
         auto tile_map = _level.tile_map();
-        
-        _physics.update(_player, dt);
+
+        // Update ECS systems for player
+        _player_input.update(_registry, _game.input());
+        _player_movement.update(_registry, dt);
+        _physics.update(_registry, dt);
         if (tile_map) {
-            _collision.check_entity_collision(_player, *tile_map, dt);
+            _collision.update(_registry, *tile_map, dt);
         }
-        
-        // Update entities and physics
+
+        // Sync player position from ECS
+        auto *pos = _registry.get_component<Position>(_player_id);
+        if (pos) {
+            _player.set_position(pos->x, pos->y);
+        }
+        // Also sync velocity from ECS so legacy collision resolution has correct velocity
+        auto *vel = _registry.get_component<Velocity>(_player_id);
+        if (vel) {
+            _player.set_velocity(vel->vx, vel->vy);
+        }
+
+        // Update entities and physics for legacy (non-ECS) entities
         for (auto &entity: _entities) {
-            // Does nothing for the moment
+            // Update logic for legacy entities
             entity->update(dt);
-            // Update physics and collision for each entity
+            // Update physics and collision for each legacy entity
             _physics.update(*entity, dt);
             if (tile_map) {
                 _collision.check_entity_collision(*entity, *tile_map, dt);
             }
         }
 
-        // Check for entity vs entity collisions (Player vs Enemies)
+        // Check for entity vs entity collisions (Player vs Enemies) for legacy entities
         for (auto &entity : _entities) {
-            _collision.check_entity_vs_entity_collision(_player, *entity);
+            _collision.check_entity_vs_entity_collision(_player, *entity, dt);
+        }
+
+        // Sync resolved player position/velocity back into the ECS so physics doesn't overwrite it next frame
+        {
+            auto *pos_comp = _registry.get_component<Position>(_player_id);
+            auto *vel_comp = _registry.get_component<Velocity>(_player_id);
+            if (pos_comp) {
+                pos_comp->x = _player.x();
+                pos_comp->y = _player.y();
+            }
+            if (vel_comp) {
+                vel_comp->vx = _player.vx();
+                vel_comp->vy = _player.vy();
+            }
         }
 
         // Reset jump if player is on ground
-        if (tile_map && _player.is_on_ground(*tile_map)) _player.reset_jump();
+        if (tile_map && _player.is_on_ground(*tile_map)) {
+            auto *jump = _registry.get_component<JumpState>(_player_id);
+            if (jump) jump->jump_count = 0;
+        }
 
         // Handle camera movement and target for scrolling effect
         if (auto camera = _level.camera()) {
@@ -187,7 +240,7 @@ namespace mario {
 
     void PlayState::render() {
         _game.renderer().begin_frame();
-        
+
         if (auto camera = _level.camera()) {
             _game.renderer().set_camera(camera->x(), camera->y());
         }
@@ -197,6 +250,8 @@ namespace mario {
         for (auto &entity: _entities) {
             entity->render(_game.renderer());
         }
+
+        // Removed debug draw (AABB and collision-coloring) so player and enemies render via their own render methods
 
         // Draw HUD
         std::string level_name = "Level 1";
