@@ -28,8 +28,8 @@ namespace {
     // Create entities from spawn data with a type and position using a factory pattern
     std::unique_ptr<mario::Entity> create_entity_for_spawn(const mario::EntitySpawn &spawn, const float tile_size) {
         const std::string type = to_lower(spawn.type);
-        const float pos_x = spawn.tile_x * tile_size;
-        const float pos_y = spawn.tile_y * tile_size;
+        const float pos_x = static_cast<float>(spawn.tile_x) * tile_size;
+        const float pos_y = static_cast<float>(spawn.tile_y) * tile_size;
 
         if (type == "goomba") {
             auto entity = std::make_unique<mario::Goomba>();
@@ -50,10 +50,10 @@ namespace {
 }
 
 namespace mario {
-    PlayState::PlayState(Game &game) : _game(game), _hud(game.renderer()) {
+    PlayState::PlayState(Game &game) : _game(game), _player_id(0), _hud(game.renderer()) {
     }
 
-    PlayState::PlayState(Game &game, std::string level_path) : _game(game), _current_level_path(std::move(level_path)),
+    PlayState::PlayState(Game &game, std::string level_path) : _game(game), _player_id(0), _current_level_path(std::move(level_path)),
                                                                _hud(game.renderer()) {
     }
 
@@ -78,7 +78,7 @@ namespace mario {
                         // Create the ECS player
                         _player_id = _registry.create_entity();
                         _registry.add_component<Position>(_player_id, {
-                                                              spawn.tile_x * tile_size, spawn.tile_y * tile_size
+                                                              static_cast<float>(spawn.tile_x) * tile_size, static_cast<float>(spawn.tile_y) * tile_size
                                                           });
                         _registry.add_component<Velocity>(_player_id, {0.0f, 0.0f});
                         // Use the real player sprite/collision size (pixels)
@@ -146,7 +146,7 @@ namespace mario {
         _player_movement.update(_registry, dt);
         _physics.update(_registry, dt);
         if (tile_map) {
-            _collision.update(_registry, *tile_map, dt);
+            CollisionSystem::update(_registry, *tile_map, dt);
         }
 
         // Sync player position from ECS
@@ -167,13 +167,13 @@ namespace mario {
             // Update physics and collision for each legacy entity
             _physics.update(*entity, dt);
             if (tile_map) {
-                _collision.check_entity_collision(*entity, *tile_map, dt);
+                CollisionSystem::check_entity_collision(*entity, *tile_map, dt);
             }
         }
 
         // Check for entity vs entity collisions (Player vs Enemies) for legacy entities
         for (auto &entity : _entities) {
-            _collision.check_entity_vs_entity_collision(_player, *entity, dt);
+            CollisionSystem::check_entity_vs_entity_collision(_player, *entity, dt);
         }
 
         // Sync resolved player position/velocity back into the ECS so physics doesn't overwrite it next frame
@@ -192,7 +192,7 @@ namespace mario {
 
         // Reset jump if player is on ground
         if (tile_map && _player.is_on_ground(*tile_map)) {
-            auto *jump = _registry.get_component<JumpState>(_player_id);
+            auto jump = _registry.get_component<JumpState>(_player_id);
             if (jump) jump->jump_count = 0;
         }
 
@@ -213,7 +213,7 @@ namespace mario {
 
         // Reset the level if the player falls below the map
         if (tile_map) {
-            float map_bottom = static_cast<float>(tile_map->height() * tile_map->tile_size());
+            float map_bottom = static_cast<float>(tile_map->height()) * static_cast<float>(tile_map->tile_size());
             if (_player.y() > map_bottom) {
                 on_exit();
                 on_enter();
@@ -222,9 +222,9 @@ namespace mario {
 
             if (_level_transition_delay <= 0.0f) {
                 // Load next level if the player reaches the right end
-                auto map_right = static_cast<float>(tile_map->width() * tile_map->tile_size());
-                if (_player.x() + _player.width() > map_right) {
-                    if (_current_level_path == "assets/levels/level1.json") {
+                const int map_right_px = tile_map->width() * tile_map->tile_size();
+                if (_player.x() + _player.width() > static_cast<float>(map_right_px)) {
+                    if (_current_level_path.find("level1") != std::string::npos) {
                         _current_level_path = "assets/levels/level2.json";
                     } else {
                         // Loop back to level 1 for now if we reach the end of level 2

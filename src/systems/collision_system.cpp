@@ -34,6 +34,7 @@ namespace mario {
         const float prev_x = current_x - vel.vx * dt;
         const float prev_y = current_y - vel.vy * dt;
         const int tile_size = map.tile_size();
+        const auto tile_size_f = static_cast<float>(tile_size);
 
         if (tile_size <= 0) {
             return;
@@ -48,10 +49,10 @@ namespace mario {
         if (vx != 0.0f) {
             const float min_x = std::min(prev_x, current_x);
             const float max_x = std::max(prev_x, current_x);
-            const int start_x = static_cast<int>(std::floor(min_x / tile_size));
-            const int end_x = static_cast<int>(std::floor((max_x + w) / tile_size));
-            const int start_y = static_cast<int>(std::floor(prev_y / tile_size));
-            const int end_y = static_cast<int>(std::floor((prev_y + h) / tile_size));
+            const int start_x = static_cast<int>(std::floor(min_x / tile_size_f));
+            const int end_x = static_cast<int>(std::floor((max_x + w) / tile_size_f));
+            const int start_y = static_cast<int>(std::floor(prev_y / tile_size_f));
+            const int end_y = static_cast<int>(std::floor((prev_y + h) / tile_size_f));
 
             // Iterate over tiles that the entity might collide with
             for (int ty = start_y; ty <= end_y; ++ty) {
@@ -60,9 +61,9 @@ namespace mario {
                         continue;
                     }
                     // Build collision detection for the entity with the tile
-                    const float tile_left = static_cast<float>(tx * tile_size);
-                    const float tile_top = static_cast<float>(ty * tile_size);
-                    if (!rects_intersect(new_x, prev_y, w, h, tile_left, tile_top, static_cast<float>(tile_size), static_cast<float>(tile_size))) {
+                    const float tile_left = static_cast<float>(tx) * tile_size_f;
+                    const float tile_top = static_cast<float>(ty) * tile_size_f;
+                    if (!rects_intersect(new_x, prev_y, w, h, tile_left, tile_top, tile_size_f, tile_size_f)) {
                         continue;
                     }
 
@@ -71,7 +72,7 @@ namespace mario {
                         new_x = tile_left - w;
                         // If the entity is moving left, stop at the right edge of the tile
                     } else {
-                        new_x = tile_left + tile_size;
+                        new_x = tile_left + tile_size_f;
                     }
                     vx = 0.0f;
                 }
@@ -81,10 +82,10 @@ namespace mario {
         if (vy != 0.0f) {
             const float min_y = std::min(prev_y, current_y);
             const float max_y = std::max(prev_y, current_y);
-            const int start_x = static_cast<int>(std::floor(new_x / tile_size));
-            const int end_x = static_cast<int>(std::floor((new_x + w) / tile_size));
-            const int start_y = static_cast<int>(std::floor(min_y / tile_size));
-            const int end_y = static_cast<int>(std::floor((max_y + h) / tile_size));
+            const int start_x = static_cast<int>(std::floor(new_x / tile_size_f));
+            const int end_x = static_cast<int>(std::floor((new_x + w) / tile_size_f));
+            const int start_y = static_cast<int>(std::floor(min_y / tile_size_f));
+            const int end_y = static_cast<int>(std::floor((max_y + h) / tile_size_f));
 
             for (int ty = start_y; ty <= end_y; ++ty) {
                 for (int tx = start_x; tx <= end_x; ++tx) {
@@ -92,16 +93,16 @@ namespace mario {
                         continue;
                     }
 
-                    const float tile_left = static_cast<float>(tx * tile_size);
-                    const float tile_top = static_cast<float>(ty * tile_size);
-                    if (!rects_intersect(new_x, new_y, w, h, tile_left, tile_top, static_cast<float>(tile_size), static_cast<float>(tile_size))) {
+                    const float tile_left = static_cast<float>(tx) * tile_size_f;
+                    const float tile_top = static_cast<float>(ty) * tile_size_f;
+                    if (!rects_intersect(new_x, new_y, w, h, tile_left, tile_top, tile_size_f, tile_size_f)) {
                         continue;
                     }
 
                     if (vy > 0.0f) {
                         new_y = tile_top - h;
                     } else {
-                        new_y = tile_top + tile_size;
+                        new_y = tile_top + tile_size_f;
                     }
                     vy = 0.0f;
                 }
@@ -114,7 +115,7 @@ namespace mario {
         vel.vy = vy;
     }
 
-    void CollisionSystem::update(Registry& registry, const TileMap& map, float dt) const {
+    void CollisionSystem::update(Registry& registry, const TileMap& map, float dt) {
         // First, handle tile collisions for entities with Position, Velocity, Size
         auto entities = registry.get_entities_with<Position>();
         for (auto entity : entities) {
@@ -214,7 +215,7 @@ namespace mario {
     }
 
 
-    void CollisionSystem::check_entity_collision(Entity &entity, const TileMap &map, float dt) const {
+    void CollisionSystem::check_entity_collision(Entity &entity, const TileMap &map, float dt) {
         // Clear previous collision info
         entity.clear_collision_info();
 
@@ -225,6 +226,7 @@ namespace mario {
         const float prev_x = current_x - entity.vx() * dt;
         const float prev_y = current_y - entity.vy() * dt;
         const int tile_size = map.tile_size();
+        const auto tile_size_f = static_cast<float>(tile_size);
 
         if (tile_size <= 0) {
             return;
@@ -239,10 +241,10 @@ namespace mario {
         if (vx != 0.0f) {
             const float min_x = std::min(prev_x, current_x);
             const float max_x = std::max(prev_x, current_x);
-            const int start_x = static_cast<int>(std::floor(min_x / tile_size));
-            const int end_x = static_cast<int>(std::floor((max_x + w) / tile_size));
-            const int start_y = static_cast<int>(std::floor(prev_y / tile_size));
-            const int end_y = static_cast<int>(std::floor((prev_y + h) / tile_size));
+            const int start_x = static_cast<int>(std::floor(min_x / tile_size_f));
+            const int end_x = static_cast<int>(std::floor((max_x + w) / tile_size_f));
+            const int start_y = static_cast<int>(std::floor(prev_y / tile_size_f));
+            const int end_y = static_cast<int>(std::floor((prev_y + h) / tile_size_f));
 
             // Iterate over tiles that the entity might collide with
             for (int ty = start_y; ty <= end_y; ++ty) {
@@ -251,9 +253,9 @@ namespace mario {
                         continue;
                     }
                     // Build collision detection for the entity with the tile
-                    const float tile_left = static_cast<float>(tx * tile_size);
-                    const float tile_top = static_cast<float>(ty * tile_size);
-                    if (!rects_intersect(new_x, prev_y, w, h, tile_left, tile_top, static_cast<float>(tile_size), static_cast<float>(tile_size))) {
+                    const float tile_left = static_cast<float>(tx) * tile_size_f;
+                    const float tile_top = static_cast<float>(ty) * tile_size_f;
+                    if (!rects_intersect(new_x, prev_y, w, h, tile_left, tile_top, tile_size_f, tile_size_f)) {
                         continue;
                     }
 
@@ -262,7 +264,7 @@ namespace mario {
                         new_x = tile_left - w;
                         // If the entity is moving left, stop at the right edge of the tile
                     } else {
-                        new_x = tile_left + tile_size;
+                        new_x = tile_left + tile_size_f;
                     }
                     vx = 0.0f;
                 }
@@ -272,10 +274,10 @@ namespace mario {
         if (vy != 0.0f) {
             const float min_y = std::min(prev_y, current_y);
             const float max_y = std::max(prev_y, current_y);
-            const int start_x = static_cast<int>(std::floor(new_x / tile_size));
-            const int end_x = static_cast<int>(std::floor((new_x + w) / tile_size));
-            const int start_y = static_cast<int>(std::floor(min_y / tile_size));
-            const int end_y = static_cast<int>(std::floor((max_y + h) / tile_size));
+            const int start_x = static_cast<int>(std::floor(new_x / tile_size_f));
+            const int end_x = static_cast<int>(std::floor((new_x + w) / tile_size_f));
+            const int start_y = static_cast<int>(std::floor(min_y / tile_size_f));
+            const int end_y = static_cast<int>(std::floor((max_y + h) / tile_size_f));
 
             for (int ty = start_y; ty <= end_y; ++ty) {
                 for (int tx = start_x; tx <= end_x; ++tx) {
@@ -283,16 +285,16 @@ namespace mario {
                         continue;
                     }
 
-                    const float tile_left = static_cast<float>(tx * tile_size);
-                    const float tile_top = static_cast<float>(ty * tile_size);
-                    if (!rects_intersect(new_x, new_y, w, h, tile_left, tile_top, static_cast<float>(tile_size), static_cast<float>(tile_size))) {
+                    const float tile_left = static_cast<float>(tx) * tile_size_f;
+                    const float tile_top = static_cast<float>(ty) * tile_size_f;
+                    if (!rects_intersect(new_x, new_y, w, h, tile_left, tile_top, tile_size_f, tile_size_f)) {
                         continue;
                     }
 
                     if (vy > 0.0f) {
                         new_y = tile_top - h;
                     } else {
-                        new_y = tile_top + tile_size;
+                        new_y = tile_top + tile_size_f;
                     }
                     vy = 0.0f;
                 }
@@ -303,7 +305,7 @@ namespace mario {
         entity.set_velocity(vx, vy);
     }
 
-    void CollisionSystem::check_entity_vs_entity_collision(Entity &a, Entity &b, float dt) const {
+    void CollisionSystem::check_entity_vs_entity_collision(Entity &a, Entity &b, float dt) {
         const float left_a = a.x();
         const float top_a = a.y();
         const float right_a = rect_right(a.x(), a.width());
