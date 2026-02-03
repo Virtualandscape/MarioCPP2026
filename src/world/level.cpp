@@ -5,14 +5,133 @@
 
 #include <algorithm>
 #include <utility>
+#include <filesystem>
+#include <fstream>
 
 namespace mario {
+    namespace {
+        // Open a level file searching multiple relative locations (same logic as TileMap helper)
+        std::ifstream open_level_file(std::string_view path) {
+            std::filesystem::path base(path);
+            std::ifstream file{base.string()};
+            if (file) {
+                return file;
+            }
+
+            const std::filesystem::path cwd = std::filesystem::current_path();
+            const std::filesystem::path tries[] = {
+                cwd / base,
+                cwd / ".." / base,
+                cwd / ".." / ".." / base,
+                cwd / ".." / ".." / ".." / base,
+            };
+
+            for (const auto &candidate: tries) {
+                file = std::ifstream{candidate.string()};
+                if (file) {
+                    return file;
+                }
+            }
+
+            return {};
+        }
+
+        bool extract_string_field(const std::string &text, const char *key, std::string &value) {
+            const std::string needle = std::string("\"") + key + "\"";
+            std::size_t pos = text.find(needle);
+            if (pos == std::string::npos) {
+                return false;
+            }
+
+            pos = text.find(':', pos);
+            if (pos == std::string::npos) {
+                return false;
+            }
+
+            ++pos;
+            while (pos < text.size() && std::isspace(static_cast<unsigned char>(text[pos]))) {
+                ++pos;
+            }
+
+            if (pos >= text.size() || text[pos] != '"') {
+                return false;
+            }
+
+            const std::size_t start = pos + 1;
+            const std::size_t end = text.find('"', start);
+            if (end == std::string::npos) {
+                return false;
+            }
+
+            value = text.substr(start, end - start);
+            return true;
+        }
+
+        bool extract_float_field(const std::string &text, const char *key, float &value) {
+            const std::string needle = std::string("\"") + key + "\"";
+            std::size_t pos = text.find(needle);
+            if (pos == std::string::npos) {
+                return false;
+            }
+
+            pos = text.find(':', pos);
+            if (pos == std::string::npos) {
+                return false;
+            }
+
+            ++pos;
+            while (pos < text.size() && std::isspace(static_cast<unsigned char>(text[pos]))) {
+                ++pos;
+            }
+
+            // Read until non-number char
+            const std::size_t start = pos;
+            std::size_t end = start;
+            // allow digits, decimal point, sign, exponent
+            while (end < text.size()) {
+                const char c = text[end];
+                if ((c >= '0' && c <= '9') || c == '.' || c == '-' || c == '+' || c == 'e' || c == 'E') {
+                    ++end;
+                    continue;
+                }
+                break;
+            }
+            if (end == start) return false;
+
+            try {
+                value = std::stof(text.substr(start, end - start));
+            } catch (...) {
+                return false;
+            }
+            return true;
+        }
+
+    }
+
     // Loads a level from a JSON file and initializes camera bounds
     void Level::load(std::string_view level_id) {
         _tile_map = std::make_shared<TileMap>();
         std::vector<EntitySpawn> spawns;
         _tile_map->load(level_id, &spawns);
         _entity_spawns = std::move(spawns);
+
+        // Try to read background field from level file (if present)
+        _background_path.clear();
+        _background_scale = 1.0f;
+        if (!level_id.empty()) {
+            std::ifstream file = open_level_file(level_id);
+            if (file) {
+                std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+                std::string bg;
+                if (extract_string_field(content, "background", bg)) {
+                    _background_path = bg;
+                }
+                float bscale = 1.0f;
+                if (extract_float_field(content, "background_scale", bscale)) {
+                    _background_scale = bscale;
+                }
+            }
+        }
 
         _camera = std::make_shared<Camera>();
 
@@ -28,6 +147,7 @@ namespace mario {
         _tile_map.reset();
         _camera.reset();
         _entity_spawns.clear();
+        _background_path.clear();
     }
 
     // Updates camera and level state

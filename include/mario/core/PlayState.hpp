@@ -7,6 +7,7 @@
 #include "mario/systems/PlayerMovementSystem.hpp"
 #include "mario/systems/EnemySystem.hpp"
 #include "mario/systems/LevelSystem.hpp"
+#include "mario/systems/BackgroundSystem.hpp"
 #include "mario/world/Level.hpp"
 #include "mario/world/TileMap.hpp"
 #include "mario/ui/HUD.hpp"
@@ -41,6 +42,7 @@ namespace mario {
         PlayerInputSystem _player_input;
         PlayerMovementSystem _player_movement;
         EnemySystem _enemy_system;
+        BackgroundSystem _background_system;
         Level _level;
         HUD _hud;
         EntityManager _registry;

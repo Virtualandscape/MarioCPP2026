@@ -2,6 +2,7 @@
 
 #include "mario/render/Renderer.hpp"
 #include "mario/input/InputManager.hpp"
+#include "mario/resources/AssetManager.hpp"
 #include <memory>
 #include <vector>
 
@@ -25,11 +26,13 @@ namespace mario {
 
         Renderer& renderer() { return _renderer; }
         InputManager& input() { return _input; }
+        AssetManager& assets() { return _assets; }
 
     private:
         bool _running = false;
         std::vector<std::shared_ptr<GameState>> _states;
         Renderer _renderer;
         InputManager _input;
+        AssetManager _assets;
     };
 } // namespace mario

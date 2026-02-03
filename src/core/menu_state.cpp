@@ -70,18 +70,18 @@ namespace mario {
         _game.renderer().begin_frame();
 
         // Draw background
-        _game.renderer().draw_rect(0, 0, 800, 480, sf::Color(50, 50, 50));
+        _game.renderer().draw_rect(0, 0, 800, 480, sf::Color(20, 20, 20));
 
         // Draw level options as rectangles and text
         for (size_t i = 0; i < _levels.size(); ++i) {
-            sf::Color rect_color = (static_cast<int>(i) == _selected_index) ? sf::Color::Yellow : sf::Color::White;
+            sf::Color rect_color = (static_cast<int>(i) == _selected_index) ? sf::Color(50,50,50) : sf::Color(40,40,40);
             float x = 300;
             float y = 150 + static_cast<float>(i) * 100;
             _game.renderer().draw_rect(x, y, 200, 50, rect_color);
             
             auto& text = _level_texts[i];
             text.set_position(x + 50, y + 10);
-            text.set_color(sf::Color::Black);
+            text.set_color(sf::Color::White);
             text.render();
 
             // Draw a small indicator for selection

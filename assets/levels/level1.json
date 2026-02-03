@@ -2,6 +2,8 @@
   "width": 100,
   "height": 18,
   "tileSize": 16,
+  "background": "assets/images/background.png",
+  "background_scale": 1.0,
   "entities": [
     {
       "type": "player",

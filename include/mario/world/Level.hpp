@@ -3,6 +3,7 @@
 #include <memory>
 #include <string_view>
 #include <vector>
+#include <string>
 
 #include "mario/world/EntitySpawn.hpp"
 
@@ -28,9 +29,14 @@ namespace mario {
 
         const std::vector<EntitySpawn>& entity_spawns() const;
 
+        const std::string& background_path() const { return _background_path; }
+        float background_scale() const { return _background_scale; }
+
     private:
         std::shared_ptr<TileMap> _tile_map;
         std::shared_ptr<Camera> _camera;
         std::vector<EntitySpawn> _entity_spawns;
+        std::string _background_path;
+        float _background_scale = 1.0f;
     };
 } // namespace mario

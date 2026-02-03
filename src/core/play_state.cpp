@@ -2,24 +2,20 @@
 #include "mario/core/Game.hpp"
 #include "mario/world/Camera.hpp"
 #include "mario/ecs/components/PositionComponent.hpp"
-#include "mario/ecs/components/VelocityComponent.hpp"
 #include "mario/ecs/components/SizeComponent.hpp"
-#include "mario/ecs/components/PlayerInputComponent.hpp"
-#include "mario/ecs/components/JumpStateComponent.hpp"
-#include "mario/ecs/components/PlayerStatsComponent.hpp"
-#include "mario/ecs/components/TypeComponent.hpp"
-#include "mario/ecs/components/CollisionInfoComponent.hpp"
-#include "mario/ecs/components/EnemyComponent.hpp"
 #include "mario/ecs/components/SpriteComponent.hpp"
+#include "mario/ecs/components/BackgroundComponent.hpp"
 #include "mario/util/Spawner.hpp"
 #include "mario/world/TileMap.hpp"
 
-#include <cmath>
 #include <algorithm>
-#include <cctype>
 #include <string>
 
 namespace mario {
+    namespace {
+        constexpr int BACKGROUND_TEXTURE_ID = 1000;
+    }
+
     PlayState::PlayState(Game &game) : _game(game), _player_id(0), _hud(game.renderer()) {
     }
 
@@ -30,6 +26,24 @@ namespace mario {
     void PlayState::on_enter() {
         // Load level
         _level.load(_current_level_path);
+
+        // Load background texture if level specifies one
+        const std::string &bg = _level.background_path();
+        if (!bg.empty()) {
+            if (_game.assets().load_texture(BACKGROUND_TEXTURE_ID, bg)) {
+                // create background entity and attach component
+                auto id = _registry.create_entity();
+                BackgroundComponent bc;
+                bc.texture_id = BACKGROUND_TEXTURE_ID;
+                bc.preserve_aspect = true;
+                // Use Fill so the background always covers the viewport (may crop), which effectively "zooms" small images
+                bc.scale_mode = BackgroundComponent::ScaleMode::Fill;
+                // Apply optional per-level background scale
+                bc.scale_multiplier = _level.background_scale();
+                bc.parallax = 0.0f;
+                _registry.add_component(id, bc);
+            }
+        }
 
         // Spawn entities
         bool player_spawned = false;
@@ -122,6 +136,19 @@ namespace mario {
 
         if (auto camera = _level.camera()) {
             _game.renderer().set_camera(camera->x(), camera->y());
+        }
+
+        // Render background(s)
+        auto bg_entities = _registry.get_entities_with<BackgroundComponent>();
+        for (auto entity : bg_entities) {
+            auto* bg = _registry.get_component<BackgroundComponent>(entity);
+            if (!bg) continue;
+            if (auto camera = _level.camera()) {
+                _background_system.render(_game.renderer(), *camera, _game.assets(), *bg);
+            } else {
+                Camera dummy;
+                _background_system.render(_game.renderer(), dummy, _game.assets(), *bg);
+            }
         }
 
         _level.render(_game.renderer());

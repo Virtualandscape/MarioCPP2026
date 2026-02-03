@@ -1,37 +1,27 @@
+// cpp
 #include "mario/render/Renderer.hpp"
 #include <iostream>
 
 namespace mario {
     Renderer::Renderer()
-#if SFML_VERSION_MAJOR >= 3
         : _window(sf::VideoMode({800u, 480u}), "Mario Prototype", sf::Style::Titlebar | sf::Style::Close)
-#else
-        : _window(sf::VideoMode(800, 480), "Mario Prototype", sf::Style::Titlebar | sf::Style::Close)
-#endif
     {
         _window.setVerticalSyncEnabled(true);
-        
+
         const std::vector<std::string> font_paths = {
             "assets/fonts/arial.ttf",
             "../assets/fonts/arial.ttf",
             "../../assets/fonts/arial.ttf"
         };
-        
+
         bool loaded = false;
         for (const auto& path : font_paths) {
-#if SFML_VERSION_MAJOR >= 3
             if (_font.openFromFile(path)) {
                 loaded = true;
                 break;
             }
-#else
-            if (_font.loadFromFile(path)) {
-                loaded = true;
-                break;
-            }
-#endif
         }
-        
+
         if (!loaded) {
             std::cerr << "Failed to load font from any of the standard paths." << std::endl;
         }
@@ -42,20 +32,11 @@ namespace mario {
             return;
         }
 
-#if SFML_VERSION_MAJOR >= 3
         while (const auto event = _window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
                 _window.close();
             }
         }
-#else
-        sf::Event event;
-        while (_window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) {
-                _window.close();
-            }
-        }
-#endif
 
         _window.clear(_clear_color);
     }
@@ -71,6 +52,18 @@ namespace mario {
     void Renderer::set_camera(float x, float y) {
         _camera_x = x;
         _camera_y = y;
+
+        // Update the SFML view so drawing to the RenderWindow uses world coordinates
+        if (_window.isOpen()) {
+            const auto size = _window.getSize();
+            const float w = static_cast<float>(size.x);
+            const float h = static_cast<float>(size.y);
+            sf::View view;
+            view.setSize({w, h});
+            // setCenter expects the center point: camera x/y are top-left, so add half-size
+            view.setCenter({x + w * 0.5f, y + h * 0.5f});
+            _window.setView(view);
+        }
     }
 
     void Renderer::draw_sprite(int sprite_id, float x, float y) {
@@ -85,7 +78,8 @@ namespace mario {
         }
 
         sf::RectangleShape shape({width, height});
-        shape.setPosition({x - _camera_x, y - _camera_y});
+        // Positions are world-space; the current SFML view (set in set_camera) handles camera transform.
+        shape.setPosition({x, y});
         shape.setFillColor(color);
         _window.draw(shape);
     }
@@ -95,17 +89,20 @@ namespace mario {
             return;
         }
 
-#if SFML_VERSION_MAJOR >= 3
-        sf::Text sf_text(_font, text, size);
-#else
-        sf::Text sf_text;
-        sf_text.setFont(_font);
+        // Draw text in screen/UI space: temporarily switch to default view
+        sf::RenderWindow& window = _window;
+        auto old_view = window.getView();
+        window.setView(window.getDefaultView());
+
+        // Construct sf::Text using the overload that accepts sf::Font first (compatible with some SFML versions)
+        sf::Text sf_text(_font);
         sf_text.setString(text);
         sf_text.setCharacterSize(size);
-#endif
         sf_text.setFillColor(color);
-        sf_text.setPosition({x, y}); // Text is usually UI-space
-        _window.draw(sf_text);
+        sf_text.setPosition({x, y}); // UI-space
+        window.draw(sf_text);
+
+        window.setView(old_view);
     }
 
     void Renderer::draw_ellipse(float x, float y, float width, float height, sf::Color color) {
@@ -115,7 +112,8 @@ namespace mario {
 
         sf::CircleShape shape(0.5f);
         shape.setScale({width, height});
-        shape.setPosition({x - _camera_x, y - _camera_y});
+        // Positions are world-space; rely on SFML view transform instead of manual offset
+        shape.setPosition({x, y});
         shape.setFillColor(color);
         _window.draw(shape);
     }

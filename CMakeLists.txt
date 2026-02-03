@@ -35,6 +35,8 @@ set(SOURCES
         src/world/level.cpp
         src/world/tile_map.cpp
         src/systems/player_movement_system.cpp
+        src/util/Quadtree.cpp
+        src/systems/background_system.cpp
 )
 
 set(HEADERS
@@ -55,6 +57,8 @@ set(HEADERS
         include/mario/systems/EnemySystem.hpp
         include/mario/systems/LevelSystem.hpp
         include/mario/util/Spawner.hpp
+        include/mario/ecs/components/BackgroundComponent.hpp
+        include/mario/systems/BackgroundSystem.hpp
 )
 
 add_executable(Mario ${SOURCES} ${HEADERS})
