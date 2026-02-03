@@ -39,7 +39,7 @@ set(SOURCES
 
 set(HEADERS
         include/mario/ecs/EntityTypeComponent.hpp
-        include/mario/ecs/Registry.hpp
+        include/mario/ecs/EntityManager.hpp
         include/mario/ecs/components/PositionComponent.hpp
         include/mario/ecs/components/VelocityComponent.hpp
         include/mario/ecs/components/SizeComponent.hpp

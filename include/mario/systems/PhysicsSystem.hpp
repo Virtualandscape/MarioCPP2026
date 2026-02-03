@@ -1,13 +1,13 @@
 #pragma once
 
-#include "mario/ecs/Registry.hpp"
+#include "mario/ecs/EntityManager.hpp"
 
 namespace mario {
 
     // Integrates movement, gravity, friction.
     class PhysicsSystem {
     public:
-        void update(Registry& registry, float dt) const;
+        void update(EntityManager& registry, float dt) const;
 
         void set_gravity(float g);
 

@@ -9,7 +9,7 @@
 
 namespace mario {
 
-void LevelSystem::check_ground_status(Registry& registry, const TileMap& map) {
+void LevelSystem::check_ground_status(EntityManager& registry, const TileMap& map) {
     auto entities = registry.get_entities_with<JumpStateComponent>();
     const int tile_size = map.tile_size();
     if (tile_size <= 0) return;
@@ -42,7 +42,7 @@ void LevelSystem::check_ground_status(Registry& registry, const TileMap& map) {
     }
 }
 
-bool LevelSystem::handle_transitions(Registry& registry, EntityID player_id, Level& level, std::string& current_level_path, float& transition_delay, float dt) {
+bool LevelSystem::handle_transitions(EntityManager& registry, EntityID player_id, Level& level, std::string& current_level_path, float& transition_delay, float dt) {
     auto tile_map = level.tile_map();
     if (!tile_map) return false;
 

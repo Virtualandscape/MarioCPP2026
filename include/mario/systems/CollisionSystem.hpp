@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mario/ecs/Registry.hpp"
+#include "mario/ecs/EntityManager.hpp"
 
 namespace mario {
     class TileMap;
@@ -8,7 +8,7 @@ namespace mario {
     //  Broadphase/narrowphase, tile + entity collisions.
     class CollisionSystem {
     public:
-        static void update(Registry& registry, const TileMap& map, float dt);
+        static void update(EntityManager& registry, const TileMap& map, float dt);
     };
     //  shapes + collision flags (solid, trigger).
     class Collider {

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "mario/ecs/Registry.hpp"
+#include "mario/ecs/EntityManager.hpp"
 
 namespace mario {
     class InputManager;
 
     class PlayerInputSystem {
     public:
-        void update(Registry& registry, const InputManager& input) const;
+        void update(EntityManager& registry, const InputManager& input) const;
     };
 } // namespace mario

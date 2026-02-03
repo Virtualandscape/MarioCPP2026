@@ -10,7 +10,7 @@
 #include "mario/world/Level.hpp"
 #include "mario/world/TileMap.hpp"
 #include "mario/ui/HUD.hpp"
-#include "mario/ecs/Registry.hpp"
+#include "mario/ecs/EntityManager.hpp"
 #include "mario/ecs/components/SpriteComponent.hpp"
 #include <memory>
 #include <string>
@@ -43,7 +43,7 @@ namespace mario {
         EnemySystem _enemy_system;
         Level _level;
         HUD _hud;
-        Registry _registry;
+        EntityManager _registry;
         bool _running = true;
         float _level_transition_delay = 0.0f;
         std::string _current_level_path = "assets/levels/level1.json";

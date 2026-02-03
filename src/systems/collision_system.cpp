@@ -135,7 +135,7 @@ namespace mario {
         vel.vy = result.vy;
     }
 
-    void CollisionSystem::update(Registry& registry, const TileMap& map, float dt) {
+    void CollisionSystem::update(EntityManager& registry, const TileMap& map, float dt) {
         // First, handle tile collisions for entities with Position, Velocity, Size
         auto entities = registry.get_entities_with<PositionComponent>();
         for (auto entity : entities) {

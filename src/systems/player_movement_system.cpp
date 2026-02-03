@@ -7,7 +7,7 @@
 
 namespace mario {
 
-void PlayerMovementSystem::update(Registry& registry, float dt) const
+void PlayerMovementSystem::update(EntityManager& registry, float dt) const
 {
     auto entities = registry.get_entities_with<PlayerInputComponent>();
     for (auto entity : entities) {

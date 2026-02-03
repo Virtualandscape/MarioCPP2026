@@ -62,6 +62,9 @@ namespace mario {
     }
 
     void PlayState::on_exit() {
+        // Clear registry to remove entities/components from the previous level
+        _registry.clear();
+        _player_id = 0;
         _level.unload();
     }
 
@@ -73,6 +76,9 @@ namespace mario {
         // Update ECS systems
         _player_input.update(_registry, _game.input());
         _player_movement.update(_registry, dt);
+        if (tile_map) {
+            _enemy_system.update(_registry, *tile_map, dt);
+        }
         _physics.update(_registry, dt);
         if (tile_map) {
             CollisionSystem::update(_registry, *tile_map, dt);

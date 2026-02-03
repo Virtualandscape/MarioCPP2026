@@ -4,7 +4,7 @@
 #include "mario/ecs/components/PlayerInputComponent.hpp"
 
 namespace mario {
-    void PlayerInputSystem::update(Registry &registry, const InputManager &input) const {
+    void PlayerInputSystem::update(EntityManager &registry, const InputManager &input) const {
         auto entities = registry.get_entities_with<PlayerInputComponent>();
         for (auto entity: entities) {
             auto *player_input = registry.get_component<PlayerInputComponent>(entity);

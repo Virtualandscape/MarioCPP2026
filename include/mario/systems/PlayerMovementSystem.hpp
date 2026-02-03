@@ -1,11 +1,11 @@
 #pragma once
 
-#include "mario/ecs/Registry.hpp"
+#include "mario/ecs/EntityManager.hpp"
 
 namespace mario {
 
     class PlayerMovementSystem {
     public:
-        void update(Registry& registry, float dt) const;
+        void update(EntityManager& registry, float dt) const;
     };
 } // namespace mario

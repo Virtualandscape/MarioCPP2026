@@ -5,7 +5,7 @@
 
 namespace mario {
 
-void PhysicsSystem::update(Registry& registry, float dt) const
+void PhysicsSystem::update(EntityManager& registry, float dt) const
 {
     auto entities = registry.get_entities_with<PositionComponent>();
     for (auto entity : entities) {

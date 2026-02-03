@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mario/ecs/Registry.hpp"
+#include "mario/ecs/EntityManager.hpp"
 #include <string>
 
 namespace mario {
@@ -9,8 +9,8 @@ namespace mario {
 
     class Spawner {
     public:
-        static EntityID spawn_player(Registry& registry, const EntitySpawn& spawn, float tile_size);
-        static EntityID spawn_player_default(Registry& registry);
-        static void spawn_enemy(Registry& registry, const EntitySpawn& spawn, float tile_size);
+        static EntityID spawn_player(EntityManager& registry, const EntitySpawn& spawn, float tile_size);
+        static EntityID spawn_player_default(EntityManager& registry);
+        static void spawn_enemy(EntityManager& registry, const EntitySpawn& spawn, float tile_size);
     };
 } // namespace mario

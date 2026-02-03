@@ -10,7 +10,7 @@ namespace mario {
 
 using EntityID = uint32_t;
 
-class Registry {
+class EntityManager {
 public:
     EntityID create_entity() {
         return ++_next_id;
@@ -60,6 +60,12 @@ public:
             }
         }
         return result;
+    }
+
+    // Clears all components and resets entity counter.
+    void clear() {
+        _components.clear();
+        _next_id = 0;
     }
 
     // For multiple components, can add later if needed

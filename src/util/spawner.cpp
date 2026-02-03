@@ -23,7 +23,7 @@ namespace {
 }
 
 namespace mario {
-    EntityID Spawner::spawn_player(Registry &registry, const EntitySpawn &spawn, float tile_size) {
+    EntityID Spawner::spawn_player(EntityManager &registry, const EntitySpawn &spawn, float tile_size) {
         EntityID id = registry.create_entity();
         registry.add_component<PositionComponent>(id, {
                                              static_cast<float>(spawn.tile_x) * tile_size,
@@ -40,7 +40,7 @@ namespace mario {
         return id;
     }
 
-    EntityID Spawner::spawn_player_default(Registry &registry) {
+    EntityID Spawner::spawn_player_default(EntityManager &registry) {
         EntityID id = registry.create_entity();
         registry.add_component<PositionComponent>(id, {32.0f, 32.0f});
         registry.add_component<VelocityComponent>(id, {0.0f, 0.0f});
@@ -54,21 +54,18 @@ namespace mario {
         return id;
     }
 
-    void Spawner::spawn_enemy(Registry &registry, const EntitySpawn &spawn, float tile_size) {
+    void Spawner::spawn_enemy(EntityManager &registry, const EntitySpawn &spawn, float tile_size) {
         const std::string type_str = to_lower(spawn.type);
         auto entity = registry.create_entity();
 
         float x = static_cast<float>(spawn.tile_x) * tile_size;
         float y = static_cast<float>(spawn.tile_y) * tile_size;
 
-        // Create enemy component first so we can use its move_speed when initializing velocity
-        EnemyComponent enemy_comp{};
-
         registry.add_component<PositionComponent>(entity, {x, y});
-        registry.add_component<VelocityComponent>(entity, {-enemy_comp.move_speed, 0.0f}); // start moving left
+        registry.add_component<VelocityComponent>(entity, {-30.0f, 0.0f}); // start moving left
         registry.add_component<SizeComponent>(entity, {16.0f, 16.0f});
         registry.add_component<CollisionInfoComponent>(entity, {});
-        registry.add_component<EnemyComponent>(entity, enemy_comp);
+        registry.add_component<EnemyComponent>(entity, EnemyComponent{});
 
         if (type_str == "goomba") {
             registry.add_component<TypeComponent>(entity, {EntityTypeComponent::Goomba});
