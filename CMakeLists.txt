@@ -40,6 +40,7 @@ set(SOURCES
         src/systems/background_system.cpp
         src/render/sprite.cpp
         src/gameplay/power_up.cpp
+        src/systems/cloud_system.cpp
 )
 
 set(HEADERS

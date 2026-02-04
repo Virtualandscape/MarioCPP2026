@@ -8,11 +8,13 @@
 #include "mario/ecs/components/SizeComponent.hpp"
 #include "mario/ecs/components/SpriteComponent.hpp"
 #include "mario/ecs/components/BackgroundComponent.hpp"
+#include "mario/ecs/components/CloudComponent.hpp"
 #include "mario/util/Spawner.hpp"
 #include "mario/world/TileMap.hpp"
 
 #include <algorithm>
 #include <string>
+#include <random>
 
 namespace mario {
     namespace {
@@ -86,6 +88,64 @@ namespace mario {
             }
         }
 
+        // Load cloud textures
+        const int CLOUD_BIG_ID = 2000;
+        const int CLOUD_MEDIUM_ID = 2001;
+        const int CLOUD_SMALL_ID = 2002;
+        _game.assets().load_texture(CLOUD_BIG_ID, "assets/environment/background/cloud_big.png");
+        _game.assets().load_texture(CLOUD_MEDIUM_ID, "assets/environment/background/cloud_medium.png");
+        _game.assets().load_texture(CLOUD_SMALL_ID, "assets/environment/background/cloud_small.png");
+
+        // Adjustable cloud spawn counts
+        const int NUM_BIG_CLOUDS = 1;
+        const int NUM_MEDIUM_CLOUDS = 2;
+        const int NUM_SMALL_CLOUDS = 3;
+
+        // Random Y positions
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<float> big_y_dist(40.0f, 60.0f);
+        std::uniform_real_distribution<float> med_y_dist(60.0f, 80.0f);
+        std::uniform_real_distribution<float> small_y_dist(80.0f, 100.0f);
+
+        // Create cloud entities
+        // Big clouds
+        for (int i = 0; i < NUM_BIG_CLOUDS; ++i) {
+            auto id = _registry.create_entity();
+            CloudComponent cc;
+            cc.texture_id = CLOUD_BIG_ID;
+            cc.layer = CloudComponent::Layer::Big;
+            cc.speed = 40.0f;
+            cc.x = static_cast<float>(-300 - i * 300);
+            cc.y = big_y_dist(gen);
+            cc.scale = 1.0f;
+            _registry.add_component(id, cc);
+        }
+        // Medium clouds
+        for (int i = 0; i < NUM_MEDIUM_CLOUDS; ++i) {
+            auto id = _registry.create_entity();
+            CloudComponent cc;
+            cc.texture_id = CLOUD_MEDIUM_ID;
+            cc.layer = CloudComponent::Layer::Medium;
+            cc.speed = 30.0f;
+            cc.x = static_cast<float>(-300 - i * 250);
+            cc.y = med_y_dist(gen);
+            cc.scale = 1.0f;
+            _registry.add_component(id, cc);
+        }
+        // Small clouds
+        for (int i = 0; i < NUM_SMALL_CLOUDS; ++i) {
+            auto id = _registry.create_entity();
+            CloudComponent cc;
+            cc.texture_id = CLOUD_SMALL_ID;
+            cc.layer = CloudComponent::Layer::Small;
+            cc.speed = 20.0f;
+            cc.x = static_cast<float>(-300 - i * 200);
+            cc.y = small_y_dist(gen);
+            cc.scale = 1.0f;
+            _registry.add_component(id, cc);
+        }
+
         // Spawn entities
         bool player_spawned = false;
         if (const auto tile_map = _level.tile_map()) {
@@ -151,6 +211,7 @@ namespace mario {
             _enemy_system.update(_registry, *tile_map, dt);
         }
         _physics.update(_registry, dt);
+        _cloud_system.update(_registry, dt);
         if (tile_map) {
             CollisionSystem::update(_registry, *tile_map, dt);
             LevelSystem::check_ground_status(_registry, *tile_map);
@@ -218,6 +279,14 @@ namespace mario {
                 Camera dummy;
                 _background_system.render(_game.renderer(), dummy, _game.assets(), *bg);
             }
+        }
+
+        // Render clouds
+        if (auto camera = _level.camera()) {
+            _cloud_system.render(_game.renderer(), *camera, _game.assets(), _registry);
+        } else {
+            Camera dummy;
+            _cloud_system.render(_game.renderer(), dummy, _game.assets(), _registry);
         }
 
         _level.render(_game.renderer());
