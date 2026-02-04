@@ -4,6 +4,15 @@
   "tileSize": 16,
   "background": "assets/environment/background/sky.png",
   "background_scale": 1.0,
+  "background_layers": [
+    {
+      "path": "assets/environment/background/mountains.png",
+      "scale": 1.0,
+      "parallax": 0.2,
+      "repeat": true,
+      "repeat_x": true
+    }
+  ],
   "entities": [
     {
       "type": "player",

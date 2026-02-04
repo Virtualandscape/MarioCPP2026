@@ -33,7 +33,7 @@ namespace mario {
         float scaleX = vw / tw;
         float scaleY = vh / th;
         if (bg.preserve_aspect) {
-            // Adjust scale to preserve aspect ratio
+            // Adjust scale to preserve the aspect ratio
             float scale = 1.0f;
             if (bg.scale_mode == BackgroundComponent::ScaleMode::Fit) {
                 scale = std::min(scaleX, scaleY);

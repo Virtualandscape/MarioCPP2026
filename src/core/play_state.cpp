@@ -17,7 +17,6 @@
 namespace mario {
     namespace {
         constexpr int BACKGROUND_TEXTURE_ID = 1000;
-        constexpr int MOUNTAIN_TEXTURE_ID = 1001;
     }
 
     // Constructor initializes the PlayState with a reference to the game and optional level path.
@@ -50,9 +49,6 @@ namespace mario {
         // Background loading (level dependent)
         const std::string& level_bg_path = _level.background_path();
         if (!level_bg_path.empty()) {
-            bool is_sky = level_bg_path.find("sky.png") != std::string::npos;
-            bool is_level1 = _current_level_path.find("level1.json") != std::string::npos;
-
             if (_game.assets().load_texture(BACKGROUND_TEXTURE_ID, level_bg_path)) {
                 // Main background entity
                 auto id = _registry.create_entity();
@@ -69,23 +65,24 @@ namespace mario {
                 _registry.add_component(id, bc);
             }
 
-            // Specific logic for level 1: add mountains IF background is sky
-            if (is_sky && is_level1) {
-                const std::string mountain_path = "assets/environment/background/mountains.png";
-                if (_game.assets().load_texture(MOUNTAIN_TEXTURE_ID, mountain_path)) {
+            // Load additional background layers from level data
+            int texture_id = BACKGROUND_TEXTURE_ID + 1;
+            for (const auto& layer : _level.background_layers()) {
+                if (_game.assets().load_texture(texture_id, layer.path)) {
                     auto id = _registry.create_entity();
                     BackgroundComponent bc;
-                    bc.texture_id = MOUNTAIN_TEXTURE_ID;
+                    bc.texture_id = texture_id;
                     bc.preserve_aspect = true;
                     bc.scale_mode = BackgroundComponent::ScaleMode::Fit;
-                    bc.scale_multiplier = 1.0f;
-                    bc.parallax = 0.2f; // parallax for mountain layer in front of sky
-                    bc.repeat = true;
-                    bc.repeat_x = true;
+                    bc.scale_multiplier = layer.scale;
+                    bc.parallax = layer.parallax;
+                    bc.repeat = layer.repeat;
+                    bc.repeat_x = layer.repeat_x;
                     bc.offset_x = 0.0f;
                     bc.offset_y = 0.0f;
                     _registry.add_component(id, bc);
                 }
+                ++texture_id;
             }
         }
 

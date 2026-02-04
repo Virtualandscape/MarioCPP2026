@@ -15,6 +15,14 @@ namespace mario {
     // Loads tilemaps, spawns entities, manages checkpoints.
     class Level {
     public:
+        struct BackgroundLayer {
+            std::string path;
+            float scale = 1.0f;
+            float parallax = 0.0f;
+            bool repeat = false;
+            bool repeat_x = false;
+        };
+
         void load(std::string_view level_id);
 
         void unload();
@@ -31,6 +39,7 @@ namespace mario {
 
         const std::string& background_path() const { return _background_path; }
         float background_scale() const { return _background_scale; }
+        const std::vector<BackgroundLayer>& background_layers() const { return _background_layers; }
 
     private:
         std::shared_ptr<TileMap> _tile_map;
@@ -38,5 +47,6 @@ namespace mario {
         std::vector<EntitySpawn> _entity_spawns;
         std::string _background_path;
         float _background_scale = 1.0f;
+        std::vector<BackgroundLayer> _background_layers;
     };
 } // namespace mario

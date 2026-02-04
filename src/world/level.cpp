@@ -113,7 +113,37 @@ namespace mario {
             }
             return true;
         }
-    }
+
+        // Extracts a bool field from a JSON-like text by key.
+        // Returns true if the field is found and sets 'value'.
+        bool extract_bool_field(const std::string &text, const char *key, bool &value) {
+            const std::string needle = std::string("\"") + key + "\"";
+            std::size_t pos = text.find(needle);
+            if (pos == std::string::npos) {
+                return false;
+            }
+
+            pos = text.find(':', pos);
+            if (pos == std::string::npos) {
+                return false;
+            }
+
+            ++pos;
+            while (pos < text.size() && std::isspace(static_cast<unsigned char>(text[pos]))) {
+                ++pos;
+            }
+
+            if (text.substr(pos, 4) == "true") {
+                value = true;
+                return true;
+            } else if (text.substr(pos, 5) == "false") {
+                value = false;
+                return true;
+            }
+            return false;
+        }
+
+    } // namespace
 
     // Loads a level from a JSON file, initializes the tile map, entity spawns, background, and camera bounds.
     void Level::load(std::string_view level_id) {
@@ -137,6 +167,31 @@ namespace mario {
                 if (extract_float_field(content, "background_scale", bscale)) {
                     _background_scale = bscale;
                 }
+
+                // Parse background_layers
+                _background_layers.clear();
+                std::size_t layers_pos = content.find("\"background_layers\"");
+                if (layers_pos != std::string::npos) {
+                    std::size_t colon_pos = content.find(':', layers_pos);
+                    if (colon_pos != std::string::npos) {
+                        std::size_t bracket_pos = content.find('[', colon_pos);
+                        if (bracket_pos != std::string::npos) {
+                            std::size_t end_bracket = content.find(']', bracket_pos);
+                            if (end_bracket != std::string::npos) {
+                                std::string layers_content = content.substr(bracket_pos + 1, end_bracket - bracket_pos - 1);
+                                // Parse the object
+                                BackgroundLayer layer;
+                                if (extract_string_field(layers_content, "path", layer.path)) {
+                                    extract_float_field(layers_content, "scale", layer.scale);
+                                    extract_float_field(layers_content, "parallax", layer.parallax);
+                                    extract_bool_field(layers_content, "repeat", layer.repeat);
+                                    extract_bool_field(layers_content, "repeat_x", layer.repeat_x);
+                                    _background_layers.push_back(layer);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -156,6 +211,7 @@ namespace mario {
         _camera.reset();
         _entity_spawns.clear();
         _background_path.clear();
+        _background_layers.clear();
     }
 
     // Updates the camera and any level state that depends on time.
