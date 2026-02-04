@@ -1,3 +1,6 @@
+// Implements the Game class, which manages the main game loop, state transitions, and initialization/shutdown logic.
+// Handles running the game, pushing and popping game states, and processing updates and rendering.
+
 #include "mario/core/Game.hpp"
 #include "mario/core/GameState.hpp"
 #include "mario/core/MenuState.hpp"
@@ -6,7 +9,7 @@
 #include <SFML/System/Sleep.hpp>
 
 namespace mario {
-    // Redundant for now, but will be useful later.
+    // Initializes the game and sets the running flag.
     void Game::initialize() {
         this->_running = true;
     }
@@ -17,6 +20,7 @@ namespace mario {
         _running = false;
     }
 
+    // Main game loop: initializes, runs, and processes updates and rendering for the current state.
     void Game::run() {
         initialize();
 
@@ -38,20 +42,16 @@ namespace mario {
             state->update(dt);
             state->render();
 
-            const sf::Time work_time = clock.getElapsedTime() - current_time;
-            if (work_time < target_frame_time) {
-                sf::sleep(target_frame_time - work_time);
-            }
-
-            if (!state->is_running()) {
-                _running = false;
+            // Sleep to maintain target frame rate.
+            const sf::Time elapsed = clock.getElapsedTime() - current_time;
+            if (elapsed < target_frame_time) {
+                sf::sleep(target_frame_time - elapsed);
             }
         }
-
         shutdown();
     }
 
-    // Push a new game state onto the stack, exiting the current state if any.
+    // Pushes a new game state onto the stack.
     void Game::push_state(std::shared_ptr<GameState> state) {
         if (!state) {
             return;
@@ -66,6 +66,7 @@ namespace mario {
         _states.back()->on_enter();
     }
 
+    // Pops the current game state from the stack.
     void Game::pop_state() {
         if (_states.empty()) {
             return;
@@ -80,12 +81,9 @@ namespace mario {
         }
     }
 
-    // Returns the current game state, or nullptr if no state is active.
+    // Returns the current game state, or nullptr if none.
     std::shared_ptr<GameState> Game::current_state() {
-        if (_states.empty()) {
-            return {};
-        }
-
+        if (_states.empty()) return nullptr;
         return _states.back();
     }
 } // namespace mario

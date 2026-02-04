@@ -1,3 +1,6 @@
+// Implements the LevelSystem, which checks and updates the ground status for entities (e.g., for jumping logic).
+// Determines if entities are on the ground by checking for solid tiles beneath them.
+
 #include "mario/systems/LevelSystem.hpp"
 #include "mario/world/Level.hpp"
 #include "mario/world/TileMap.hpp"
@@ -9,6 +12,7 @@
 
 namespace mario {
 
+// Checks if entities with JumpStateComponent are on the ground by testing for solid tiles below them.
 void LevelSystem::check_ground_status(EntityManager& registry, const TileMap& map) {
     static thread_local std::vector<EntityID> entities;
     registry.get_entities_with<JumpStateComponent>(entities);

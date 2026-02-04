@@ -38,6 +38,8 @@ set(SOURCES
         src/util/Quadtree.cpp
         src/util/TileSweep.cpp
         src/systems/background_system.cpp
+        src/render/sprite.cpp
+        src/gameplay/power_up.cpp
 )
 
 set(HEADERS

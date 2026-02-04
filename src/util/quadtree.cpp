@@ -1,15 +1,18 @@
+// Implements the quadtree class for spatial partitioning, used to efficiently query and manage objects in 2D space.
+// Provides methods for insertion, clearing, splitting, and querying objects in the quadtree.
+
 #include "../../include/mario/util/quadtree.h"
 
 #include <iostream>
 
-// quadtree constructor
+// quadtree constructor: initializes the quadtree with a level and bounding rectangle.
 quadtree::quadtree(const int level, const sf::FloatRect& bounds) : level(level), bounds(bounds)
 {
     quadTiles.reserve(MAX_OBJECTS);
     nodes.reserve(4);
 }
 
-// Clear the quadtree and all its nodes recursively
+// Clear the quadtree and all its nodes recursively.
 auto quadtree::clear() -> void
 {
     quadTiles.clear();
@@ -20,7 +23,7 @@ auto quadtree::clear() -> void
     nodes.clear();
 }
 
-// Split the quadtree into four subnodes
+// Split the quadtree into four subnodes.
 auto quadtree::split() -> void
 {
     const float subWidth = bounds.size.x / 2.0f;
@@ -34,7 +37,7 @@ auto quadtree::split() -> void
     nodes.emplace_back(level + 1, sf::FloatRect({x + subWidth, y + subHeight}, {subWidth, subHeight}));
 }
 
-// Get the index of the quadrant that the rect might intersect with (0-3) or -1 if it doesn't intersect
+// Get the index of the quadrant that the rect might intersect with (0-3) or -1 if it doesn't intersect.
 [[nodiscard]]
 auto quadtree::getIndex(const sf::FloatRect& rect) const -> int
 {

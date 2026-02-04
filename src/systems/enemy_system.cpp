@@ -1,3 +1,6 @@
+// Implements the EnemySystem, which updates enemy movement and handles collision response for enemy entities.
+// Reverses enemy direction on collision and manages enemy-specific logic.
+
 #include <cmath>
 #include <algorithm>
 #include "mario/systems/EnemySystem.hpp"
@@ -9,6 +12,7 @@
 #include "mario/world/TileMap.hpp"
 
 namespace mario {
+    // Updates all enemy entities, reversing direction on collision and applying movement logic.
     void EnemySystem::update(EntityManager& registry, const TileMap& map, float dt) const {
         static thread_local std::vector<EntityID> entities;
         registry.get_entities_with<EnemyComponent>(entities);
@@ -20,17 +24,10 @@ namespace mario {
             auto* size = registry.get_component<SizeComponent>(entity);
 
             if (enemy && vel && coll && pos && size) {
-                // Do NOT inject or force a default speed here. The spawner is the single
-                // place that should set enemy initial speeds. Only react to collisions
-                // and platform edges by reversing the current horizontal velocity when
-                // it has a meaningful magnitude.
+                // Only reverse direction if a collision occurred and velocity is significant.
                 const float MIN_SPEED_THRES = 0.1f;
                 float speed = std::abs(vel->vx);
 
-                // If collided horizontally with something, reverse direction only if
-                // there is a meaningful horizontal velocity to invert. If velocity is
-                // near zero, leave it as-is so the spawner's chosen value (including 0)
-                // is preserved.
                 if (coll->collided && speed >= MIN_SPEED_THRES) {
                     vel->vx = -vel->vx;
                     speed = std::abs(vel->vx);

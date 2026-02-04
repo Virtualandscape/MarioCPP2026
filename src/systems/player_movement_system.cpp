@@ -1,3 +1,6 @@
+// Implements the PlayerMovementSystem, which updates player movement and jumping based on input and player stats.
+// Handles horizontal movement and double-jump logic for player entities.
+
 #include "mario/systems/PlayerMovementSystem.hpp"
 
 #include "mario/ecs/components/PlayerInputComponent.hpp"
@@ -17,20 +20,20 @@ void PlayerMovementSystem::update(EntityManager& registry, float dt) const
         auto* jump = registry.get_component<JumpStateComponent>(entity);
         auto* stats = registry.get_component<PlayerStatsComponent>(entity);
         if (input && vel && jump && stats) {
-            // Handle movement
+            // Handle horizontal movement
             if (input->move_axis != 0.0f) {
                 vel->vx = input->move_axis * stats->move_speed;
             } else {
                 vel->vx = 0.0f;
             }
 
-            // Handle jumping
+            // Handle jumping (double-jump allowed)
             if (input->jump_pressed && !input->jump_held && jump->jump_count < 2) {
                 vel->vy = -stats->jump_speed;
                 jump->jump_count++;
             }
 
-            // Update jump held
+            // Update jump held state
             input->jump_held = input->jump_pressed;
         }
     }

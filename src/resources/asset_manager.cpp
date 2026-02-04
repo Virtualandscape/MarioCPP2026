@@ -1,3 +1,6 @@
+// Implements the AssetManager class, which loads and manages textures and other assets for the game.
+// Handles loading textures from disk, searching multiple locations, and reporting errors if assets are missing.
+
 #include "mario/resources/AssetManager.hpp"
 
 #include <filesystem>
@@ -6,6 +9,7 @@
 
 namespace mario {
 
+    // Attempts to open a file by searching several relative locations.
     static std::ifstream open_file_multi(std::string_view path) {
         std::filesystem::path base(path);
         std::ifstream file{base.string()};
@@ -27,6 +31,7 @@ namespace mario {
         return {};
     }
 
+    // Loads a texture from disk and stores it with the given ID. Returns true on success.
     bool AssetManager::load_texture(int id, std::string_view path) {
         if (path.empty()) return false;
         if (has_texture(id)) return true;

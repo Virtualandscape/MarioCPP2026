@@ -1,9 +1,13 @@
+// Implements the PlayerInputSystem, which updates player input components based on the current input state.
+// Maps input actions to movement and jump controls for player entities.
+
 #include "mario/systems/PlayerInputSystem.hpp"
 
 #include "mario/input/InputManager.hpp"
 #include "mario/ecs/components/PlayerInputComponent.hpp"
 
 namespace mario {
+    // Updates player input components for all entities based on the input manager state.
     void PlayerInputSystem::update(EntityManager &registry, const InputManager &input) const {
         static thread_local std::vector<EntityID> entities;
         registry.get_entities_with<PlayerInputComponent>(entities);
@@ -16,6 +20,7 @@ namespace mario {
         for (auto entity: entities) {
             auto *player_input = registry.get_component<PlayerInputComponent>(entity);
             if (player_input) {
+                // Update jump and movement state
                 player_input->jump_held = player_input->jump_pressed; // previous
                 player_input->jump_pressed = jump_pressed; // current
                 player_input->move_axis = move_axis;

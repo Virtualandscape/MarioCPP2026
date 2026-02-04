@@ -1,3 +1,6 @@
+// Implements the PlayState class, which manages the main gameplay state, including level loading, player spawning, and HUD updates.
+// Handles entering and exiting the play state, updating game logic, and rendering the game world and HUD.
+
 #include "mario/core/PlayState.hpp"
 #include "mario/core/Game.hpp"
 #include "mario/world/Camera.hpp"
@@ -16,6 +19,7 @@ namespace mario {
         constexpr int BACKGROUND_TEXTURE_ID = 1000;
     }
 
+    // Constructor initializes the PlayState with a reference to the game and optional level path.
     PlayState::PlayState(Game &game) : _game(game), _player_id(0), _hud(game.renderer()) {
     }
 
@@ -23,6 +27,7 @@ namespace mario {
                                                                _hud(game.renderer()) {
     }
 
+    // Called when entering the play state. Loads the level, background, and spawns the player.
     void PlayState::on_enter() {
         // Load level
         _level.load(_current_level_path);
@@ -90,6 +95,7 @@ namespace mario {
         _level_transition_delay = 0.5f; // LevelTransitionCooldown
     }
 
+    // Called when exiting the play state. Unloads the level and clears the registry.
     void PlayState::on_exit() {
         // Clear registry to remove entities/components from the previous level
         _registry.clear();
@@ -97,6 +103,7 @@ namespace mario {
         _level.unload();
     }
 
+    // Updates the game logic, including the level, player, and HUD.
     void PlayState::update(float dt) {
         handle_input();
 
@@ -147,6 +154,7 @@ namespace mario {
         }
     }
 
+    // Renders the game world and HUD.
     void PlayState::render() {
         _game.renderer().begin_frame();
 

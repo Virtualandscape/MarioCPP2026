@@ -1,3 +1,6 @@
+// Implements the PhysicsSystem, which applies gravity and updates position and velocity for all entities with those components.
+// Handles basic physics integration for movement.
+
 #include "mario/systems/PhysicsSystem.hpp"
 
 #include "mario/ecs/components/PositionComponent.hpp"

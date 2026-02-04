@@ -1,3 +1,6 @@
+// Implements the MenuState class, which manages the main menu, level selection, and input handling for menu navigation.
+// Handles rendering menu options and transitioning to the PlayState when a level is selected.
+
 #include "mario/core/MenuState.hpp"
 #include "mario/core/Game.hpp"
 #include "mario/core/PlayState.hpp"
@@ -5,6 +8,7 @@
 #include <SFML/Window/Mouse.hpp>
 
 namespace mario {
+    // Constructor initializes the menu with available levels and prepares text objects for rendering.
     MenuState::MenuState(Game& game) : _game(game) {
         _levels = {"assets/levels/level1.json", "assets/levels/level2.json"};
         for (size_t i = 0; i < _levels.size(); ++i) {
@@ -14,13 +18,16 @@ namespace mario {
         }
     }
 
+    // Called when entering the menu state.
     void MenuState::on_enter() {
         _running = true;
     }
 
+    // Called when exiting the menu state.
     void MenuState::on_exit() {
     }
 
+    // Handles input for navigating the menu and selecting a level.
     void MenuState::update(float dt) {
         (void)dt;
         _game.input().poll();
@@ -36,6 +43,7 @@ namespace mario {
             _selected_index = (_selected_index + 1) % static_cast<int>(_levels.size());
         }
         if (enter && !_enter_pressed) {
+            // Start the selected level by pushing a new PlayState.
             _game.push_state(std::make_shared<PlayState>(_game, _levels[_selected_index]));
             return;
         }
@@ -66,6 +74,7 @@ namespace mario {
         }
     }
 
+    // Renders the menu, highlighting the selected level.
     void MenuState::render() {
         _game.renderer().begin_frame();
 
