@@ -1,13 +1,20 @@
 #include "mario/systems/CloudSystem.hpp"
 #include "mario/resources/AssetManager.hpp"
 #include "mario/ecs/components/CloudComponent.hpp"
+#include "mario/util/Spawner.hpp"
+#include "mario/util/Constants.hpp"
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <algorithm> // For std::sort
 
 namespace mario {
 
+void CloudSystem::initialize(AssetManager& assets, EntityManager& registry) {
+    Spawner::spawn_clouds(registry, assets);
+}
+
 void CloudSystem::update(EntityManager& registry, float dt) {
+    using namespace mario::constants;
     static thread_local std::vector<EntityID> entities;
     registry.get_entities_with<CloudComponent>(entities);
     for (auto entity : entities) {
@@ -15,15 +22,15 @@ void CloudSystem::update(EntityManager& registry, float dt) {
         if (!cloud) continue;
         // Move cloud to the right
         cloud->x += cloud->speed * dt;
-        // If off screen, reset to left (assuming viewport width ~800, adjust as needed)
-        // For simplicity, assume clouds are 100px wide, reset when x > 1100
-        if (cloud->x > 1100.0f) {
-            cloud->x = -300.0f; // Reset further left to avoid spawn effect
+        // If off screen, reset to left
+        if (cloud->x > CLOUD_RESET_X) {
+            cloud->x = CLOUD_SPAWN_X;
         }
     }
 }
 
 void CloudSystem::render(Renderer& renderer, const Camera& camera, AssetManager& assets, EntityManager& registry) {
+    using namespace mario::constants;
     static thread_local std::vector<EntityID> entities;
     registry.get_entities_with<CloudComponent>(entities);
     // Sort by layer: Big first, then Medium, then Small (so Small on top)
@@ -46,10 +53,8 @@ void CloudSystem::render(Renderer& renderer, const Camera& camera, AssetManager&
 
         sf::Sprite sprite(*tex);
         sprite.setScale({cloud->scale, cloud->scale});
-        // Position relative to camera for parallax? But since they move, maybe just world position
-        // For simplicity, position in world space, but since background, perhaps fixed to viewport
-        // To make it part of background, position relative to camera
-        float pos_x = cloud->x - camera.x() * 0.1f; // Slight parallax
+        // Position relative to camera for parallax
+        float pos_x = cloud->x - camera.x() * CLOUD_PARALLAX;
         float pos_y = cloud->y;
         sprite.setPosition({pos_x, pos_y});
         window.draw(sprite);

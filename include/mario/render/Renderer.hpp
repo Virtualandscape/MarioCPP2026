@@ -3,6 +3,8 @@
 #include <SFML/Config.hpp>
 #include <SFML/Graphics.hpp>
 
+#include "mario/util/constants.hpp"
+
 namespace mario {
     // Draw calls, sprites, layers, parallax
     class Renderer {
@@ -17,7 +19,7 @@ namespace mario {
 
         void draw_sprite(int sprite_id, float x, float y);
 
-        void draw_rect(float x, float y, float width, float height, sf::Color color = sf::Color(240, 240, 240));
+        void draw_rect(float x, float y, float width, float height, sf::Color color = constants::TILE_COLOR);
 
         void draw_text(const std::string& text, float x, float y, unsigned int size = 20, sf::Color color = sf::Color::White);
 

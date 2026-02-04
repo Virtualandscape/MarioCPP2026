@@ -14,8 +14,11 @@
 #include "mario/ecs/components/CollisionInfoComponent.hpp"
 #include "mario/ecs/components/EnemyComponent.hpp"
 #include "mario/ecs/components/SpriteComponent.hpp"
+#include "mario/ecs/components/CloudComponent.hpp"
+#include "mario/resources/AssetManager.hpp"
 #include <algorithm>
 #include <cctype>
+#include <random>
 
 // Anonymous namespace for internal utility functions
 namespace {
@@ -94,6 +97,61 @@ namespace mario {
         } else if (type_str == "koopa") {
             registry.add_component<TypeComponent>(entity, {EntityTypeComponent::Koopa});
             registry.add_component<SpriteComponent>(entity, {SpriteComponent::Shape::Rectangle, ENEMY_SPRITE_COLOR_RED});
+        }
+    }
+
+    // Spawns cloud entities with random Y positions and loads their textures
+    void Spawner::spawn_clouds(EntityManager& registry, AssetManager& assets) {
+        using namespace mario::constants;
+
+        // Load cloud textures
+        assets.load_texture(CLOUD_BIG_ID, "assets/environment/background/cloud_big.png");
+        assets.load_texture(CLOUD_MEDIUM_ID, "assets/environment/background/cloud_medium.png");
+        assets.load_texture(CLOUD_SMALL_ID, "assets/environment/background/cloud_small.png");
+
+        // Random Y positions
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<float> big_y_dist(CLOUD_BIG_Y_MIN, CLOUD_BIG_Y_MAX);
+        std::uniform_real_distribution<float> med_y_dist(CLOUD_MEDIUM_Y_MIN, CLOUD_MEDIUM_Y_MAX);
+        std::uniform_real_distribution<float> small_y_dist(CLOUD_SMALL_Y_MIN, CLOUD_SMALL_Y_MAX);
+
+        // Create cloud entities
+        // Big clouds
+        for (int i = 0; i < NUM_BIG_CLOUDS; ++i) {
+            auto id = registry.create_entity();
+            CloudComponent cc;
+            cc.texture_id = CLOUD_BIG_ID;
+            cc.layer = CloudComponent::Layer::Big;
+            cc.speed = CLOUD_BIG_SPEED;
+            cc.x = CLOUD_SPAWN_X - static_cast<float>(i) * CLOUD_BIG_SPACING;
+            cc.y = big_y_dist(gen);
+            cc.scale = CLOUD_SCALE;
+            registry.add_component(id, cc);
+        }
+        // Medium clouds
+        for (int i = 0; i < NUM_MEDIUM_CLOUDS; ++i) {
+            auto id = registry.create_entity();
+            CloudComponent cc;
+            cc.texture_id = CLOUD_MEDIUM_ID;
+            cc.layer = CloudComponent::Layer::Medium;
+            cc.speed = CLOUD_MEDIUM_SPEED;
+            cc.x = CLOUD_SPAWN_X - static_cast<float>(i) * CLOUD_MEDIUM_SPACING;
+            cc.y = med_y_dist(gen);
+            cc.scale = CLOUD_SCALE;
+            registry.add_component(id, cc);
+        }
+        // Small clouds
+        for (int i = 0; i < NUM_SMALL_CLOUDS; ++i) {
+            auto id = registry.create_entity();
+            CloudComponent cc;
+            cc.texture_id = CLOUD_SMALL_ID;
+            cc.layer = CloudComponent::Layer::Small;
+            cc.speed = CLOUD_SMALL_SPEED;
+            cc.x = CLOUD_SPAWN_X - static_cast<float>(i) * CLOUD_SMALL_SPACING;
+            cc.y = small_y_dist(gen);
+            cc.scale = CLOUD_SCALE;
+            registry.add_component(id, cc);
         }
     }
 } // namespace mario

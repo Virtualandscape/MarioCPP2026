@@ -14,7 +14,6 @@
 
 #include <algorithm>
 #include <string>
-#include <random>
 
 namespace mario {
     namespace {
@@ -88,63 +87,8 @@ namespace mario {
             }
         }
 
-        // Load cloud textures
-        const int CLOUD_BIG_ID = 2000;
-        const int CLOUD_MEDIUM_ID = 2001;
-        const int CLOUD_SMALL_ID = 2002;
-        _game.assets().load_texture(CLOUD_BIG_ID, "assets/environment/background/cloud_big.png");
-        _game.assets().load_texture(CLOUD_MEDIUM_ID, "assets/environment/background/cloud_medium.png");
-        _game.assets().load_texture(CLOUD_SMALL_ID, "assets/environment/background/cloud_small.png");
-
-        // Adjustable cloud spawn counts
-        const int NUM_BIG_CLOUDS = 1;
-        const int NUM_MEDIUM_CLOUDS = 2;
-        const int NUM_SMALL_CLOUDS = 3;
-
-        // Random Y positions
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_real_distribution<float> big_y_dist(40.0f, 60.0f);
-        std::uniform_real_distribution<float> med_y_dist(60.0f, 80.0f);
-        std::uniform_real_distribution<float> small_y_dist(80.0f, 100.0f);
-
-        // Create cloud entities
-        // Big clouds
-        for (int i = 0; i < NUM_BIG_CLOUDS; ++i) {
-            auto id = _registry.create_entity();
-            CloudComponent cc;
-            cc.texture_id = CLOUD_BIG_ID;
-            cc.layer = CloudComponent::Layer::Big;
-            cc.speed = 40.0f;
-            cc.x = static_cast<float>(-300 - i * 300);
-            cc.y = big_y_dist(gen);
-            cc.scale = 1.0f;
-            _registry.add_component(id, cc);
-        }
-        // Medium clouds
-        for (int i = 0; i < NUM_MEDIUM_CLOUDS; ++i) {
-            auto id = _registry.create_entity();
-            CloudComponent cc;
-            cc.texture_id = CLOUD_MEDIUM_ID;
-            cc.layer = CloudComponent::Layer::Medium;
-            cc.speed = 30.0f;
-            cc.x = static_cast<float>(-300 - i * 250);
-            cc.y = med_y_dist(gen);
-            cc.scale = 1.0f;
-            _registry.add_component(id, cc);
-        }
-        // Small clouds
-        for (int i = 0; i < NUM_SMALL_CLOUDS; ++i) {
-            auto id = _registry.create_entity();
-            CloudComponent cc;
-            cc.texture_id = CLOUD_SMALL_ID;
-            cc.layer = CloudComponent::Layer::Small;
-            cc.speed = 20.0f;
-            cc.x = static_cast<float>(-300 - i * 200);
-            cc.y = small_y_dist(gen);
-            cc.scale = 1.0f;
-            _registry.add_component(id, cc);
-        }
+        // Initialize clouds
+        _cloud_system.initialize(_game.assets(), _registry);
 
         // Spawn entities
         bool player_spawned = false;

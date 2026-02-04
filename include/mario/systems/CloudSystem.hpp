@@ -9,6 +9,7 @@ namespace mario {
 
     class CloudSystem {
     public:
+        void initialize(AssetManager& assets, EntityManager& registry);
         void update(EntityManager& registry, float dt);
         void render(Renderer& renderer, const Camera& camera, AssetManager& assets, EntityManager& registry);
     };
