@@ -10,7 +10,7 @@ namespace sf
     class RenderWindow;
 }
 
-class Quadtree
+class quadtree
 {
 private:
     static constexpr int MAX_OBJECTS = 10;
@@ -18,11 +18,11 @@ private:
     int level{};
     std::vector<QuadTile> quadTiles;
     sf::FloatRect bounds;
-    std::vector<Quadtree> nodes;
+    std::vector<quadtree> nodes;
 
 public:
     // Constructor
-    Quadtree(int level, const sf::FloatRect& bounds);
+    quadtree(int level, const sf::FloatRect& bounds);
     // Properties
     [[nodiscard]] sf::FloatRect getBounds() const { return bounds; }
     [[nodiscard]] int getIndex(const sf::FloatRect& rect) const;

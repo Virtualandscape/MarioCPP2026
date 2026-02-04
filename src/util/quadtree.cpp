@@ -1,16 +1,16 @@
-#include "../../include/mario/util/Quadtree.h"
+#include "../../include/mario/util/quadtree.h"
 
 #include <iostream>
 
-// Quadtree constructor
-Quadtree::Quadtree(const int level, const sf::FloatRect& bounds) : level(level), bounds(bounds)
+// quadtree constructor
+quadtree::quadtree(const int level, const sf::FloatRect& bounds) : level(level), bounds(bounds)
 {
     quadTiles.reserve(MAX_OBJECTS);
     nodes.reserve(4);
 }
 
 // Clear the quadtree and all its nodes recursively
-auto Quadtree::clear() -> void
+auto quadtree::clear() -> void
 {
     quadTiles.clear();
     for (auto& node : nodes)
@@ -21,7 +21,7 @@ auto Quadtree::clear() -> void
 }
 
 // Split the quadtree into four subnodes
-auto Quadtree::split() -> void
+auto quadtree::split() -> void
 {
     const float subWidth = bounds.size.x / 2.0f;
     const float subHeight = bounds.size.y / 2.0f;
@@ -36,7 +36,7 @@ auto Quadtree::split() -> void
 
 // Get the index of the quadrant that the rect might intersect with (0-3) or -1 if it doesn't intersect
 [[nodiscard]]
-auto Quadtree::getIndex(const sf::FloatRect& rect) const -> int
+auto quadtree::getIndex(const sf::FloatRect& rect) const -> int
 {
     const float verticalMidpoint = bounds.position.x + bounds.size.x / 2;
     const float horizontalMidpoint = bounds.position.y + bounds.size.y / 2;
@@ -59,7 +59,7 @@ auto Quadtree::getIndex(const sf::FloatRect& rect) const -> int
 }
 
 // Insert a quadtile into the quadtree node or split the node if it exceeds the maximum number of objects
-auto Quadtree::insert(const QuadTile& tile) -> void
+auto quadtree::insert(const QuadTile& tile) -> void
 {
     if (!nodes.empty())
     {
@@ -94,7 +94,7 @@ auto Quadtree::insert(const QuadTile& tile) -> void
 }
 
 // Retrieve all quadtiles that intersect with the specified rect and add them to the returnObjects vector (recursive)
-auto Quadtree::retrieve(std::vector<QuadTile>& returnObjects, const sf::FloatRect& rect) const -> std::vector<QuadTile>
+auto quadtree::retrieve(std::vector<QuadTile>& returnObjects, const sf::FloatRect& rect) const -> std::vector<QuadTile>
 {
     int index = getIndex(rect);
     if (index != -1 && !nodes.empty())
@@ -107,7 +107,7 @@ auto Quadtree::retrieve(std::vector<QuadTile>& returnObjects, const sf::FloatRec
 }
 
 // Print the quadtree structure (for debugging purposes)
-auto Quadtree::print(int level) const -> void
+auto quadtree::print(int level) const -> void
 {
     std::cout << "Level: " << level << " Bounds: " << bounds.position.x << ", " << bounds.position.y << ", " << bounds.size.x << ", " << bounds.size.y << std::endl;
     for (const auto& tile : quadTiles)

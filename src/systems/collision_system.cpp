@@ -8,8 +8,8 @@
 #include "mario/ecs/components/TypeComponent.hpp"
 #include "mario/ecs/EntityTypeComponent.hpp"
 #include "mario/world/TileMap.hpp"
-#include "mario/util/Quadtree.h"
-#include "mario/util/TileSweep.hpp"
+#include "mario/util/quadtree.h"
+#include "mario/util/tileSweep.hpp"
 
 // collision_system.cpp
 //
@@ -149,7 +149,7 @@ namespace mario {
         // Build a quadtree covering the world for broadphase collision queries
         const auto world_w = static_cast<float>(map.width() * map.tile_size());
         const auto world_h = static_cast<float>(map.height() * map.tile_size());
-        Quadtree quadtree(0, sf::FloatRect({0.0f, 0.0f}, {world_w, world_h}));
+        quadtree quadtree(0, sf::FloatRect({0.0f, 0.0f}, {world_w, world_h}));
 
         // Insert AABBs with their collidable index as payload.
         for (std::size_t i = 0; i < collidables.size(); ++i) {
