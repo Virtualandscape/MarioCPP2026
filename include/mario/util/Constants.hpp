@@ -2,8 +2,8 @@
 
 #include <SFML/Graphics/Color.hpp>
 
-namespace mario {
-    namespace constants {
+
+    namespace mario::constants {
         // Player
         static constexpr float PLAYER_WIDTH = 16.0f;
         static constexpr float PLAYER_HEIGHT = 24.0f;
@@ -49,5 +49,5 @@ namespace mario {
         static constexpr float CLOUD_BIG_SPACING = 300.0f;
         static constexpr float CLOUD_MEDIUM_SPACING = 250.0f;
         static constexpr float CLOUD_SMALL_SPACING = 200.0f;
-    } // namespace constants
-} // namespace mario
+    } // namespace mario::constants
+

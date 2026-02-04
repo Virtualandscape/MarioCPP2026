@@ -192,6 +192,12 @@ namespace mario {
                         }
                     }
                 }
+
+                // Parse clouds
+                bool clouds = false;
+                if (extract_bool_field(content, "clouds", clouds)) {
+                    _clouds_enabled = clouds;
+                }
             }
         }
 

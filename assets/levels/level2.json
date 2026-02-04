@@ -4,6 +4,7 @@
   "tileSize": 16,
   "background": "",
   "background_scale": 1.0,
+  "clouds": false,
   "entities": [
     {
       "type": "player",

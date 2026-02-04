@@ -87,8 +87,10 @@ namespace mario {
             }
         }
 
-        // Initialize clouds
-        _cloud_system.initialize(_game.assets(), _registry);
+        // Initialize clouds if enabled for this level
+        if (_level.clouds_enabled()) {
+            _cloud_system.initialize(_game.assets(), _registry);
+        }
 
         // Spawn entities
         bool player_spawned = false;

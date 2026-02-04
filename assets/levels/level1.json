@@ -4,6 +4,7 @@
   "tileSize": 16,
   "background": "assets/environment/background/sky.png",
   "background_scale": 1.0,
+  "clouds": true,
   "background_layers": [
     {
       "path": "assets/environment/background/mountains.png",
