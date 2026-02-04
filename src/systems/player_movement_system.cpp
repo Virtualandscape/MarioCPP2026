@@ -9,7 +9,8 @@ namespace mario {
 
 void PlayerMovementSystem::update(EntityManager& registry, float dt) const
 {
-    auto entities = registry.get_entities_with<PlayerInputComponent>();
+    static thread_local std::vector<EntityID> entities;
+    registry.get_entities_with<PlayerInputComponent>(entities);
     for (auto entity : entities) {
         auto* input = registry.get_component<PlayerInputComponent>(entity);
         auto* vel = registry.get_component<VelocityComponent>(entity);

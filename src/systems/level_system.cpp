@@ -10,7 +10,8 @@
 namespace mario {
 
 void LevelSystem::check_ground_status(EntityManager& registry, const TileMap& map) {
-    auto entities = registry.get_entities_with<JumpStateComponent>();
+    static thread_local std::vector<EntityID> entities;
+    registry.get_entities_with<JumpStateComponent>(entities);
     const int tile_size = map.tile_size();
     if (tile_size <= 0) return;
 

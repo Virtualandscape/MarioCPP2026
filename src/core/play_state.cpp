@@ -155,7 +155,8 @@ namespace mario {
         }
 
         // Render background(s)
-        auto bg_entities = _registry.get_entities_with<BackgroundComponent>();
+        static thread_local std::vector<EntityID> bg_entities;
+        _registry.get_entities_with<BackgroundComponent>(bg_entities);
         for (auto entity : bg_entities) {
             auto* bg = _registry.get_component<BackgroundComponent>(entity);
             if (!bg) continue;
@@ -170,7 +171,8 @@ namespace mario {
         _level.render(_game.renderer());
 
         // ECS Rendering
-        auto renderables = _registry.get_entities_with<SpriteComponent>();
+        static thread_local std::vector<EntityID> renderables;
+        _registry.get_entities_with<SpriteComponent>(renderables);
         for (auto entity : renderables) {
             auto* pos = _registry.get_component<PositionComponent>(entity);
             auto* size = _registry.get_component<SizeComponent>(entity);

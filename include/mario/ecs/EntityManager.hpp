@@ -55,11 +55,27 @@ public:
         std::vector<EntityID> result;
         auto type_it = _components.find(std::type_index(typeid(T)));
         if (type_it != _components.end()) {
-            for (auto& pair : type_it->second) {
+            const auto& map = type_it->second;
+            result.reserve(map.size());
+            for (const auto& pair : map) {
                 result.push_back(pair.first);
             }
         }
         return result;
+    }
+
+    // Non-allocating variant: reuse a caller-provided buffer
+    template<typename T>
+    void get_entities_with(std::vector<EntityID>& out) const {
+        out.clear();
+        auto type_it = _components.find(std::type_index(typeid(T)));
+        if (type_it != _components.end()) {
+            const auto& map = type_it->second;
+            out.reserve(map.size());
+            for (const auto& pair : map) {
+                out.push_back(pair.first);
+            }
+        }
     }
 
     // Clears all components and resets entity counter.

@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <unordered_set>
 #include "mario/systems/CollisionSystem.hpp"
 #include "mario/ecs/components/PositionComponent.hpp"
 #include "mario/ecs/components/VelocityComponent.hpp"
@@ -26,6 +27,15 @@ namespace mario {
         struct CollisionResult {
             float x, y;
             float vx, vy;
+        };
+
+        struct CollidableView {
+            EntityID id;
+            PositionComponent* pos;
+            SizeComponent* size;
+            CollisionInfoComponent* coll;
+            TypeComponent* type;
+            VelocityComponent* vel;
         };
 
         CollisionResult resolve_tile_collision(float x, float y, float vx, float vy, float w, float h, const TileMap& map, float dt) {
@@ -137,7 +147,8 @@ namespace mario {
 
     void CollisionSystem::update(EntityManager& registry, const TileMap& map, float dt) {
         // First, handle tile collisions for entities with Position, Velocity, Size
-        auto entities = registry.get_entities_with<PositionComponent>();
+        static thread_local std::vector<EntityID> entities;
+        registry.get_entities_with<PositionComponent>(entities);
         for (auto entity : entities) {
             auto* pos = registry.get_component<PositionComponent>(entity);
             auto* vel = registry.get_component<VelocityComponent>(entity);
@@ -149,47 +160,97 @@ namespace mario {
 
         // Then, handle entity vs entity collisions
         // Get all entities with Position, Size, CollisionInfo, Type
-        auto collidable_entities = registry.get_entities_with<PositionComponent>();
+        static thread_local std::vector<EntityID> collidable_entities;
+        registry.get_entities_with<PositionComponent>(collidable_entities);
+        std::vector<CollidableView> collidables;
+        collidables.reserve(collidable_entities.size());
+        for (auto entity : collidable_entities) {
+            auto* pos = registry.get_component<PositionComponent>(entity);
+            auto* size = registry.get_component<SizeComponent>(entity);
+            auto* coll = registry.get_component<CollisionInfoComponent>(entity);
+            auto* type = registry.get_component<TypeComponent>(entity);
+            if (!pos || !size || !coll || !type) continue;
+            collidables.push_back({entity, pos, size, coll, type, registry.get_component<VelocityComponent>(entity)});
+        }
 
-        for (size_t i = 0; i < collidable_entities.size(); ++i) {
-            auto entity_a = collidable_entities[i];
-            auto* pos_a = registry.get_component<PositionComponent>(entity_a);
-            auto* size_a = registry.get_component<SizeComponent>(entity_a);
-            auto* coll_a = registry.get_component<CollisionInfoComponent>(entity_a);
-            auto* type_a = registry.get_component<TypeComponent>(entity_a);
-            if (!pos_a || !size_a || !coll_a || !type_a) continue;
+        const float cell_size = static_cast<float>(map.tile_size());
+        const int cols = std::max(1, map.width());
+        const int rows = std::max(1, map.height());
+        const int bucket_count = cols * rows;
 
-            for (size_t j = i + 1; j < collidable_entities.size(); ++j) {
-                auto entity_b = collidable_entities[j];
-                auto* pos_b = registry.get_component<PositionComponent>(entity_b);
-                auto* size_b = registry.get_component<SizeComponent>(entity_b);
-                auto* coll_b = registry.get_component<CollisionInfoComponent>(entity_b);
-                auto* type_b = registry.get_component<TypeComponent>(entity_b);
-                if (!pos_b || !size_b || !coll_b || !type_b) continue;
+        static thread_local std::vector<std::vector<std::size_t>> buckets;
+        if (static_cast<int>(buckets.size()) != bucket_count) {
+            buckets.assign(static_cast<std::size_t>(bucket_count), {});
+        } else {
+            for (auto& bucket : buckets) {
+                bucket.clear();
+            }
+        }
 
-                const float left_a = pos_a->x;
-                const float top_a = pos_a->y;
-                const float right_a = rect_right(pos_a->x, size_a->width);
-                const float bottom_a = rect_bottom(pos_a->y, size_a->height);
+        if (cell_size > 0.0f) {
+            for (std::size_t i = 0; i < collidables.size(); ++i) {
+                const auto& c = collidables[i];
+                const float left = c.pos->x;
+                const float top = c.pos->y;
+                const float right = rect_right(c.pos->x, c.size->width);
+                const float bottom = rect_bottom(c.pos->y, c.size->height);
 
-                const float left_b = pos_b->x;
-                const float top_b = pos_b->y;
-                const float right_b = rect_right(pos_b->x, size_b->width);
-                const float bottom_b = rect_bottom(pos_b->y, size_b->height);
+                int min_cx = static_cast<int>(std::floor(left / cell_size));
+                int max_cx = static_cast<int>(std::floor((right - 0.001f) / cell_size));
+                int min_cy = static_cast<int>(std::floor(top / cell_size));
+                int max_cy = static_cast<int>(std::floor((bottom - 0.001f) / cell_size));
 
-                if (left_a < right_b && right_a > left_b && top_a < bottom_b && bottom_a > top_b) {
-                    coll_a->collided = true;
-                    coll_a->other_type = type_b->type;
-                    coll_b->collided = true;
-                    coll_b->other_type = type_a->type;
+                min_cx = std::clamp(min_cx, 0, cols - 1);
+                max_cx = std::clamp(max_cx, 0, cols - 1);
+                min_cy = std::clamp(min_cy, 0, rows - 1);
+                max_cy = std::clamp(max_cy, 0, rows - 1);
 
-                    // Special resolution for player
-                    if (type_a->type == EntityTypeComponent::Player) {
-                        auto* vel_a = registry.get_component<VelocityComponent>(entity_a);
-                        if (vel_a) resolve_player_collision(*pos_a, *vel_a, *size_a, *pos_b, *size_b);
-                    } else if (type_b->type == EntityTypeComponent::Player) {
-                        auto* vel_b = registry.get_component<VelocityComponent>(entity_b);
-                        if (vel_b) resolve_player_collision(*pos_b, *vel_b, *size_b, *pos_a, *size_a);
+                for (int cy = min_cy; cy <= max_cy; ++cy) {
+                    for (int cx = min_cx; cx <= max_cx; ++cx) {
+                        buckets[static_cast<std::size_t>(cy * cols + cx)].push_back(i);
+                    }
+                }
+            }
+        }
+
+        std::unordered_set<std::uint64_t> seen;
+        seen.reserve(collidables.size() * 4u + 8u);
+
+        for (const auto& bucket : buckets) {
+            const std::size_t count = bucket.size();
+            for (std::size_t bi = 0; bi + 1 < count; ++bi) {
+                for (std::size_t bj = bi + 1; bj < count; ++bj) {
+                    const std::size_t ia = bucket[bi];
+                    const std::size_t ib = bucket[bj];
+                    const std::size_t min_i = std::min(ia, ib);
+                    const std::size_t max_i = std::max(ia, ib);
+                    const std::uint64_t key = (static_cast<std::uint64_t>(min_i) << 32u) | static_cast<std::uint64_t>(max_i);
+                    if (!seen.insert(key).second) continue;
+
+                    auto& a = collidables[min_i];
+                    auto& b = collidables[max_i];
+
+                    const float left_a = a.pos->x;
+                    const float top_a = a.pos->y;
+                    const float right_a = rect_right(a.pos->x, a.size->width);
+                    const float bottom_a = rect_bottom(a.pos->y, a.size->height);
+
+                    const float left_b = b.pos->x;
+                    const float top_b = b.pos->y;
+                    const float right_b = rect_right(b.pos->x, b.size->width);
+                    const float bottom_b = rect_bottom(b.pos->y, b.size->height);
+
+                    if (left_a < right_b && right_a > left_b && top_a < bottom_b && bottom_a > top_b) {
+                        a.coll->collided = true;
+                        a.coll->other_type = b.type->type;
+                        b.coll->collided = true;
+                        b.coll->other_type = a.type->type;
+
+                        if (a.type->type == EntityTypeComponent::Player) {
+                            if (a.vel) resolve_player_collision(*a.pos, *a.vel, *a.size, *b.pos, *b.size);
+                        } else if (b.type->type == EntityTypeComponent::Player) {
+                            if (b.vel) resolve_player_collision(*b.pos, *b.vel, *b.size, *a.pos, *a.size);
+                        }
                     }
                 }
             }

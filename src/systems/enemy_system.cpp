@@ -10,7 +10,8 @@
 
 namespace mario {
     void EnemySystem::update(EntityManager& registry, const TileMap& map, float dt) const {
-        auto entities = registry.get_entities_with<EnemyComponent>();
+        static thread_local std::vector<EntityID> entities;
+        registry.get_entities_with<EnemyComponent>(entities);
         for (auto entity : entities) {
             auto* enemy = registry.get_component<EnemyComponent>(entity);
             auto* vel = registry.get_component<VelocityComponent>(entity);
