@@ -122,13 +122,13 @@ namespace mario {
         _tile_map->load(level_id, &spawns); // Load tile map and collect entity spawn points
         _entity_spawns = std::move(spawns);
 
-        // Try to read background image path and scale from the level file (if present)
+        // Try to read the background image path and scale from the level file (if present)
         _background_path.clear();
         _background_scale = 1.0f;
         if (!level_id.empty()) {
             std::ifstream file = open_level_file(level_id);
             if (file) {
-                std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+                const std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
                 std::string bg;
                 if (extract_string_field(content, "background", bg)) {
                     _background_path = bg;

@@ -30,7 +30,7 @@ namespace mario {
         }
 
         sf::Clock clock;
-        const sf::Time target_frame_time = sf::seconds(1.0f / 60.0f);
+        constexpr sf::Time target_frame_time = sf::seconds(1.0f / 60.0f);
         sf::Time previous_time = clock.getElapsedTime();
         // While the game is running and there is a current state, processes updates and rendering.
         while (_running && current_state()) {
@@ -38,11 +38,11 @@ namespace mario {
             const float dt = (current_time - previous_time).asSeconds();
             previous_time = current_time;
 
-            auto state = current_state();
+            const auto state = current_state();
             state->update(dt);
             state->render();
 
-            // Sleep to maintain target frame rate.
+            // Sleep to maintain the target frame rate.
             const sf::Time elapsed = clock.getElapsedTime() - current_time;
             if (elapsed < target_frame_time) {
                 sf::sleep(target_frame_time - elapsed);
@@ -57,7 +57,7 @@ namespace mario {
             return;
         }
         // Ensure the current state is exited before pushing a new one.
-        if (auto current = current_state()) {
+        if (const auto current = current_state()) {
             current->on_exit();
         }
         // Push the new state onto the stack and initialize it.

@@ -1,29 +1,28 @@
 #pragma once
 
-#include "mario/entities/Entity.hpp"
 #include "mario/render/Renderer.hpp"
 
 namespace mario {
     // Mushroom, fire flower, etc.
-    class PowerUp : public Entity {
+    class PowerUp {
     public:
-        void update(float dt) override;
-        void render(Renderer& renderer) override;
+        void update(float dt) ;
+        void render(Renderer& renderer) ;
         virtual void apply_to_player() = 0;
     };
 
     // Coins, 1‑ups, collectibles
-    class Item : public Entity {
+    class Item {
     public:
-        void update(float dt) override;
-        void render(Renderer& renderer) override;
+        void update(float dt) ;
+        void render(Renderer& renderer);
         void collect();
     };
 
     //  Fireball logic
-    class Projectile : public Entity {
+    class Projectile {
     public:
-        void update(float dt) override;
-        void render(Renderer& renderer) override;
+        void update(float dt);
+        void render(Renderer& renderer);
     };
 } // namespace mario
