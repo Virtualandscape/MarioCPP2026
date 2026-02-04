@@ -9,20 +9,34 @@
 #include "mario/ecs/EntityTypeComponent.hpp"
 #include "mario/world/TileMap.hpp"
 #include "mario/util/Quadtree.h"
+#include "mario/util/TileSweep.hpp"
+
+// collision_system.cpp
+//
+// This file implements the CollisionSystem for the Mario game, handling both tile and entity collisions.
+// It uses a two-phase approach: first resolving collisions with the tile map (static world), then resolving collisions between entities (dynamic objects).
+//
+// Key concepts:
+// - Broadphase: Uses a quadtree to efficiently find potential entity collision pairs.
+// - Narrowphase: Performs precise AABB (axis-aligned bounding box) collision checks and applies gameplay-specific responses.
+// - Tile collision: Uses swept AABB to resolve movement against the tile map.
+//
+// Main functions:
+// - rects_intersect: Checks if two rectangles overlap.
+// - resolve_player_collision: Adjusts player position and velocity to resolve overlap with another entity.
+// - handle_entity_collision: Handles collision response between two entities, including player-specific logic.
+// - CollisionSystem::update: Main update loop, processes all collisions for the current frame.
 
 namespace mario {
     namespace {
         // Rectangle helpers: work directly with x,y,width,height instead of AABB struct
+        // Returns true if two rectangles overlap.
         inline bool rects_intersect(float ax, float ay, float aw, float ah,
                                     float bx, float by, float bw, float bh) {
             return ax < (bx + bw) && (ax + aw) > bx && ay < (by + bh) && (ay + ah) > by;
         }
 
-        struct CollisionResult {
-            float x, y;
-            float vx, vy;
-        };
-
+        // View struct to group all components needed for collision.
         struct CollidableView {
             PositionComponent* pos;
             SizeComponent* size;
@@ -36,91 +50,28 @@ namespace mario {
             return sf::FloatRect({c.pos->x, c.pos->y}, {c.size->width, c.size->height});
         }
 
-        CollisionResult resolve_tile_collision(float x, float y, float vx, float vy, float w, float h, const TileMap& map, float dt) {
-            const float prev_x = x - vx * dt;
-            const float prev_y = y - vy * dt;
-            const int tile_size = map.tile_size();
-            const auto tile_size_f = static_cast<float>(tile_size);
-
-            if (tile_size <= 0) return {x, y, vx, vy};
-
-            float new_x = x;
-            float new_y = y;
-            float new_vx = vx;
-            float new_vy = vy;
-
-            // Resolve one axis at a time using swept AABB against solid tiles.
-            auto resolve_axis = [&](float& new_pos, float& new_vel, float prev_pos, float fixed_pos,
-                                    float size_axis, float size_fixed, bool horizontal) {
-                if (new_vel == 0.0f) return;
-
-                const float min_pos = std::min(prev_pos, new_pos);
-                const float max_pos = std::max(prev_pos, new_pos);
-
-                int start_x = 0;
-                int end_x = 0;
-                int start_y = 0;
-                int end_y = 0;
-
-                if (horizontal) {
-                    start_x = static_cast<int>(std::floor(min_pos / tile_size_f));
-                    end_x = static_cast<int>(std::floor((max_pos + size_axis) / tile_size_f));
-                    start_y = static_cast<int>(std::floor(fixed_pos / tile_size_f));
-                    end_y = static_cast<int>(std::floor((fixed_pos + size_fixed) / tile_size_f));
-                } else {
-                    start_x = static_cast<int>(std::floor(fixed_pos / tile_size_f));
-                    end_x = static_cast<int>(std::floor((fixed_pos + size_fixed) / tile_size_f));
-                    start_y = static_cast<int>(std::floor(min_pos / tile_size_f));
-                    end_y = static_cast<int>(std::floor((max_pos + size_axis) / tile_size_f));
-                }
-
-                // Scan the tile range intersected by the swept bounds.
-                for (int ty = start_y; ty <= end_y; ++ty) {
-                    for (int tx = start_x; tx <= end_x; ++tx) {
-                        if (!map.is_solid(tx, ty)) continue;
-                        const float tile_left = static_cast<float>(tx) * tile_size_f;
-                        const float tile_top = static_cast<float>(ty) * tile_size_f;
-
-                        const float test_x = horizontal ? new_pos : fixed_pos;
-                        const float test_y = horizontal ? fixed_pos : new_pos;
-                        const float test_w = horizontal ? size_axis : size_fixed;
-                        const float test_h = horizontal ? size_fixed : size_axis;
-
-                        if (!rects_intersect(test_x, test_y, test_w, test_h, tile_left, tile_top, tile_size_f, tile_size_f)) continue;
-
-                        // Snap to tile edge and zero velocity along this axis.
-                        if (horizontal) {
-                            new_pos = (new_vel > 0.0f) ? tile_left - size_axis : tile_left + tile_size_f;
-                        } else {
-                            new_pos = (new_vel > 0.0f) ? tile_top - size_axis : tile_top + tile_size_f;
-                        }
-                        new_vel = 0.0f;
-                    }
-                }
-            };
-
-            resolve_axis(new_x, new_vx, prev_x, prev_y, w, h, true);
-            resolve_axis(new_y, new_vy, prev_y, new_x, h, w, false);
-
-            return {new_x, new_y, new_vx, new_vy};
-        }
-        // Resolve player overlap against another entity (with velocity response).
+        // Resolves overlap between the player and another entity, adjusting position and velocity.
         void resolve_player_collision(PositionComponent& pos_player, VelocityComponent& vel_player, const SizeComponent& size_player, const PositionComponent& pos_other, const SizeComponent& size_other) {
+            // Compute the sides of both rectangles
             const float right_p = pos_player.x + size_player.width;
             const float bottom_p = pos_player.y + size_player.height;
             const float right_o = pos_other.x + size_other.width;
             const float bottom_o = pos_other.y + size_other.height;
 
+            // Calculate overlap distances on each side
             const float overlapLeft = right_o - pos_player.x;
             const float overlapRight = right_p - pos_other.x;
             const float overlapTop = bottom_o - pos_player.y;
             const float overlapBottom = bottom_p - pos_other.y;
 
+            // Find the minimum translation needed to resolve the collision
             const float minOverlapX = (overlapLeft < overlapRight) ? overlapLeft : -overlapRight;
             const float minOverlapY = (overlapTop < overlapBottom) ? overlapTop : -overlapBottom;
 
+            // Move the player out of collision along the axis of least penetration
             if (std::abs(minOverlapX) < std::abs(minOverlapY)) {
                 pos_player.x += minOverlapX;
+                // Zero velocity if moving into the other entity
                 if ((minOverlapX < 0 && vel_player.vx > 0) || (minOverlapX > 0 && vel_player.vx < 0)) {
                     vel_player.vx = 0.0f;
                 }
@@ -132,18 +83,21 @@ namespace mario {
             }
         }
 
-        // Narrowphase: AABB test + collision flags + optional player resolution.
+        // Performs narrowphase collision test and response between two entities.
+        // Sets collision flags and applies player-specific resolution if needed.
         inline void handle_entity_collision(CollidableView& a, CollidableView& b) {
             if (!rects_intersect(a.pos->x, a.pos->y, a.size->width, a.size->height,
                                  b.pos->x, b.pos->y, b.size->width, b.size->height)) {
                 return;
             }
 
+            // Mark both entities as collided and store the type of the other entity
             a.coll->collided = true;
             a.coll->other_type = b.type->type;
             b.coll->collided = true;
             b.coll->other_type = a.type->type;
 
+            // If either entity is a player, resolve overlap with velocity response
             if (a.type->type == EntityTypeComponent::Player) {
                 if (a.vel) resolve_player_collision(*a.pos, *a.vel, *a.size, *b.pos, *b.size);
             } else if (b.type->type == EntityTypeComponent::Player) {
@@ -152,7 +106,10 @@ namespace mario {
         }
     }
 
-    //
+    // Main update function for the collision system.
+    // 1. Resolves tile collisions for all entities with position, velocity, and size.
+    // 2. Builds a list of collidable entities and inserts them into a quadtree for broadphase queries.
+    // 3. For each entity, retrieves nearby candidates and performs narrowphase collision checks and responses.
     void CollisionSystem::update(EntityManager& registry, const TileMap& map, float dt) {
         // First, handle tile collisions for entities with Position, Velocity, Size
         static thread_local std::vector<EntityID> entities;
@@ -162,7 +119,8 @@ namespace mario {
             auto* vel = registry.get_component<VelocityComponent>(entity);
             auto* size = registry.get_component<SizeComponent>(entity);
             if (pos && vel && size) {
-                auto result = resolve_tile_collision(pos->x, pos->y, vel->vx, vel->vy, size->width, size->height, map, dt);
+                // Use swept AABB to resolve movement against the tile map, using util/TileSweep
+                const auto result = resolve_tile_collision(pos->x, pos->y, vel->vx, vel->vy, size->width, size->height, map, dt);
                 pos->x = result.x;
                 pos->y = result.y;
                 vel->vx = result.vx;
@@ -175,7 +133,6 @@ namespace mario {
         registry.get_entities_with<PositionComponent>(collidable_entities);
         std::vector<CollidableView> collidables;
         collidables.reserve(collidable_entities.size());
-        // Loop over collidable entities and build collidable views.
         for (auto entity : collidable_entities) {
             auto* pos = registry.get_component<PositionComponent>(entity);
             auto* size = registry.get_component<SizeComponent>(entity);
@@ -189,6 +146,7 @@ namespace mario {
             return;
         }
 
+        // Build a quadtree covering the world for broadphase collision queries
         const auto world_w = static_cast<float>(map.width() * map.tile_size());
         const auto world_h = static_cast<float>(map.height() * map.tile_size());
         Quadtree quadtree(0, sf::FloatRect({0.0f, 0.0f}, {world_w, world_h}));
@@ -197,7 +155,7 @@ namespace mario {
         for (std::size_t i = 0; i < collidables.size(); ++i) {
             quadtree.insert(QuadTile(to_rect(collidables[i]), static_cast<std::uint32_t>(i)));
         }
-        // Iterate over collidables and query nearby tiles to test.
+
         static thread_local std::vector<QuadTile> candidates;
         for (std::size_t i = 0; i < collidables.size(); ++i) {
             const auto& c = collidables[i];

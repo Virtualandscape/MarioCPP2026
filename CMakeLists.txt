@@ -36,6 +36,7 @@ set(SOURCES
         src/world/tile_map.cpp
         src/systems/player_movement_system.cpp
         src/util/Quadtree.cpp
+        src/util/TileSweep.cpp
         src/systems/background_system.cpp
 )
 
@@ -59,6 +60,7 @@ set(HEADERS
         include/mario/util/Spawner.hpp
         include/mario/ecs/components/BackgroundComponent.hpp
         include/mario/systems/BackgroundSystem.hpp
+        src/util/TileSweep.cpp
 )
 
 add_executable(Mario ${SOURCES} ${HEADERS})
