@@ -8,27 +8,32 @@
 
 namespace mario {
 
+    // Renders the background based on the BackgroundComponent settings, handling parallax, scaling, and tiling.
     void BackgroundSystem::render(Renderer& renderer, const Camera& camera, AssetManager& assets, const BackgroundComponent& bg) {
+        // Get viewport dimensions
         const auto viewport = renderer.viewport_size();
+        // Retrieve the texture for the background
         sf::Texture* tex = assets.get_mutable_texture(bg.texture_id);
         if (!tex) {
             return; // nothing to draw
         }
 
-        // Enable/disable repeating based on component settings
+        // Enable/disable texture repeating based on component settings
         if (tex->isRepeated() != bg.repeat) {
             tex->setRepeated(bg.repeat);
         }
 
+        // Viewport and texture sizes
         const float vw = viewport.x;
         const float vh = viewport.y;
         const float tw = static_cast<float>(tex->getSize().x);
         const float th = static_cast<float>(tex->getSize().y);
 
-        // Compute scale
+        // Compute initial scale to fit viewport
         float scaleX = vw / tw;
         float scaleY = vh / th;
         if (bg.preserve_aspect) {
+            // Adjust scale to preserve aspect ratio
             float scale = 1.0f;
             if (bg.scale_mode == BackgroundComponent::ScaleMode::Fit) {
                 scale = std::min(scaleX, scaleY);
@@ -44,54 +49,65 @@ namespace mario {
             scaleY *= bg.scale_multiplier;
         }
 
+        // Destination size after scaling
         const float dst_w = tw * scaleX;
         const float dst_h = th * scaleY;
 
-        // Position: center by default, apply parallax relative to camera
+        // Camera position for parallax calculation
         float cam_x = camera.x();
         float cam_y = camera.y();
 
-        float factor = 1.0f - bg.parallax;
-        float offset_x = cam_x * factor;
-        float offset_y = cam_y * factor;
+        // Parallax offsets: move background relative to camera
+        const float offset_x = -cam_x * bg.parallax;
+        const float offset_y = -cam_y * bg.parallax;
+
+        // Switch to default view for viewport-relative drawing
+        sf::RenderWindow& window = renderer.window();
+        const sf::View old_view = window.getView();
+        window.setView(window.getDefaultView());
 
         sf::Sprite sprite(*tex);
         if (!bg.repeat) {
-            float pos_x = (vw - dst_w) * 0.5f + bg.offset_x;
-            float pos_y = (vh - dst_h) * 0.5f + bg.offset_y;
+            // Single background image, centered with parallax
+            float pos_x = (vw - dst_w) * 0.5f + bg.offset_x + offset_x;
+            float pos_y = (vh - dst_h) * 0.5f + bg.offset_y + offset_y;
 
             sprite.setScale({scaleX, scaleY});
-            
-            // Draw in world space but shifted by parallax
-            sprite.setPosition({pos_x + offset_x, pos_y + offset_y});
-            renderer.window().draw(sprite);
+            sprite.setPosition({pos_x, pos_y});
+            window.draw(sprite);
+        } else if (bg.repeat_x) {
+            // Repeat horizontally, fixed at bottom (no vertical parallax)
+            float y = vh - dst_h + bg.offset_y;
+            // Calculate starting x for seamless tiling with parallax
+            float start_x = -std::fmod(offset_x + bg.offset_x, dst_w);
+            if (start_x > 0) start_x -= dst_w;
+
+            sprite.setScale({scaleX, scaleY});
+            sprite.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(tw), static_cast<int>(th)}));
+            // Draw tiles across the viewport width
+            for (float x = start_x; x < vw; x += dst_w) {
+                sprite.setPosition({x, y});
+                window.draw(sprite);
+            }
         } else {
-            // Tiled background
-            
-            // Calculate where the "origin" of the background is in world space
-            float origin_x = (vw - dst_w) * 0.5f + bg.offset_x + offset_x;
-            float origin_y = (vh - dst_h) * 0.5f + bg.offset_y + offset_y;
+            // Tiled background in both directions with parallax
+            // Calculate starting positions for seamless tiling
+            float start_x = -std::fmod(offset_x + bg.offset_x, dst_w);
+            float start_y = -std::fmod(offset_y + bg.offset_y, dst_h);
+            if (start_x > 0) start_x -= dst_w;
+            if (start_y > 0) start_y -= dst_h;
 
-            // Shift origin to be within [cam_x - dst_w, cam_x]
-            float shift_x = std::floor((origin_x - cam_x) / dst_w) * dst_w;
-            float shift_y = std::floor((origin_y - cam_y) / dst_h) * dst_h;
-            
-            float start_x = origin_x - shift_x; 
-            float start_y = origin_y - shift_y;
-            
-            // Ensure we start before the camera view
-            while (start_x > cam_x) start_x -= dst_w;
-            while (start_y > cam_y) start_y -= dst_h;
-            
-            // How much we need to cover from start_x to cam_x + vw
-            float needed_w = (cam_x + vw) - start_x;
-            float needed_h = (cam_y + vh) - start_y;
-            
             sprite.setScale({scaleX, scaleY});
-            sprite.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(needed_w / scaleX + 1), static_cast<int>(needed_h / scaleY + 1)}));
-            sprite.setPosition({start_x, start_y});
-            
-            renderer.window().draw(sprite);
+            // Draw tiles across the entire viewport
+            for (float x = start_x; x < vw; x += dst_w) {
+                for (float y = start_y; y < vh; y += dst_h) {
+                    sprite.setPosition({x, y});
+                    window.draw(sprite);
+                }
+            }
         }
+
+        // Restore the original view
+        window.setView(old_view);
     }
 } // namespace mario

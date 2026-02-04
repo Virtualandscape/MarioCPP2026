@@ -34,6 +34,7 @@ namespace mario {
         void update_camera();
         void handle_level_transitions();
         void handle_input();
+        void create_background_entity(int texture_id, bool preserve_aspect, BackgroundComponent::ScaleMode scale_mode, float scale_multiplier, float parallax, bool repeat, float offset_x, float offset_y);
 
         Game& _game;
         EntityID _player_id;

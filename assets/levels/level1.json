@@ -2,7 +2,7 @@
   "width": 100,
   "height": 18,
   "tileSize": 16,
-  "background": "assets/images/background.png",
+  "background": "assets/environment/background/sky.png",
   "background_scale": 1.0,
   "entities": [
     {
