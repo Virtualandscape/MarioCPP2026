@@ -12,9 +12,18 @@ namespace mario {
 
         void update(float dt);
 
-        float x() const;
+        [[nodiscard]] float x() const noexcept;
 
-        float y() const;
+        [[nodiscard]] float y() const noexcept;
+
+        // Move the camera partially towards the current target.
+        // fraction is in [0,1]: 0 = no change, 1 = snap to target.
+        // If ignore_bounds is true, the camera will move towards the unclamped desired center
+        // (useful for an initial center at level start even if near map edges).
+        void center_on_target_fraction(float fraction, bool ignore_bounds = false);
+
+        // Set the camera position directly (overrides internal _x/_y).
+        void set_position(float x, float y) noexcept;
 
     private:
         float _x = 0.0f;

@@ -1,13 +1,14 @@
 #include "mario/core/Game.hpp"
 #include "mario/core/GameState.hpp"
 #include "mario/core/MenuState.hpp"
+#include "mario/core/PlayState.hpp"
 #include <SFML/System/Clock.hpp>
 #include <SFML/System/Sleep.hpp>
 
 namespace mario {
     // Redundant for now, but will be useful later.
     void Game::initialize() {
-        _running = true;
+        this->_running = true;
     }
 
     // Cleanup resources and set the running flag to false.

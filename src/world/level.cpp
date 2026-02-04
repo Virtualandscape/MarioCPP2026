@@ -105,7 +105,6 @@ namespace mario {
             }
             return true;
         }
-
     }
 
     // Loads a level from a JSON file and initializes camera bounds

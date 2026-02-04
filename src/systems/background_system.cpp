@@ -4,14 +4,20 @@
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <algorithm>
+#include <cmath>
 
 namespace mario {
 
     void BackgroundSystem::render(Renderer& renderer, const Camera& camera, AssetManager& assets, const BackgroundComponent& bg) {
         const auto viewport = renderer.viewport_size();
-        const sf::Texture* tex = assets.get_texture(bg.texture_id);
+        sf::Texture* tex = assets.get_mutable_texture(bg.texture_id);
         if (!tex) {
             return; // nothing to draw
+        }
+
+        // Enable/disable repeating based on component settings
+        if (tex->isRepeated() != bg.repeat) {
+            tex->setRepeated(bg.repeat);
         }
 
         const float vw = viewport.x;
@@ -45,24 +51,46 @@ namespace mario {
         float cam_x = camera.x();
         float cam_y = camera.y();
 
-        float pos_x = (vw - dst_w) * 0.5f + bg.offset_x - cam_x * bg.parallax;
-        float pos_y = (vh - dst_h) * 0.5f + bg.offset_y - cam_y * bg.parallax;
+        float factor = 1.0f - bg.parallax;
+        float offset_x = cam_x * factor;
+        float offset_y = cam_y * factor;
 
         sf::Sprite sprite(*tex);
-        sprite.setScale({scaleX, scaleY});
-        // For parallax == 0 we want the sprite fixed in window space: set position without adding camera
-        if (bg.parallax == 0.0f) {
-            sprite.setPosition({pos_x, pos_y});
+        if (!bg.repeat) {
+            float pos_x = (vw - dst_w) * 0.5f + bg.offset_x;
+            float pos_y = (vh - dst_h) * 0.5f + bg.offset_y;
 
-            // Draw in screen space by temporarily setting view to default
-            sf::RenderWindow& window = renderer.window();
-            auto old_view = window.getView();
-            window.setView(window.getDefaultView());
-            window.draw(sprite);
-            window.setView(old_view);
+            sprite.setScale({scaleX, scaleY});
+            
+            // Draw in world space but shifted by parallax
+            sprite.setPosition({pos_x + offset_x, pos_y + offset_y});
+            renderer.window().draw(sprite);
         } else {
-            // For parallax != 0, position is in world space, so add camera offset only if renderer doesn't already set the view
-            sprite.setPosition({pos_x + cam_x, pos_y + cam_y});
+            // Tiled background
+            
+            // Calculate where the "origin" of the background is in world space
+            float origin_x = (vw - dst_w) * 0.5f + bg.offset_x + offset_x;
+            float origin_y = (vh - dst_h) * 0.5f + bg.offset_y + offset_y;
+
+            // Shift origin to be within [cam_x - dst_w, cam_x]
+            float shift_x = std::floor((origin_x - cam_x) / dst_w) * dst_w;
+            float shift_y = std::floor((origin_y - cam_y) / dst_h) * dst_h;
+            
+            float start_x = origin_x - shift_x; 
+            float start_y = origin_y - shift_y;
+            
+            // Ensure we start before the camera view
+            while (start_x > cam_x) start_x -= dst_w;
+            while (start_y > cam_y) start_y -= dst_h;
+            
+            // How much we need to cover from start_x to cam_x + vw
+            float needed_w = (cam_x + vw) - start_x;
+            float needed_h = (cam_y + vh) - start_y;
+            
+            sprite.setScale({scaleX, scaleY});
+            sprite.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(needed_w / scaleX + 1), static_cast<int>(needed_h / scaleY + 1)}));
+            sprite.setPosition({start_x, start_y});
+            
             renderer.window().draw(sprite);
         }
     }

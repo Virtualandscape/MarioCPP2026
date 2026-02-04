@@ -40,7 +40,8 @@ namespace mario {
                 bc.scale_mode = BackgroundComponent::ScaleMode::Fill;
                 // Apply optional per-level background scale
                 bc.scale_multiplier = _level.background_scale();
-                bc.parallax = 0.0f;
+                bc.parallax = 0.0f; // Attached to camera
+                bc.repeat = false; // Do not repeat if not seamless
                 _registry.add_component(id, bc);
             }
         }
@@ -65,10 +66,24 @@ namespace mario {
             _player_id = Spawner::spawn_player_default(_registry);
         }
 
-        // Initialize camera target
+        // Initialize camera
         update_camera();
         if (auto camera = _level.camera()) {
-            camera->update(0.0f);
+            const auto viewport = _game.renderer().viewport_size();
+            camera->set_viewport(viewport.x, viewport.y);
+            
+            auto* pos = _registry.get_component<PositionComponent>(_player_id);
+            auto* size = _registry.get_component<SizeComponent>(_player_id);
+            if (pos && size) {
+                const float center_x = pos->x + size->width * 0.5f;
+                const float center_y = pos->y + size->height * 0.5f;
+                camera->set_target(center_x, center_y);
+                
+                // Start with an offset from the target to make the damping animation visible
+                const float target_x = center_x - viewport.x * 0.5f;
+                const float target_y = center_y - viewport.y * 0.5f;
+                camera->set_position(target_x - 100.0f, target_y);
+            }
         }
 
         _running = true;
@@ -101,6 +116,7 @@ namespace mario {
 
         update_camera();
         _level.update(dt);
+
         handle_level_transitions();
     }
 

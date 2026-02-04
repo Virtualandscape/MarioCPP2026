@@ -77,6 +77,12 @@ namespace mario {
         return true;
     }
 
+    sf::Texture* AssetManager::get_mutable_texture(int id) {
+        auto it = _textures.find(id);
+        if (it == _textures.end()) return nullptr;
+        return it->second.get();
+    }
+
     const sf::Texture* AssetManager::get_texture(int id) const {
         auto it = _textures.find(id);
         if (it == _textures.end()) return nullptr;

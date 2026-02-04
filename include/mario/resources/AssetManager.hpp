@@ -13,6 +13,7 @@ namespace mario {
     public:
         bool load_texture(int id, std::string_view path);
 
+        sf::Texture* get_mutable_texture(int id);
         const sf::Texture* get_texture(int id) const;
 
         bool has_texture(int id) const;
