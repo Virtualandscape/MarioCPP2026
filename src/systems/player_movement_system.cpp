@@ -15,7 +15,7 @@ void PlayerMovementSystem::update(EntityManager& registry, float dt) const
     // Query entities that have all required components in one call.
     registry.get_entities_with_all<PlayerInputComponent, VelocityComponent>(entities);
 
-    for (auto entity : entities) {
+    for (const auto entity : entities) {
         // Components must exist for each returned entity, so direct access is safe.
         auto* input = registry.get_component<PlayerInputComponent>(entity);
         auto* vel = registry.get_component<VelocityComponent>(entity);

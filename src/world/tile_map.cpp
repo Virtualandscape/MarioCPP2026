@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <iostream>
 
 namespace mario {
     namespace {
@@ -249,6 +250,16 @@ namespace mario {
 
         extract_int_field(content, "tileSize", tile_size);
         const auto rows = extract_string_array(content, "rows");
+
+        // Prefer rows length as source of truth for map width. If the JSON "width" differs, adopt rows length and warn.
+        if (!rows.empty()) {
+            const int rows_len = static_cast<int>(rows[0].size());
+            if (width != rows_len) {
+                std::cerr << "Warning: level '" << std::string(map_id) << "' width field (" << width << ") differs from rows length (" << rows_len << "); using rows length." << std::endl;
+                width = rows_len;
+            }
+        }
+
         if (entity_spawns) {
             entity_spawns->clear();
             EntitySpawn player_spawn;

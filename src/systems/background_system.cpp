@@ -84,8 +84,8 @@ namespace mario {
 
             sprite.setScale({scaleX, scaleY});
             sprite.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(tw), static_cast<int>(th)}));
-            // Draw tiles across the viewport width
-            for (float x = start_x; x < vw; x += dst_w) {
+            // Draw tiles across the viewport width, with one-tile margin on each side to avoid gaps at edges
+            for (float x = start_x - dst_w; x < vw + dst_w; x += dst_w) {
                 sprite.setPosition({x, y});
                 window.draw(sprite);
             }
@@ -98,9 +98,9 @@ namespace mario {
             if (start_y > 0) start_y -= dst_h;
 
             sprite.setScale({scaleX, scaleY});
-            // Draw tiles across the entire viewport
-            for (float x = start_x; x < vw; x += dst_w) {
-                for (float y = start_y; y < vh; y += dst_h) {
+            // Draw tiles across the entire viewport plus a margin to avoid visible gaps when parallaxed
+            for (float x = start_x - dst_w; x < vw + dst_w; x += dst_w) {
+                for (float y = start_y - dst_h; y < vh + dst_h; y += dst_h) {
                     sprite.setPosition({x, y});
                     window.draw(sprite);
                 }
