@@ -13,6 +13,7 @@
 #include "mario/world/TileMap.hpp"
 
 #include <algorithm>
+#include <iostream>
 #include <string>
 
 namespace mario {
@@ -44,6 +45,9 @@ namespace mario {
 
     // Called when entering the play state. Loads the level, background, and spawns the player.
     void PlayState::on_enter() {
+        // Debug log: show which level path is being used
+        std::cout << "PlayState::on_enter loading level: " << _current_level_path << std::endl;
+
         // Load level
         _level.load(_current_level_path);
 
@@ -256,7 +260,7 @@ namespace mario {
 
         // Draw HUD
         std::string level_name = "Level 1";
-        if (_current_level_path.find("level2") != std::string::npos) {
+        if (_current_level_path == mario::constants::LEVEL2_PATH) {
             level_name = "Level 2";
         }
         _hud.set_level_name(level_name);

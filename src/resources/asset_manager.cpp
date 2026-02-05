@@ -45,12 +45,13 @@ namespace mario {
 
         // Use SFML texture loading directly from path (sf::Texture::loadFromFile expects a path)
         auto tex = std::make_shared<sf::Texture>();
-        if (!tex->loadFromFile(std::string(path))) {
+        std::string loaded_from; // record which path actually loaded the image
+        if (tex->loadFromFile(std::string(path))) {
+            loaded_from = std::string(path);
+        } else {
             // If direct load failed, try to load from the actual found path
             file.clear();
             file.seekg(0);
-            std::filesystem::path actual;
-            // Re-run open_file_multi to discover which candidate exists
             std::filesystem::path base(path);
             const std::filesystem::path cwd = std::filesystem::current_path();
             const std::filesystem::path tries[] = {
@@ -65,6 +66,7 @@ namespace mario {
                 if (std::filesystem::exists(candidate)) {
                     if (tex->loadFromFile(candidate.string())) {
                         loaded = true;
+                        loaded_from = candidate.string();
                         break;
                     }
                 }
@@ -77,6 +79,7 @@ namespace mario {
 
         // Enable smoothing so scaled-up backgrounds don't look blocky
         tex->setSmooth(true);
+
 
         _textures[id] = tex;
         return true;

@@ -14,6 +14,7 @@
 #include "mario/ui/HUD.hpp"
 #include "mario/ecs/EntityManager.hpp"
 #include "mario/ecs/components/SpriteComponent.hpp"
+#include "mario/util/Constants.hpp"
 #include <memory>
 #include <string>
 
@@ -51,6 +52,6 @@ namespace mario {
         EntityManager _registry;
         bool _running = true;
         float _level_transition_delay = 0.0f;
-        std::string _current_level_path = "assets/levels/level1.json";
+        std::string _current_level_path = mario::constants::LEVEL1_PATH;
     };
 } // namespace mario

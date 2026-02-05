@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics/Color.hpp>
+#include <array>
 
 
     namespace mario::constants {
@@ -49,5 +50,12 @@
         static constexpr float CLOUD_BIG_SPACING = 300.0f;
         static constexpr float CLOUD_MEDIUM_SPACING = 250.0f;
         static constexpr float CLOUD_SMALL_SPACING = 200.0f;
+        // Level paths
+        inline constexpr const char* LEVEL1_PATH = "assets/levels/level1.json";
+        inline constexpr const char* LEVEL2_PATH = "assets/levels/level2.json";
+
+        // Central list of available levels (single definition point)
+        inline constexpr std::array<const char*, 2> LEVEL_PATHS = { LEVEL1_PATH, LEVEL2_PATH };
+
     } // namespace mario::constants
 

@@ -71,4 +71,14 @@ target_compile_features(Mario PRIVATE cxx_std_17)
 target_include_directories(Mario PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(Mario PRIVATE SFML::Graphics)
 
+# Copy assets from source tree to build directory so runtime always uses up-to-date assets.
+add_custom_target(copy_assets
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/assets
+        ${CMAKE_BINARY_DIR}/assets
+    COMMENT "Copying assets to build directory"
+)
+
+add_dependencies(Mario copy_assets)
+
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT main)

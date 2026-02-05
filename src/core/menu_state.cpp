@@ -4,13 +4,14 @@
 #include "mario/core/MenuState.hpp"
 #include "mario/core/Game.hpp"
 #include "mario/core/PlayState.hpp"
+#include "mario/util/Constants.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 
 namespace mario {
     // Constructor initializes the menu with available levels and prepares text objects for rendering.
     MenuState::MenuState(Game& game) : _game(game) {
-        _levels = {"assets/levels/level1.json", "assets/levels/level2.json"};
+        _levels.assign(mario::constants::LEVEL_PATHS.begin(), mario::constants::LEVEL_PATHS.end());
         for (size_t i = 0; i < _levels.size(); ++i) {
             _level_texts.emplace_back(_game.renderer());
             _level_texts.back().set_string("Level " + std::to_string(i + 1));
@@ -54,13 +55,15 @@ namespace mario {
 
         // Mouse handling
         sf::Vector2i mouse_pos = sf::Mouse::getPosition(_game.renderer().window());
+        const auto mx = static_cast<float>(mouse_pos.x);
+        const auto my = static_cast<float>(mouse_pos.y);
         for (size_t i = 0; i < _levels.size(); ++i) {
             float x = 300;
             float y = 150 + static_cast<float>(i) * 100;
             float w = 200;
             float h = 50;
 
-            if (mouse_pos.x >= x && mouse_pos.x <= x + w && mouse_pos.y >= y && mouse_pos.y <= y + h) {
+            if (mx >= x && mx <= x + w && my >= y && my <= y + h) {
                 _selected_index = static_cast<int>(i);
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
                     _game.push_state(std::make_shared<PlayState>(_game, _levels[_selected_index]));
