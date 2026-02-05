@@ -10,6 +10,7 @@
 #include "mario/systems/BackgroundSystem.hpp"
 #include "mario/systems/CloudSystem.hpp"
 #include "mario/systems/SpriteRenderSystem.hpp"
+#include "mario/systems/CameraSystem.hpp"
 #include "mario/world/Level.hpp"
 #include "mario/world/TileMap.hpp"
 #include "mario/ui/HUD.hpp"
@@ -34,7 +35,6 @@ namespace mario {
         bool is_running() const override;
 
     private:
-        void update_camera();
         void handle_level_transitions();
         void handle_input();
 
@@ -48,6 +48,7 @@ namespace mario {
         BackgroundSystem _background_system;
         CloudSystem _cloud_system;
         SpriteRenderSystem _sprite_render_system;
+        CameraSystem _camera_system;
         Level _level;
         HUD _hud;
         EntityManager _registry;

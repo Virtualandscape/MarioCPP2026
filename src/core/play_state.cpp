@@ -80,24 +80,11 @@ namespace mario {
             _player_id = Spawner::spawn_player_default(_registry);
         }
 
-        // Initialize camera
-        update_camera();
+        // Initialize camera via CameraSystem (sets viewport, centers on player if available and applies initial offset)
         if (auto camera = _level.camera()) {
             const auto viewport = _game.renderer().viewport_size();
-            camera->set_viewport(viewport.x, viewport.y);
-
-            auto *pos = _registry.get_component<PositionComponent>(_player_id);
-            auto *size = _registry.get_component<SizeComponent>(_player_id);
-            if (pos && size) {
-                const float center_x = pos->x + size->width * 0.5f;
-                const float center_y = pos->y + size->height * 0.5f;
-                camera->set_target(center_x, center_y);
-
-                // Start with an offset from the target to make the damping animation visible
-                const float target_x = center_x - viewport.x * 0.5f;
-                const float target_y = center_y - viewport.y * 0.5f;
-                camera->set_position(target_x - 100.0f, target_y);
-            }
+            // apply an initial horizontal offset (-100) to make the damping animation visible on enter
+            _camera_system.initialize(_registry, *camera, _player_id, viewport.x, viewport.y, -100.0f, 0.0f);
         }
 
         _running = true;
@@ -130,24 +117,18 @@ namespace mario {
             CollisionSystem::update(_registry, *tile_map, dt);
         }
 
-        update_camera();
+        // Delegate camera following logic to the CameraSystem.
+        // CameraSystem will set viewport and follow the player entity when available.
+        if (auto camera_ptr = _level.camera()) {
+            const auto viewport = _game.renderer().viewport_size();
+            _camera_system.update(_registry, *camera_ptr, _player_id, dt, viewport.x, viewport.y);
+        }
+
         _level.update(dt);
 
         handle_level_transitions();
     }
 
-    void PlayState::update_camera() {
-        if (auto camera = _level.camera()) {
-            const auto viewport = _game.renderer().viewport_size();
-            camera->set_viewport(viewport.x, viewport.y);
-            auto *pos = _registry.get_component<PositionComponent>(_player_id);
-            auto *size = _registry.get_component<SizeComponent>(_player_id);
-            if (pos && size) {
-                camera->set_target(pos->x + size->width * 0.5f,
-                                   pos->y + size->height * 0.5f);
-            }
-        }
-    }
 
     void PlayState::handle_level_transitions() {
         if (LevelSystem::handle_transitions(_registry, _player_id, _level, _current_level_path, _level_transition_delay,

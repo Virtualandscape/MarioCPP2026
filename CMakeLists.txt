@@ -39,9 +39,11 @@ set(SOURCES
         src/util/TileSweep.cpp
         src/systems/background_system.cpp
         src/systems/sprite_render_system.cpp
+        src/systems/camera_system.cpp
         src/render/sprite.cpp
         src/gameplay/power_up.cpp
         src/systems/cloud_system.cpp
+        src/systems/camera_system.cpp
 )
 
 set(HEADERS
