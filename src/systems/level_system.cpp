@@ -6,7 +6,7 @@
 #include "mario/world/TileMap.hpp"
 #include "mario/ecs/components/PositionComponent.hpp"
 #include "mario/ecs/components/SizeComponent.hpp"
-#include "mario/ecs/components/JumpStateComponent.hpp"
+#include "mario/ecs/components/PlayerInputComponent.hpp"
 #include "mario/util/Constants.hpp"
 
 #include <algorithm>

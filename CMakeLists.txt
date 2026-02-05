@@ -54,8 +54,6 @@ set(HEADERS
         include/mario/ecs/components/SizeComponent.hpp
         include/mario/ecs/components/CollisionInfoComponent.hpp
         include/mario/ecs/components/PlayerInputComponent.hpp
-        include/mario/ecs/components/JumpStateComponent.hpp
-        include/mario/ecs/components/PlayerStatsComponent.hpp
         include/mario/ecs/components/TypeComponent.hpp
         include/mario/ecs/components/SpriteComponent.hpp
         include/mario/ecs/components/EnemyComponent.hpp

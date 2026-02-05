@@ -13,6 +13,9 @@
 
         // Velocities
         static constexpr float ZERO_VELOCITY = 0.0f;
+        // Player movement defaults (used as global defaults when no per-entity component is present)
+        static constexpr float PLAYER_MOVE_SPEED = 220.0f;
+        static constexpr float PLAYER_JUMP_SPEED = 400.0f;
 
         // Enemy
         static constexpr float ENEMY_INITIAL_SPEED = -30.0f;
