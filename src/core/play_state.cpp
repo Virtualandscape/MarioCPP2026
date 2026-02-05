@@ -29,7 +29,7 @@ namespace mario {
                                                                _hud(game.renderer()) {
     }
 
-    void PlayState::create_background_entity(int texture_id, bool preserve_aspect, BackgroundComponent::ScaleMode scale_mode, float scale_multiplier, float parallax, bool repeat, float offset_x, float offset_y) {
+    void PlayState::create_background_entity(int texture_id, bool preserve_aspect, BackgroundComponent::ScaleMode scale_mode, float scale_multiplier, float parallax, bool repeat, bool repeat_x, float offset_x, float offset_y) {
         auto id = _registry.create_entity();
         BackgroundComponent bc;
         bc.texture_id = texture_id;
@@ -38,6 +38,7 @@ namespace mario {
         bc.scale_multiplier = scale_multiplier;
         bc.parallax = parallax;
         bc.repeat = repeat;
+        bc.repeat_x = repeat_x;
         bc.offset_x = offset_x;
         bc.offset_y = offset_y;
         _registry.add_component(id, bc);
@@ -45,8 +46,6 @@ namespace mario {
 
     // Called when entering the play state. Loads the level, background, and spawns the player.
     void PlayState::on_enter() {
-        // Debug log: show which level path is being used
-        std::cout << "PlayState::on_enter loading level: " << _current_level_path << std::endl;
 
         // Load level
         _level.load(_current_level_path);
@@ -56,36 +55,14 @@ namespace mario {
         if (!level_bg_path.empty()) {
             if (_game.assets().load_texture(BACKGROUND_TEXTURE_ID, level_bg_path)) {
                 // Main background entity
-                auto id = _registry.create_entity();
-                BackgroundComponent bc;
-                bc.texture_id = BACKGROUND_TEXTURE_ID;
-                bc.preserve_aspect = true;
-                bc.scale_mode = BackgroundComponent::ScaleMode::Fill;
-                bc.scale_multiplier = _level.background_scale();
-                bc.parallax = 0.0f; 
-                bc.repeat = false;
-                bc.repeat_x = false;
-                bc.offset_x = 0.0f;
-                bc.offset_y = 0.0f;
-                _registry.add_component(id, bc);
+                create_background_entity(BACKGROUND_TEXTURE_ID, true, BackgroundComponent::ScaleMode::Fill, _level.background_scale(), 0.0f, false, false, 0.0f, 0.0f);
             }
 
             // Load additional background layers from level data
             int texture_id = BACKGROUND_TEXTURE_ID + 1;
             for (const auto& layer : _level.background_layers()) {
                 if (_game.assets().load_texture(texture_id, layer.path)) {
-                    auto id = _registry.create_entity();
-                    BackgroundComponent bc;
-                    bc.texture_id = texture_id;
-                    bc.preserve_aspect = true;
-                    bc.scale_mode = BackgroundComponent::ScaleMode::Fit;
-                    bc.scale_multiplier = layer.scale;
-                    bc.parallax = layer.parallax;
-                    bc.repeat = layer.repeat;
-                    bc.repeat_x = layer.repeat_x;
-                    bc.offset_x = 0.0f;
-                    bc.offset_y = 0.0f;
-                    _registry.add_component(id, bc);
+                    create_background_entity(texture_id, true, BackgroundComponent::ScaleMode::Fit, layer.scale, layer.parallax, layer.repeat, layer.repeat_x, 0.0f, 0.0f);
                 }
                 ++texture_id;
             }
@@ -164,7 +141,6 @@ namespace mario {
         _cloud_system.update(_registry, dt);
         if (tile_map) {
             CollisionSystem::update(_registry, *tile_map, dt);
-            LevelSystem::check_ground_status(_registry, *tile_map);
         }
 
         update_camera();
@@ -204,44 +180,37 @@ namespace mario {
     void PlayState::render() {
         _game.renderer().begin_frame();
 
-        if (auto camera = _level.camera()) {
-            _game.renderer().set_camera(camera->x(), camera->y());
+        auto camera_ptr = _level.camera();
+        // Prepare a camera pointer (use a dummy camera when none is provided by the level)
+        Camera dummy;
+        // camera_ptr is a std::shared_ptr<Camera>; get a raw pointer for APIs that expect Camera*.
+        Camera* cam = camera_ptr ? camera_ptr.get() : &dummy;
+        if (camera_ptr) {
+            _game.renderer().set_camera(cam->x(), cam->y());
         }
 
         // Render background(s)
         static thread_local std::vector<EntityID> bg_entities;
         _registry.get_entities_with<BackgroundComponent>(bg_entities);
 
-        // Sort by parallax (ascending) so background layers (low parallax) are drawn first
+        // Sorting backgrounds every frame is only needed if they change.
+        // Keep it simple here.
         std::sort(bg_entities.begin(), bg_entities.end(), [&](EntityID a, EntityID b) {
             auto* bga = _registry.get_component<BackgroundComponent>(a);
             auto* bgb = _registry.get_component<BackgroundComponent>(b);
-            if (!bga || !bgb) return false;
-            return bga->parallax < bgb->parallax;
+            return (bga && bgb) ? (bga->parallax < bgb->parallax) : false;
         });
 
         for (auto entity : bg_entities) {
-            auto* bg = _registry.get_component<BackgroundComponent>(entity);
-            if (!bg) continue;
-            if (auto camera = _level.camera()) {
-                _background_system.render(_game.renderer(), *camera, _game.assets(), *bg);
-            } else {
-                Camera dummy;
-                _background_system.render(_game.renderer(), dummy, _game.assets(), *bg);
+            if (auto* bg = _registry.get_component<BackgroundComponent>(entity)) {
+                _background_system.render(_game.renderer(), *cam, _game.assets(), *bg);
             }
         }
-
-        // Render clouds
-        if (auto camera = _level.camera()) {
-            _cloud_system.render(_game.renderer(), *camera, _game.assets(), _registry);
-        } else {
-            Camera dummy;
-            _cloud_system.render(_game.renderer(), dummy, _game.assets(), _registry);
-        }
+        _cloud_system.render(_game.renderer(), *cam, _game.assets(), _registry);
 
         _level.render(_game.renderer());
 
-        // ECS Rendering
+        // ECS Rendering - combined components fetch
         static thread_local std::vector<EntityID> renderables;
         _registry.get_entities_with<SpriteComponent>(renderables);
         for (auto entity : renderables) {
@@ -249,12 +218,12 @@ namespace mario {
             auto* size = _registry.get_component<SizeComponent>(entity);
             auto* sprite = _registry.get_component<SpriteComponent>(entity);
 
-            if (!pos || !size) continue;
-
-            if (sprite->shape == SpriteComponent::Shape::Rectangle) {
-                _game.renderer().draw_rect(pos->x, pos->y, size->width, size->height, sprite->color);
-            } else {
-                _game.renderer().draw_ellipse(pos->x, pos->y, size->width, size->height, sprite->color);
+            if (pos && size && sprite) {
+                if (sprite->shape == SpriteComponent::Shape::Rectangle) {
+                    _game.renderer().draw_rect(pos->x, pos->y, size->width, size->height, sprite->color);
+                } else {
+                    _game.renderer().draw_ellipse(pos->x, pos->y, size->width, size->height, sprite->color);
+                }
             }
         }
 

@@ -6,6 +6,7 @@
 #include "mario/ecs/components/SizeComponent.hpp"
 #include "mario/ecs/components/CollisionInfoComponent.hpp"
 #include "mario/ecs/components/TypeComponent.hpp"
+#include "mario/ecs/components/JumpStateComponent.hpp"
 #include "mario/ecs/EntityTypeComponent.hpp"
 #include "mario/world/TileMap.hpp"
 #include "mario/util/quadtree.h"
@@ -120,11 +121,37 @@ namespace mario {
             auto* size = registry.get_component<SizeComponent>(entity);
             if (pos && vel && size) {
                 // Use swept AABB to resolve movement against the tile map, using util/TileSweep
-                const auto result = resolve_tile_collision(pos->x, pos->y, vel->vx, vel->vy, size->width, size->height, map, dt);
+                const float old_x = pos->x;
+                const float old_y = pos->y;
+                const float next_x = old_x + vel->vx * dt;
+                const float next_y = old_y + vel->vy * dt;
+
+                const auto result = resolve_tile_collision(next_x, next_y, vel->vx, vel->vy, size->width, size->height, map, dt);
                 pos->x = result.x;
                 pos->y = result.y;
                 vel->vx = result.vx;
                 vel->vy = result.vy;
+
+                // Ground check for JumpStateComponent
+                if (auto* jump = registry.get_component<JumpStateComponent>(entity)) {
+                    constexpr float epsilon = 0.1f;
+                    const float bottom = pos->y + size->height;
+                    const int ty = static_cast<int>(std::floor((bottom + epsilon) / static_cast<float>(map.tile_size())));
+                    const int start_tx = static_cast<int>(std::floor(pos->x / static_cast<float>(map.tile_size())));
+                    int end_tx = static_cast<int>(std::floor((pos->x + size->width - epsilon) / static_cast<float>(map.tile_size())));
+                    if (end_tx < start_tx) end_tx = start_tx;
+
+                    bool on_ground = false;
+                    for (int tx = start_tx; tx <= end_tx; ++tx) {
+                        if (map.is_solid(tx, ty)) {
+                            on_ground = true;
+                            break;
+                        }
+                    }
+                    if (on_ground) {
+                        jump->jump_count = 0;
+                    }
+                }
             }
         }
 

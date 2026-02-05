@@ -14,41 +14,6 @@
 #include <cmath>
 
 namespace mario {
-    // Checks if entities with JumpStateComponent are on the ground by testing for solid tiles below them.
-    void LevelSystem::check_ground_status(EntityManager &registry, const TileMap &map) {
-        static thread_local std::vector<EntityID> entities;
-        registry.get_entities_with<JumpStateComponent>(entities);
-        const int tile_size = map.tile_size();
-        if (tile_size <= 0) return;
-
-        for (auto entity: entities) {
-            auto *pos = registry.get_component<PositionComponent>(entity);
-            auto *size = registry.get_component<SizeComponent>(entity);
-            auto *jump = registry.get_component<JumpStateComponent>(entity);
-
-            if (pos && size && jump) {
-                constexpr float epsilon = 0.1f;
-                const float bottom = pos->y + size->height;
-                const int ty = static_cast<int>(std::floor((bottom + epsilon) / static_cast<float>(tile_size)));
-                const int start_tx = static_cast<int>(std::floor(pos->x / static_cast<float>(tile_size)));
-                int end_tx = static_cast<int>(std::floor((pos->x + size->width - epsilon) / static_cast<float>(tile_size)));
-                if (end_tx < start_tx) end_tx = start_tx;
-
-                bool on_ground = false;
-                for (int tx = start_tx; tx <= end_tx; ++tx) {
-                    if (map.is_solid(tx, ty)) {
-                        on_ground = true;
-                        break;
-                    }
-                }
-
-                if (on_ground) {
-                    jump->jump_count = 0;
-                }
-            }
-        }
-    }
-
     bool LevelSystem::handle_transitions(EntityManager &registry, EntityID player_id, Level &level,
                                          std::string &current_level_path, float &transition_delay, float dt) {
         auto tile_map = level.tile_map();

@@ -15,10 +15,8 @@ void PhysicsSystem::update(EntityManager& registry, float dt) const
     for (auto entity : entities) {
         auto* pos = registry.get_component<PositionComponent>(entity);
         auto* vel = registry.get_component<VelocityComponent>(entity);
-        if (pos && vel) {
+        if (vel) {
             vel->vy += _gravity * dt;
-            pos->x += vel->vx * dt;
-            pos->y += vel->vy * dt;
         }
     }
 }
