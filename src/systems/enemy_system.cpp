@@ -1,5 +1,5 @@
 // Implements the EnemySystem, which updates enemy movement and handles collision response for enemy entities.
-// Reverses enemy direction on collision and manages enemy-specific logic.
+// Reverses enemy direction on collision and constrains movement to contiguous platforms (ECS best practice: data-driven logic).
 
 #include <cmath>
 #include <algorithm>
@@ -12,10 +12,13 @@
 #include "mario/world/TileMap.hpp"
 
 namespace mario {
-    // Updates all enemy entities, reversing direction on collision and applying movement logic.
+    // Updates all enemy entities: reverses direction on collision and constrains movement to platform bounds.
+    // Follows ECS principle: systems operate on components, not entity types (though we use EnemyComponent as a marker).
     void EnemySystem::update(EntityManager& registry, const TileMap& map, float dt) const {
         static thread_local std::vector<EntityID> entities;
+        // Query entities that have EnemyComponent (all required components should exist for valid enemies)
         registry.get_entities_with<EnemyComponent>(entities);
+
         for (auto entity : entities) {
             auto* enemy = registry.get_component<EnemyComponent>(entity);
             auto* vel = registry.get_component<VelocityComponent>(entity);
@@ -24,22 +27,19 @@ namespace mario {
             auto* size = registry.get_component<SizeComponent>(entity);
 
             if (enemy && vel && coll && pos && size) {
-                // Only reverse direction if a collision occurred and velocity is significant.
-                const float MIN_SPEED_THRES = 0.1f;
+                // Only reverse direction if collision occurred and velocity is significant
+                constexpr float MIN_SPEED_THRES = 0.1f;
                 float speed = std::abs(vel->vx);
 
                 if (coll->collided && speed >= MIN_SPEED_THRES) {
                     vel->vx = -vel->vx;
-                    speed = std::abs(vel->vx);
                 }
 
-                // Do not normalize or force a default horizontal velocity here.
-
-                // Constrain movement to the contiguous solid platform beneath the enemy.
+                // Constrain movement to the contiguous solid platform beneath the enemy
                 const int tile_size = map.tile_size();
                 if (tile_size <= 0) continue;
 
-                // Calculate tile coordinates for the tile directly below the enemy's feet.
+                // Calculate tile coordinates for the tile directly below the enemy's feet
                 const float feet_x = pos->x + size->width * 0.5f; // center x
                 const float feet_y = pos->y + size->height; // bottom y
 
@@ -58,22 +58,19 @@ namespace mario {
                 int right_tx = tile_x;
                 while (right_tx + 1 < map.width() && map.is_solid(right_tx + 1, tile_y)) ++right_tx;
 
-                // Convert tile bounds to world coordinates (tile extents)
+                // Convert tile bounds to world coordinates
                 const auto platform_left = static_cast<float>(left_tx * tile_size);
-                const auto platform_right = static_cast<float>((right_tx + 1) * tile_size); // exclusive right edge
+                const auto platform_right = static_cast<float>((right_tx + 1) * tile_size);
 
-                // If enemy reaches or passes an edge, reverse direction only if current
-                // horizontal velocity is meaningful; do not set a fallback magnitude.
+                // Check if enemy is approaching platform edge and reverse direction if needed
+                constexpr float eps = 0.001f;
                 const float next_x = pos->x + vel->vx * dt;
 
-                const float eps = 0.001f;
                 if (vel->vx > 0.0f && (next_x + size->width) > (platform_right - eps)) {
                     if (std::abs(vel->vx) >= MIN_SPEED_THRES) vel->vx = -vel->vx;
                 } else if (vel->vx < 0.0f && next_x < (platform_left + eps)) {
                     if (std::abs(vel->vx) >= MIN_SPEED_THRES) vel->vx = -vel->vx;
                 }
-
-                // Let physics/collision systems handle final position clamping to avoid jitter.
             }
         }
     }

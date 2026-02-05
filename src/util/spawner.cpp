@@ -1,5 +1,6 @@
 // This file implements the Spawner utility for creating (spawning) player and enemy entities in the game.
-// It provides functions to initialize entities with the correct components and properties for gameplay.
+// Spawner is a factory pattern implementation for ECS: it constructs entities with proper component composition.
+// Following ECS best practices: each spawned entity has all required components for the systems that will operate on it.
 
 #include "mario/util/Spawner.hpp"
 #include "mario/util/Constants.hpp"
@@ -20,9 +21,9 @@
 #include <cctype>
 #include <random>
 
-// Anonymous namespace for internal utility functions
+// Anonymous namespace for internal utility functions (avoid polluting global namespace)
 namespace {
-    // Converts a string to lowercase (used for enemy type comparison)
+    // Converts a string to lowercase for case-insensitive comparison
     std::string to_lower(std::string value) {
         std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
             return static_cast<char>(std::tolower(ch));
@@ -32,65 +33,92 @@ namespace {
 }
 
 namespace mario {
-    // Spawns a player entity at a given tile position, initializing all required components
+    // Spawns a player entity at a tile position with all required components.
+    // Component composition: Position, Velocity, Size, Input, JumpState, PlayerStats, Type, Collision, Sprite.
+    // This ensures the entity will be correctly processed by all relevant systems (movement, physics, input, collision, render).
     EntityID Spawner::spawn_player(EntityManager &registry, const EntitySpawn &spawn, float tile_size) {
         using namespace mario::constants;
+
         EntityID id = registry.create_entity();
-        // Set player position based on tile coordinates
+
+        // Spatial component: position from tile coordinates
         registry.add_component<PositionComponent>(id, {
-                                             static_cast<float>(spawn.tile_x) * tile_size,
-                                             static_cast<float>(spawn.tile_y) * tile_size
-                                         });
-        // Initialize velocity, size, input, jump state, stats, type, collision, and sprite
+            static_cast<float>(spawn.tile_x) * tile_size,
+            static_cast<float>(spawn.tile_y) * tile_size
+        });
+
+        // Physics components: velocity and size
         registry.add_component<VelocityComponent>(id, {ZERO_VELOCITY, ZERO_VELOCITY});
-        registry.add_component<SizeComponent>(id, SizeComponent{PLAYER_WIDTH, PLAYER_HEIGHT});
+        registry.add_component<SizeComponent>(id, {PLAYER_WIDTH, PLAYER_HEIGHT});
+
+        // Gameplay components: input, jump state, player stats
         registry.add_component<PlayerInputComponent>(id, {});
         registry.add_component<JumpStateComponent>(id, {});
         registry.add_component<PlayerStatsComponent>(id, {});
+
+        // ECS metadata: entity type and collision info
         registry.add_component<TypeComponent>(id, {EntityTypeComponent::Player});
         registry.add_component<CollisionInfoComponent>(id, {});
-        // Use a green ellipse to represent the player sprite
+
+        // Rendering component: visual representation
         registry.add_component<SpriteComponent>(id, {SpriteComponent::Shape::Ellipse, PLAYER_SPRITE_COLOR_GREEN});
+
         return id;
     }
 
-    // Spawns a player entity at the default position, used for initial game setup
+    // Spawns a player entity at the default position (used for initial/fallback spawning).
+    // Same component composition as spawn_player but at fixed coordinates.
     EntityID Spawner::spawn_player_default(EntityManager &registry) {
         using namespace mario::constants;
+
         EntityID id = registry.create_entity();
-        // Set player position to default coordinates
+
+        // Spatial component: default position
         registry.add_component<PositionComponent>(id, {PLAYER_DEFAULT_X, PLAYER_DEFAULT_Y});
-        // Initialize velocity, size, input, jump state, stats, type, collision, and sprite
+
+        // Physics components: velocity and size
         registry.add_component<VelocityComponent>(id, {ZERO_VELOCITY, ZERO_VELOCITY});
-        registry.add_component<SizeComponent>(id, SizeComponent{PLAYER_WIDTH, PLAYER_HEIGHT});
+        registry.add_component<SizeComponent>(id, {PLAYER_WIDTH, PLAYER_HEIGHT});
+
+        // Gameplay components: input, jump state, player stats
         registry.add_component<PlayerInputComponent>(id, {});
         registry.add_component<JumpStateComponent>(id, {});
         registry.add_component<PlayerStatsComponent>(id, {});
+
+        // ECS metadata: entity type and collision info
         registry.add_component<TypeComponent>(id, {EntityTypeComponent::Player});
         registry.add_component<CollisionInfoComponent>(id, {});
-        // Use a red ellipse to represent the player sprite
+
+        // Rendering component: visual representation
         registry.add_component<SpriteComponent>(id, {SpriteComponent::Shape::Ellipse, PLAYER_SPRITE_COLOR_RED});
+
         return id;
     }
 
-    // Spawns an enemy entity at a given tile position, with type determined by the spawn data
+    // Spawns an enemy entity at a tile position with type-specific rendering.
+    // Component composition: Position, Velocity, Size, Collision, Enemy, Type, Sprite.
+    // Enemies follow platforms and reverse direction on collision (see EnemySystem).
     void Spawner::spawn_enemy(EntityManager &registry, const EntitySpawn &spawn, float tile_size) {
         using namespace mario::constants;
-        // Convert enemy type string to lowercase for comparison
+
         const std::string type_str = to_lower(spawn.type);
-        auto entity = registry.create_entity();
+        EntityID entity = registry.create_entity();
 
         float x = static_cast<float>(spawn.tile_x) * tile_size;
         float y = static_cast<float>(spawn.tile_y) * tile_size;
 
-        // Set enemy position, velocity (moving left), size, collision, and enemy marker
+        // Spatial components: position and size
         registry.add_component<PositionComponent>(entity, {x, y});
-        registry.add_component<VelocityComponent>(entity, {ENEMY_INITIAL_SPEED, ZERO_VELOCITY}); // start moving left
         registry.add_component<SizeComponent>(entity, {ENEMY_SIZE, ENEMY_SIZE});
-        registry.add_component<CollisionInfoComponent>(entity, {});
-        registry.add_component<EnemyComponent>(entity, EnemyComponent{});
 
-        // Set enemy type and sprite color/shape based on type
+        // Physics component: initial velocity (moving left)
+        registry.add_component<VelocityComponent>(entity, {ENEMY_INITIAL_SPEED, ZERO_VELOCITY});
+
+        // ECS metadata: collision info and enemy marker
+        registry.add_component<CollisionInfoComponent>(entity, {});
+        registry.add_component<EnemyComponent>(entity, {});
+
+        // Type and sprite are set based on enemy type string
         if (type_str == "goomba") {
             registry.add_component<TypeComponent>(entity, {EntityTypeComponent::Goomba});
             registry.add_component<SpriteComponent>(entity, {SpriteComponent::Shape::Rectangle, ENEMY_SPRITE_COLOR_BLACK});
@@ -100,24 +128,24 @@ namespace mario {
         }
     }
 
-    // Spawns cloud entities with random Y positions and loads their textures
+    // Spawns all cloud entities with randomized positions and loads textures.
+    // Creates three layers of clouds (Big, Medium, Small) for parallax depth effect.
     void Spawner::spawn_clouds(EntityManager& registry, AssetManager& assets) {
         using namespace mario::constants;
 
-        // Load cloud textures
+        // Load cloud textures into asset manager
         assets.load_texture(CLOUD_BIG_ID, "assets/environment/background/cloud_big.png");
         assets.load_texture(CLOUD_MEDIUM_ID, "assets/environment/background/cloud_medium.png");
         assets.load_texture(CLOUD_SMALL_ID, "assets/environment/background/cloud_small.png");
 
-        // Random Y positions
+        // Set up random distribution for cloud Y positions
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<float> big_y_dist(CLOUD_BIG_Y_MIN, CLOUD_BIG_Y_MAX);
         std::uniform_real_distribution<float> med_y_dist(CLOUD_MEDIUM_Y_MIN, CLOUD_MEDIUM_Y_MAX);
         std::uniform_real_distribution<float> small_y_dist(CLOUD_SMALL_Y_MIN, CLOUD_SMALL_Y_MAX);
 
-        // Create cloud entities
-        // Big clouds
+        // Create Big clouds layer
         for (int i = 0; i < NUM_BIG_CLOUDS; ++i) {
             auto id = registry.create_entity();
             CloudComponent cc;
@@ -129,7 +157,8 @@ namespace mario {
             cc.scale = CLOUD_SCALE;
             registry.add_component(id, cc);
         }
-        // Medium clouds
+
+        // Create Medium clouds layer
         for (int i = 0; i < NUM_MEDIUM_CLOUDS; ++i) {
             auto id = registry.create_entity();
             CloudComponent cc;
@@ -141,13 +170,15 @@ namespace mario {
             cc.scale = CLOUD_SCALE;
             registry.add_component(id, cc);
         }
-        // Small clouds
+
+        // Create Small clouds layer
         for (int i = 0; i < NUM_SMALL_CLOUDS; ++i) {
             auto id = registry.create_entity();
             CloudComponent cc;
             cc.texture_id = CLOUD_SMALL_ID;
             cc.layer = CloudComponent::Layer::Small;
             cc.speed = CLOUD_SMALL_SPEED;
+
             cc.x = CLOUD_SPAWN_X - static_cast<float>(i) * CLOUD_SMALL_SPACING;
             cc.y = small_y_dist(gen);
             cc.scale = CLOUD_SCALE;
