@@ -31,11 +31,21 @@ namespace mario {
 
         sf::Vector2f viewport_size() const;
 
+        // Draw an unfilled outline rectangle in world-space (respects camera view).
+        // color: outline color. thickness: outline thickness in pixels.
+        void draw_bbox(float x, float y, float width, float height, sf::Color color = sf::Color::Green, float thickness = 1.0f);
+
+        // Toggle and query debug bounding boxes rendering.
+        void toggle_debug_bboxes();
+        bool is_debug_bboxes_enabled() const;
+
     private:
         sf::RenderWindow _window;
         sf::Font _font;
         sf::Color _clear_color = sf::Color(30, 30, 36);
         float _camera_x = 0.0f;
         float _camera_y = 0.0f;
+        // When true, systems will draw entity bounding boxes (debug overlay)
+        bool _debug_bboxes = false;
     };
 } // namespace mario

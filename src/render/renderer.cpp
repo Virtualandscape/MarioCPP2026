@@ -118,6 +118,26 @@ namespace mario {
         _window.draw(shape);
     }
 
+    // Draw an unfilled outline rectangle in world-space to visualize bounding boxes.
+    void Renderer::draw_bbox(float x, float y, float width, float height, sf::Color color, float thickness) {
+        if (!_window.isOpen()) {
+            return;
+        }
+        sf::RectangleShape outline({width, height});
+        // Transparent fill and colored outline
+        outline.setFillColor(sf::Color::Transparent);
+        outline.setOutlineColor(color);
+        outline.setOutlineThickness(thickness);
+        outline.setPosition({x, y});
+        _window.draw(outline);
+    }
+
+    void Renderer::toggle_debug_bboxes() {
+        _debug_bboxes = !_debug_bboxes;
+    }
+
+    bool Renderer::is_debug_bboxes_enabled() const { return _debug_bboxes; }
+
     bool Renderer::is_open() const { return _window.isOpen(); }
 
     sf::Vector2f Renderer::viewport_size() const {

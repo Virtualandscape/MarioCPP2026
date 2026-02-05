@@ -15,6 +15,10 @@ namespace mario {
                              sf::Keyboard::Key::Up));
         set_action_state(Action::Escape,
                          sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape));
+
+        // Map the H key to ToggleDebug action to show/hide bounding boxes
+        set_action_state(Action::ToggleDebug,
+                         sf::Keyboard::isKeyPressed(sf::Keyboard::Key::H));
     }
 
     bool InputManager::is_pressed(Action action) const {

@@ -28,15 +28,15 @@ set(SOURCES
         src/systems/player_movement_system.cpp
         src/systems/enemy_system.cpp
         src/systems/level_system.cpp
-        src/util/spawner.cpp
+        src/helpers/spawner.cpp
         src/ui/hud.cpp
-        src/util/timer.cpp
+        src/helpers/timer.cpp
         src/world/camera.cpp
         src/world/level.cpp
         src/world/tile_map.cpp
         src/systems/player_movement_system.cpp
-        src/util/Quadtree.cpp
-        src/util/TileSweep.cpp
+        src/helpers/Quadtree.cpp
+        src/helpers/TileSweep.cpp
         src/systems/background_system.cpp
         src/systems/sprite_render_system.cpp
         src/systems/camera_system.cpp
@@ -44,6 +44,7 @@ set(SOURCES
         src/gameplay/power_up.cpp
         src/systems/cloud_system.cpp
         src/systems/camera_system.cpp
+        src/systems/debug_draw_system.cpp
 )
 
 set(HEADERS

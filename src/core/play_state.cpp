@@ -143,6 +143,13 @@ namespace mario {
         if (_game.input().is_pressed(InputManager::Action::Escape)) {
             _game.pop_state();
         }
+
+        // Toggle debug bounding boxes on rising edge of H key
+        bool current = _game.input().is_pressed(InputManager::Action::ToggleDebug);
+        if (current && !_debug_toggle_last_state) {
+            _game.renderer().toggle_debug_bboxes();
+        }
+        _debug_toggle_last_state = current;
     }
 
     // Renders the game world and HUD.
@@ -181,6 +188,9 @@ namespace mario {
 
         // Render all entities that have a SpriteComponent. SpriteRenderSystem reads Position/Size/SpriteComponent and issues draw calls.
         _sprite_render_system.render(_game.renderer(), *cam, _registry);
+
+        // Render debug overlays (bounding boxes, etc.) via the dedicated DebugDrawSystem.
+        _debug_draw_system.render(_game.renderer(), *cam, _registry);
 
         // Draw HUD
         std::string level_name = "Level 1";

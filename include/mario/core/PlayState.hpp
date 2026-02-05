@@ -11,6 +11,7 @@
 #include "mario/systems/CloudSystem.hpp"
 #include "mario/systems/SpriteRenderSystem.hpp"
 #include "mario/systems/CameraSystem.hpp"
+#include "mario/systems/DebugDrawSystem.hpp"
 #include "mario/world/Level.hpp"
 #include "mario/world/TileMap.hpp"
 #include "mario/ui/HUD.hpp"
@@ -49,11 +50,15 @@ namespace mario {
         CloudSystem _cloud_system;
         SpriteRenderSystem _sprite_render_system;
         CameraSystem _camera_system;
+        DebugDrawSystem _debug_draw_system;
         Level _level;
         HUD _hud;
         EntityManager _registry;
         bool _running = true;
         float _level_transition_delay = 0.0f;
         std::string _current_level_path = mario::constants::LEVEL1_PATH;
+
+        // Track the previous state of the ToggleDebug key to perform a rising-edge toggle
+        bool _debug_toggle_last_state = false;
     };
 } // namespace mario

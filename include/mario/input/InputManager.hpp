@@ -12,6 +12,7 @@ namespace mario {
             MoveRight,
             Jump,
             Escape,
+            ToggleDebug, // toggle debug overlay (bounding boxes)
             Count
         };
 

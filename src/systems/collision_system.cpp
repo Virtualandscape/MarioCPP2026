@@ -120,7 +120,7 @@ namespace mario {
             auto* vel = registry.get_component<VelocityComponent>(entity);
             auto* size = registry.get_component<SizeComponent>(entity);
             if (pos && vel && size) {
-                // Use swept AABB to resolve movement against the tile map, using util/TileSweep
+                // Use swept AABB to resolve movement against the tile map, using helpers/TileSweep
                 const float old_x = pos->x;
                 const float old_y = pos->y;
                 const float next_x = old_x + vel->vx * dt;
