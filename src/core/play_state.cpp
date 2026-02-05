@@ -83,8 +83,8 @@ namespace mario {
         // Initialize camera via CameraSystem (sets viewport, centers on player if available and applies initial offset)
         if (auto camera = _level.camera()) {
             const auto viewport = _game.renderer().viewport_size();
-            // apply an initial horizontal offset (-100) to make the damping animation visible on enter
-            _camera_system.initialize(_registry, *camera, _player_id, viewport.x, viewport.y, -100.0f, 0.0f);
+            // Apply initial horizontal offset (-100) to make the damping animation visible on enter
+            _camera_system.initialize(_registry, *camera, viewport.x, viewport.y, _player_id, -100.0f, 0.0f);
         }
 
         _running = true;
@@ -121,7 +121,7 @@ namespace mario {
         // CameraSystem will set viewport and follow the player entity when available.
         if (auto camera_ptr = _level.camera()) {
             const auto viewport = _game.renderer().viewport_size();
-            _camera_system.update(_registry, *camera_ptr, _player_id, dt, viewport.x, viewport.y);
+            _camera_system.update(_registry, *camera_ptr, dt, viewport.x, viewport.y, _player_id);
         }
 
         _level.update(dt);
