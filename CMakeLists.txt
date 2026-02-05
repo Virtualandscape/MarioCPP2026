@@ -38,6 +38,7 @@ set(SOURCES
         src/util/Quadtree.cpp
         src/util/TileSweep.cpp
         src/systems/background_system.cpp
+        src/systems/sprite_render_system.cpp
         src/render/sprite.cpp
         src/gameplay/power_up.cpp
         src/systems/cloud_system.cpp
@@ -63,7 +64,6 @@ set(HEADERS
         include/mario/util/Spawner.hpp
         include/mario/ecs/components/BackgroundComponent.hpp
         include/mario/systems/BackgroundSystem.hpp
-        src/util/TileSweep.cpp
 )
 
 add_executable(Mario ${SOURCES} ${HEADERS})

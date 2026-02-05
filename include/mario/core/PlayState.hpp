@@ -9,6 +9,7 @@
 #include "mario/systems/LevelSystem.hpp"
 #include "mario/systems/BackgroundSystem.hpp"
 #include "mario/systems/CloudSystem.hpp"
+#include "mario/systems/SpriteRenderSystem.hpp"
 #include "mario/world/Level.hpp"
 #include "mario/world/TileMap.hpp"
 #include "mario/ui/HUD.hpp"
@@ -46,6 +47,7 @@ namespace mario {
         EnemySystem _enemy_system;
         BackgroundSystem _background_system;
         CloudSystem _cloud_system;
+        SpriteRenderSystem _sprite_render_system;
         Level _level;
         HUD _hud;
         EntityManager _registry;

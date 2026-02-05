@@ -198,22 +198,8 @@ namespace mario {
 
         _level.render(_game.renderer());
 
-        // ECS Rendering - combined components fetch
-        static thread_local std::vector<EntityID> renderables;
-        _registry.get_entities_with<SpriteComponent>(renderables);
-        for (auto entity: renderables) {
-            auto *pos = _registry.get_component<PositionComponent>(entity);
-            auto *size = _registry.get_component<SizeComponent>(entity);
-            auto *sprite = _registry.get_component<SpriteComponent>(entity);
-
-            if (pos && size && sprite) {
-                if (sprite->shape == SpriteComponent::Shape::Rectangle) {
-                    _game.renderer().draw_rect(pos->x, pos->y, size->width, size->height, sprite->color);
-                } else {
-                    _game.renderer().draw_ellipse(pos->x, pos->y, size->width, size->height, sprite->color);
-                }
-            }
-        }
+        // ECS Rendering - delegated to SpriteRenderSystem
+        _sprite_render_system.render(_game.renderer(), *cam, _registry);
 
         // Draw HUD
         std::string level_name = "Level 1";
