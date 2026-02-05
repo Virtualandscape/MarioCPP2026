@@ -9,14 +9,12 @@
 #include "mario/ecs/components/BackgroundComponent.hpp"
 #include "mario/util/Spawner.hpp"
 #include "mario/world/TileMap.hpp"
+#include "mario/util/Constants.hpp"
 
 #include <algorithm>
 #include <string>
 
 namespace mario {
-    namespace {
-        constexpr int BACKGROUND_TEXTURE_ID = 1000;
-    }
 
     // Constructor initializes the PlayState with a reference to the game and optional level path.
     PlayState::PlayState(Game &game) : _game(game), _player_id(0), _hud(game.renderer()) {
@@ -35,15 +33,15 @@ namespace mario {
         // Background loading (level dependent)
         const std::string &level_bg_path = _level.background_path();
         if (!level_bg_path.empty()) {
-            if (_game.assets().load_texture(BACKGROUND_TEXTURE_ID, level_bg_path)) {
+            if (_game.assets().load_texture(mario::constants::BACKGROUND_TEXTURE_ID, level_bg_path)) {
                 // Create the main background entity. BackgroundSystem will create an entity and attach a BackgroundComponent
                 // configured with scale, parallax and tiling parameters.
-                _background_system.create_background_entity(_registry, BACKGROUND_TEXTURE_ID, true, BackgroundComponent::ScaleMode::Fill,
+                _background_system.create_background_entity(_registry, mario::constants::BACKGROUND_TEXTURE_ID, true, BackgroundComponent::ScaleMode::Fill,
                                          _level.background_scale(), 0.0f, false, false, 0.0f, 0.0f);
             }
 
             // Load additional background layers from level data
-            int texture_id = BACKGROUND_TEXTURE_ID + 1;
+            int texture_id = mario::constants::BACKGROUND_TEXTURE_ID + 1;
             for (const auto &layer: _level.background_layers()) {
                 if (_game.assets().load_texture(texture_id, layer.path)) {
                     // Create a background entity for this layer (parallax, repeat and offsets are handled by BackgroundSystem).

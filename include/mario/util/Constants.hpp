@@ -30,6 +30,10 @@
         inline const sf::Color ENEMY_SPRITE_COLOR_BLACK{0, 0, 0};
         inline const sf::Color ENEMY_SPRITE_COLOR_RED{255, 0, 0};
 
+        // Background texture id used as base id for level backgrounds.
+        // Keep as constexpr so it can be used in compile-time contexts.
+        static constexpr int BACKGROUND_TEXTURE_ID = 1000;
+
         // Clouds
         static constexpr int CLOUD_BIG_ID = 2000;
         static constexpr int CLOUD_MEDIUM_ID = 2001;
