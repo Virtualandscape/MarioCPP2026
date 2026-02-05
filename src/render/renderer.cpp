@@ -66,6 +66,26 @@ namespace mario {
         }
     }
 
+    void Renderer::draw_sprite(const sf::Texture* texture, float x, float y, float width, float height) {
+        if (!_window.isOpen() || !texture) {
+            return;
+        }
+
+        sf::Sprite sprite(*texture);
+        sprite.setPosition({x, y});
+
+        // Optional scaling if width/height are provided
+        if (width > 0.0f && height > 0.0f) {
+            auto tex_size = texture->getSize();
+            sprite.setScale({
+                width / static_cast<float>(tex_size.x),
+                height / static_cast<float>(tex_size.y)
+            });
+        }
+
+        _window.draw(sprite);
+    }
+
     void Renderer::draw_sprite(int sprite_id, float x, float y) {
         (void) sprite_id;
         (void) x;

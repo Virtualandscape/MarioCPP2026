@@ -2,8 +2,8 @@
 // Spawner is a factory pattern implementation for ECS: it constructs entities with proper component composition.
 // Following ECS best practices: each spawned entity has all required components for the systems that will operate on it.
 
-#include "mario/util/Spawner.hpp"
-#include "mario/util/Constants.hpp"
+#include "mario/helpers/Spawner.hpp"
+#include "mario/helpers/Constants.hpp"
 #include "mario/world/EntitySpawn.hpp"
 #include "mario/ecs/components/PositionComponent.hpp"
 #include "mario/ecs/components/VelocityComponent.hpp"
@@ -34,8 +34,10 @@ namespace mario {
     // Spawns a player entity at a tile position with all required components.
     // Component composition: Position, Velocity, Size, Input, JumpState, PlayerStats, Type, Collision, Sprite.
     // This ensures the entity will be correctly processed by all relevant systems (movement, physics, input, collision, render).
-    EntityID Spawner::spawn_player(EntityManager &registry, const EntitySpawn &spawn, float tile_size) {
+    EntityID Spawner::spawn_player(EntityManager &registry, const EntitySpawn &spawn, float tile_size, AssetManager& assets) {
         using namespace mario::constants;
+
+        assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player/Idle.png");
 
         EntityID id = registry.create_entity();
 
@@ -58,15 +60,20 @@ namespace mario {
         registry.add_component<CollisionInfoComponent>(id, {});
 
         // Rendering component: visual representation
-        registry.add_component<SpriteComponent>(id, {SpriteComponent::Shape::Ellipse, PLAYER_SPRITE_COLOR_GREEN});
+        SpriteComponent sc;
+        sc.texture_id = PLAYER_IDLE_ID;
+        sc.render_offset = {-8.0f, -8.0f};
+        registry.add_component<SpriteComponent>(id, sc);
 
         return id;
     }
 
     // Spawns a player entity at the default position (used for initial/fallback spawning).
     // Same component composition as spawn_player but at fixed coordinates.
-    EntityID Spawner::spawn_player_default(EntityManager &registry) {
+    EntityID Spawner::spawn_player_default(EntityManager &registry, AssetManager& assets) {
         using namespace mario::constants;
+
+        assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player/Idle.png");
 
         EntityID id = registry.create_entity();
 
@@ -85,7 +92,10 @@ namespace mario {
         registry.add_component<CollisionInfoComponent>(id, {});
 
         // Rendering component: visual representation
-        registry.add_component<SpriteComponent>(id, {SpriteComponent::Shape::Ellipse, PLAYER_SPRITE_COLOR_RED});
+        SpriteComponent sc;
+        sc.texture_id = PLAYER_IDLE_ID;
+        sc.render_offset = {-8.0f, -8.0f};
+        registry.add_component<SpriteComponent>(id, sc);
 
         return id;
     }

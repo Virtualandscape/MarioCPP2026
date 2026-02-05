@@ -13,7 +13,7 @@
 // 3. If a collision is detected, the position is adjusted to the edge of the tile and the velocity on that axis is set to zero.
 // 4. The function returns the new position and velocity after collision resolution.
 
-#include "mario/util/tileSweep.hpp"
+#include "mario/helpers/tileSweep.hpp"
 
 #include <algorithm>
 #include <cmath>

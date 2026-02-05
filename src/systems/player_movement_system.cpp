@@ -5,7 +5,7 @@
 
 #include "mario/ecs/components/PlayerInputComponent.hpp"
 #include "mario/ecs/components/VelocityComponent.hpp"
-#include "mario/util/Constants.hpp"
+#include "mario/helpers/Constants.hpp"
 
 namespace mario {
 

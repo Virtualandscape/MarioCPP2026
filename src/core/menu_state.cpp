@@ -4,7 +4,7 @@
 #include "mario/core/MenuState.hpp"
 #include "mario/core/Game.hpp"
 #include "mario/core/PlayState.hpp"
-#include "mario/util/Constants.hpp"
+#include "mario/helpers/Constants.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 

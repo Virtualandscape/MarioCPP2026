@@ -64,5 +64,8 @@
         // Central list of available levels (single definition point)
         inline constexpr std::array<const char*, 2> LEVEL_PATHS = { LEVEL1_PATH, LEVEL2_PATH };
 
+        // Player Textures
+        static constexpr int PLAYER_IDLE_ID = 3000;
+
     } // namespace mario::constants
 

@@ -4,8 +4,8 @@
 #include "mario/systems/CloudSystem.hpp"
 #include "mario/resources/AssetManager.hpp"
 #include "mario/ecs/components/CloudComponent.hpp"
-#include "mario/util/Spawner.hpp"
-#include "mario/util/Constants.hpp"
+#include "mario/helpers/Spawner.hpp"
+#include "mario/helpers/Constants.hpp"
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <algorithm>

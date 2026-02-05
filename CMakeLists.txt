@@ -62,7 +62,7 @@ set(HEADERS
         include/mario/systems/PlayerMovementSystem.hpp
         include/mario/systems/EnemySystem.hpp
         include/mario/systems/LevelSystem.hpp
-        include/mario/util/Spawner.hpp
+        include/mario/helpers/Spawner.hpp
         include/mario/ecs/components/BackgroundComponent.hpp
         include/mario/systems/BackgroundSystem.hpp
 )

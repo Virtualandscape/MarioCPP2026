@@ -7,9 +7,9 @@
 #include "mario/ecs/components/PositionComponent.hpp"
 #include "mario/ecs/components/SizeComponent.hpp"
 #include "mario/ecs/components/BackgroundComponent.hpp"
-#include "mario/util/Spawner.hpp"
+#include "mario/helpers/Spawner.hpp"
 #include "mario/world/TileMap.hpp"
-#include "mario/util/Constants.hpp"
+#include "mario/helpers/Constants.hpp"
 
 #include <algorithm>
 #include <string>
@@ -66,7 +66,7 @@ namespace mario {
             if (tile_size > 0.0f) {
                 for (const auto &spawn: _level.entity_spawns()) {
                     if (spawn.type == "player" || spawn.type == "Player") {
-                        _player_id = Spawner::spawn_player(_registry, spawn, tile_size);
+                        _player_id = Spawner::spawn_player(_registry, spawn, tile_size, _game.assets());
                         player_spawned = true;
                     } else {
                         Spawner::spawn_enemy(_registry, spawn, tile_size);
@@ -75,7 +75,7 @@ namespace mario {
             }
         }
         if (!player_spawned) {
-            _player_id = Spawner::spawn_player_default(_registry);
+            _player_id = Spawner::spawn_player_default(_registry, _game.assets());
         }
 
         // Initialize camera via CameraSystem (sets viewport, centers on player if available and applies initial offset)
@@ -185,7 +185,7 @@ namespace mario {
         _level.render(_game.renderer());
 
         // Render all entities that have a SpriteComponent. SpriteRenderSystem reads Position/Size/SpriteComponent and issues draw calls.
-        _sprite_render_system.render(_game.renderer(), *cam, _registry);
+        _sprite_render_system.render(_game.renderer(), *cam, _registry, _game.assets());
 
         // Render debug overlays (bounding boxes, etc.) via the dedicated DebugDrawSystem.
         _debug_draw_system.render(_game.renderer(), *cam, _registry);

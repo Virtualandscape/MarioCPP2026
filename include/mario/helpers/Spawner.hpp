@@ -10,8 +10,8 @@ namespace mario {
 
     class Spawner {
     public:
-        static EntityID spawn_player(EntityManager& registry, const EntitySpawn& spawn, float tile_size);
-        static EntityID spawn_player_default(EntityManager& registry);
+        static EntityID spawn_player(EntityManager& registry, const EntitySpawn& spawn, float tile_size, AssetManager& assets);
+        static EntityID spawn_player_default(EntityManager& registry, AssetManager& assets);
         static void spawn_enemy(EntityManager& registry, const EntitySpawn& spawn, float tile_size);
         static void spawn_clouds(EntityManager& registry, AssetManager& assets);
     };

@@ -3,7 +3,7 @@
 #include <SFML/Config.hpp>
 #include <SFML/Graphics.hpp>
 
-#include "mario/util/constants.hpp"
+#include "mario/helpers/constants.hpp"
 
 namespace mario {
     // Draw calls, sprites, layers, parallax
@@ -16,6 +16,8 @@ namespace mario {
         void end_frame();
 
         void set_camera(float x, float y);
+
+        void draw_sprite(const sf::Texture* texture, float x, float y, float width = -1.0f, float height = -1.0f);
 
         void draw_sprite(int sprite_id, float x, float y);
 

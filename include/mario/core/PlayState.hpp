@@ -17,7 +17,7 @@
 #include "mario/ui/HUD.hpp"
 #include "mario/ecs/EntityManager.hpp"
 #include "mario/ecs/components/SpriteComponent.hpp"
-#include "mario/util/Constants.hpp"
+#include "mario/helpers/Constants.hpp"
 #include <memory>
 #include <string>
 

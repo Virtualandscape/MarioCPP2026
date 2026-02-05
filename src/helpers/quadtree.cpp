@@ -1,7 +1,7 @@
 // Implements the quadtree class for spatial partitioning, used to efficiently query and manage objects in 2D space.
 // Provides methods for insertion, clearing, splitting, and querying objects in the quadtree.
 
-#include "../../include/mario/util/quadtree.h"
+#include "../../include/mario/helpers/quadtree.h"
 
 #include <iostream>
 

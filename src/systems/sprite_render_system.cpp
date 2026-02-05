@@ -9,7 +9,7 @@
 namespace mario {
     // Renders all sprites by querying entities with all sprite-related components (SpriteComponent, PositionComponent, SizeComponent).
     // This follows the ECS pattern: systems operate on entities with required component combinations.
-    void SpriteRenderSystem::render(Renderer& renderer, const Camera& camera, EntityManager& registry) {
+    void SpriteRenderSystem::render(Renderer& renderer, const Camera& camera, EntityManager& registry, AssetManager& assets) {
         // Set camera for world-space rendering
         renderer.set_camera(camera.x(), camera.y());
 
@@ -26,9 +26,19 @@ namespace mario {
 
             // All components are guaranteed to exist from the multi-component query
             if (sprite && pos && size) {
+                // Priority 1: Texture rendering
+                if (sprite->texture_id != -1) {
+                    const sf::Texture* tex = assets.get_texture(sprite->texture_id);
+                    if (tex) {
+                        renderer.draw_sprite(tex, pos->x + sprite->render_offset.x, pos->y + sprite->render_offset.y);
+                        continue;
+                    }
+                }
+
+                // Priority 2: Shape rendering (fallback or if explicitly requested via texture_id == -1)
                 if (sprite->shape == SpriteComponent::Shape::Rectangle) {
                     renderer.draw_rect(pos->x, pos->y, size->width, size->height, sprite->color);
-                } else {
+                } else if (sprite->shape == SpriteComponent::Shape::Ellipse) {
                     renderer.draw_ellipse(pos->x, pos->y, size->width, size->height, sprite->color);
                 }
             }

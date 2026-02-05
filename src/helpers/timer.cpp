@@ -1,7 +1,7 @@
 // Implements the Timer and EventBus utility classes.
 // Timer provides timing functionality (currently stubbed), and EventBus provides a simple event system (currently stubbed).
 
-#include "mario/util/Timer.hpp"
+#include "mario/helpers/Timer.hpp"
 
 namespace mario {
     // Resets the timer (stub implementation).

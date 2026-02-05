@@ -9,8 +9,8 @@
 #include "mario/ecs/components/PlayerInputComponent.hpp"
 #include "mario/ecs/EntityTypeComponent.hpp"
 #include "mario/world/TileMap.hpp"
-#include "mario/util/quadtree.h"
-#include "mario/util/tileSweep.hpp"
+#include "mario/helpers/quadtree.h"
+#include "mario/helpers/tileSweep.hpp"
 
 // collision_system.cpp
 //
