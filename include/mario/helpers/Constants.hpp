@@ -6,20 +6,20 @@
 
     namespace mario::constants {
         // Player
-        static constexpr float PLAYER_WIDTH = 16.0f;
-        static constexpr float PLAYER_HEIGHT = 24.0f;
-        static constexpr float PLAYER_DEFAULT_X = 32.0f;
-        static constexpr float PLAYER_DEFAULT_Y = 32.0f;
+        inline constexpr float PLAYER_WIDTH = 64.0f;
+        inline constexpr float PLAYER_HEIGHT = 64.0f;
+        inline constexpr float PLAYER_DEFAULT_X = 32.0f;
+        inline constexpr float PLAYER_DEFAULT_Y = 32.0f;
 
         // Velocities
-        static constexpr float ZERO_VELOCITY = 0.0f;
+        inline constexpr float ZERO_VELOCITY = 0.0f;
         // Player movement defaults (used as global defaults when no per-entity component is present)
-        static constexpr float PLAYER_MOVE_SPEED = 220.0f;
-        static constexpr float PLAYER_JUMP_SPEED = 400.0f;
+        inline constexpr float PLAYER_MOVE_SPEED = 220.0f;
+        inline constexpr float PLAYER_JUMP_SPEED = 400.0f;
 
         // Enemy
-        static constexpr float ENEMY_INITIAL_SPEED = -30.0f;
-        static constexpr float ENEMY_SIZE = 16.0f;
+        inline constexpr float ENEMY_INITIAL_SPEED = -30.0f;
+        inline constexpr float ENEMY_SIZE = 16.0f;
 
         // Colors
         inline const sf::Color PLAYER_SPRITE_COLOR_GREEN{50, 100, 80};
@@ -32,31 +32,31 @@
 
         // Background texture id used as base id for level backgrounds.
         // Keep as constexpr so it can be used in compile-time contexts.
-        static constexpr int BACKGROUND_TEXTURE_ID = 1000;
+        inline constexpr int BACKGROUND_TEXTURE_ID = 1000;
 
         // Clouds
-        static constexpr int CLOUD_BIG_ID = 2000;
-        static constexpr int CLOUD_MEDIUM_ID = 2001;
-        static constexpr int CLOUD_SMALL_ID = 2002;
-        static constexpr int NUM_BIG_CLOUDS = 1;
-        static constexpr int NUM_MEDIUM_CLOUDS = 2;
-        static constexpr int NUM_SMALL_CLOUDS = 3;
-        static constexpr float CLOUD_BIG_SPEED = 40.0f;
-        static constexpr float CLOUD_MEDIUM_SPEED = 30.0f;
-        static constexpr float CLOUD_SMALL_SPEED = 20.0f;
-        static constexpr float CLOUD_RESET_X = 1100.0f;
-        static constexpr float CLOUD_SPAWN_X = -300.0f;
-        static constexpr float CLOUD_BIG_Y_MIN = 40.0f;
-        static constexpr float CLOUD_BIG_Y_MAX = 60.0f;
-        static constexpr float CLOUD_MEDIUM_Y_MIN = 60.0f;
-        static constexpr float CLOUD_MEDIUM_Y_MAX = 80.0f;
-        static constexpr float CLOUD_SMALL_Y_MIN = 80.0f;
-        static constexpr float CLOUD_SMALL_Y_MAX = 100.0f;
-        static constexpr float CLOUD_PARALLAX = 0.1f;
-        static constexpr float CLOUD_SCALE = 1.0f;
-        static constexpr float CLOUD_BIG_SPACING = 300.0f;
-        static constexpr float CLOUD_MEDIUM_SPACING = 250.0f;
-        static constexpr float CLOUD_SMALL_SPACING = 200.0f;
+        inline constexpr int CLOUD_BIG_ID = 2000;
+        inline constexpr int CLOUD_MEDIUM_ID = 2001;
+        inline constexpr int CLOUD_SMALL_ID = 2002;
+        inline constexpr int NUM_BIG_CLOUDS = 1;
+        inline constexpr int NUM_MEDIUM_CLOUDS = 2;
+        inline constexpr int NUM_SMALL_CLOUDS = 3;
+        inline constexpr float CLOUD_BIG_SPEED = 40.0f;
+        inline constexpr float CLOUD_MEDIUM_SPEED = 30.0f;
+        inline constexpr float CLOUD_SMALL_SPEED = 20.0f;
+        inline constexpr float CLOUD_RESET_X = 1100.0f;
+        inline constexpr float CLOUD_SPAWN_X = -300.0f;
+        inline constexpr float CLOUD_BIG_Y_MIN = 40.0f;
+        inline constexpr float CLOUD_BIG_Y_MAX = 60.0f;
+        inline constexpr float CLOUD_MEDIUM_Y_MIN = 60.0f;
+        inline constexpr float CLOUD_MEDIUM_Y_MAX = 80.0f;
+        inline constexpr float CLOUD_SMALL_Y_MIN = 80.0f;
+        inline constexpr float CLOUD_SMALL_Y_MAX = 100.0f;
+        inline constexpr float CLOUD_PARALLAX = 0.1f;
+        inline constexpr float CLOUD_SCALE = 1.0f;
+        inline constexpr float CLOUD_BIG_SPACING = 300.0f;
+        inline constexpr float CLOUD_MEDIUM_SPACING = 250.0f;
+        inline constexpr float CLOUD_SMALL_SPACING = 200.0f;
         // Level paths
         inline constexpr const char* LEVEL1_PATH = "assets/levels/level1.json";
         inline constexpr const char* LEVEL2_PATH = "assets/levels/level2.json";
@@ -65,7 +65,7 @@
         inline constexpr std::array<const char*, 2> LEVEL_PATHS = { LEVEL1_PATH, LEVEL2_PATH };
 
         // Player Textures
-        static constexpr int PLAYER_IDLE_ID = 3000;
+        inline constexpr int PLAYER_IDLE_ID = 3000;
 
     } // namespace mario::constants
 

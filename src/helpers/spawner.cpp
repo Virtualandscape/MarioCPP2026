@@ -37,19 +37,20 @@ namespace mario {
     EntityID Spawner::spawn_player(EntityManager &registry, const EntitySpawn &spawn, float tile_size, AssetManager& assets) {
         using namespace mario::constants;
 
-        assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player/Idle.png");
+        assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
 
         EntityID id = registry.create_entity();
 
         // Spatial component: position from tile coordinates
-        registry.add_component<PositionComponent>(id, {
-            static_cast<float>(spawn.tile_x) * tile_size,
-            static_cast<float>(spawn.tile_y) * tile_size
-        });
+        // Adjust spawn Y so the player's feet are aligned with the tile row.
+        const float spawn_px = static_cast<float>(spawn.tile_x) * tile_size;
+        const float spawn_py = static_cast<float>(spawn.tile_y) * tile_size - (PLAYER_HEIGHT - tile_size);
+        registry.add_component<PositionComponent>(id, { spawn_px, spawn_py });
 
-        // Physics components: velocity and size
+        // Physics components: velocity and size (physical hitbox narrower than rendered sprite)
         registry.add_component<VelocityComponent>(id, {ZERO_VELOCITY, ZERO_VELOCITY});
-        registry.add_component<SizeComponent>(id, {PLAYER_WIDTH, PLAYER_HEIGHT});
+        // Use a narrower physical width (half of visual width) to tighten collision box
+        registry.add_component<SizeComponent>(id, {PLAYER_WIDTH * 0.5f, PLAYER_HEIGHT});
 
         // Gameplay components: input, jump state, player movement parameters
         // PlayerInputComponent contains input and jump_count now. Movement uses global constants.
@@ -62,7 +63,10 @@ namespace mario {
         // Rendering component: visual representation
         SpriteComponent sc;
         sc.texture_id = PLAYER_IDLE_ID;
-        sc.render_offset = {-8.0f, -8.0f};
+        // Draw the sprite at full 64x64 while hitbox is narrower
+        sc.render_size = { PLAYER_WIDTH, PLAYER_HEIGHT };
+        // Center rendered sprite horizontally over the physical hitbox
+        sc.render_offset = { -(PLAYER_WIDTH - (PLAYER_WIDTH * 0.5f)) * 0.5f, 0.0f };
         registry.add_component<SpriteComponent>(id, sc);
 
         return id;
@@ -73,16 +77,17 @@ namespace mario {
     EntityID Spawner::spawn_player_default(EntityManager &registry, AssetManager& assets) {
         using namespace mario::constants;
 
-        assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player/Idle.png");
+        assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
 
         EntityID id = registry.create_entity();
 
         // Spatial component: default position
-        registry.add_component<PositionComponent>(id, {PLAYER_DEFAULT_X, PLAYER_DEFAULT_Y});
+        // For default spawn, keep previous default X/Y but adjust so feet align when using typical tile size (16px).
+        registry.add_component<PositionComponent>(id, {PLAYER_DEFAULT_X, PLAYER_DEFAULT_Y - (PLAYER_HEIGHT - 16.0f)});
 
-        // Physics components: velocity and size
+        // Physics components: velocity and size for default spawn
         registry.add_component<VelocityComponent>(id, {ZERO_VELOCITY, ZERO_VELOCITY});
-        registry.add_component<SizeComponent>(id, {PLAYER_WIDTH, PLAYER_HEIGHT});
+        registry.add_component<SizeComponent>(id, {PLAYER_WIDTH * 0.5f, PLAYER_HEIGHT});
 
         // Gameplay components: input, jump state, player movement parameters
         registry.add_component<PlayerInputComponent>(id, {});
@@ -91,14 +96,15 @@ namespace mario {
         registry.add_component<TypeComponent>(id, {EntityTypeComponent::Player});
         registry.add_component<CollisionInfoComponent>(id, {});
 
-        // Rendering component: visual representation
+        // Rendering component: visual representation for default spawn
         SpriteComponent sc;
         sc.texture_id = PLAYER_IDLE_ID;
-        sc.render_offset = {-8.0f, -8.0f};
+        sc.render_size = { PLAYER_WIDTH, PLAYER_HEIGHT };
+        sc.render_offset = { -(PLAYER_WIDTH - (PLAYER_WIDTH * 0.5f)) * 0.5f, 0.0f };
         registry.add_component<SpriteComponent>(id, sc);
 
-        return id;
-    }
+         return id;
+     }
 
     // Spawns an enemy entity at a tile position with type-specific rendering.
     // Component composition: Position, Velocity, Size, Collision, Enemy, Type, Sprite.
