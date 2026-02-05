@@ -6,14 +6,11 @@
 #include "mario/world/Camera.hpp"
 #include "mario/ecs/components/PositionComponent.hpp"
 #include "mario/ecs/components/SizeComponent.hpp"
-#include "mario/ecs/components/SpriteComponent.hpp"
 #include "mario/ecs/components/BackgroundComponent.hpp"
-#include "mario/ecs/components/CloudComponent.hpp"
 #include "mario/util/Spawner.hpp"
 #include "mario/world/TileMap.hpp"
 
 #include <algorithm>
-#include <iostream>
 #include <string>
 
 namespace mario {
@@ -39,7 +36,8 @@ namespace mario {
         const std::string &level_bg_path = _level.background_path();
         if (!level_bg_path.empty()) {
             if (_game.assets().load_texture(BACKGROUND_TEXTURE_ID, level_bg_path)) {
-                // Main background entity
+                // Create the main background entity. BackgroundSystem will create an entity and attach a BackgroundComponent
+                // configured with scale, parallax and tiling parameters.
                 _background_system.create_background_entity(_registry, BACKGROUND_TEXTURE_ID, true, BackgroundComponent::ScaleMode::Fill,
                                          _level.background_scale(), 0.0f, false, false, 0.0f, 0.0f);
             }
@@ -48,6 +46,7 @@ namespace mario {
             int texture_id = BACKGROUND_TEXTURE_ID + 1;
             for (const auto &layer: _level.background_layers()) {
                 if (_game.assets().load_texture(texture_id, layer.path)) {
+                    // Create a background entity for this layer (parallax, repeat and offsets are handled by BackgroundSystem).
                     _background_system.create_background_entity(_registry, texture_id, true, BackgroundComponent::ScaleMode::Fit, layer.scale,
                                              layer.parallax, layer.repeat, layer.repeat_x, 0.0f, 0.0f);
                 }
@@ -57,6 +56,7 @@ namespace mario {
 
         // Initialize clouds if enabled for this level
         if (_level.clouds_enabled()) {
+            // Initialize cloud entities via CloudSystem: it creates and configures cloud entities/components using the AssetManager and registry.
             _cloud_system.initialize(_game.assets(), _registry);
         }
 
@@ -198,7 +198,7 @@ namespace mario {
 
         _level.render(_game.renderer());
 
-        // ECS Rendering - delegated to SpriteRenderSystem
+        // Render all entities that have a SpriteComponent. SpriteRenderSystem reads Position/Size/SpriteComponent and issues draw calls.
         _sprite_render_system.render(_game.renderer(), *cam, _registry);
 
         // Draw HUD
