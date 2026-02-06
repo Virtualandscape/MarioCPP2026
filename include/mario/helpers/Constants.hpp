@@ -66,6 +66,15 @@
 
         // Player Textures
         inline constexpr int PLAYER_IDLE_ID = 3000;
+        inline constexpr int PLAYER_RUN_ID = 3001;
+        inline constexpr int PLAYER_JUMP_ID = 3002;
+
+        // Animation Constants
+        inline constexpr int PLAYER_RUN_FRAMES = 10;
+        inline constexpr int PLAYER_JUMP_FRAMES = 11;
+        inline constexpr int PLAYER_FRAME_WIDTH = 64;
+        inline constexpr int PLAYER_FRAME_HEIGHT = 64;
+        inline constexpr float PLAYER_FRAME_DURATION = 0.1f;
 
     } // namespace mario::constants
 

@@ -34,7 +34,7 @@ namespace mario {
                         const float draw_w = (sprite->render_size.x > 0.0f) ? sprite->render_size.x : size->width;
                         const float draw_h = (sprite->render_size.y > 0.0f) ? sprite->render_size.y : size->height;
                         renderer.draw_sprite(tex, pos->x + sprite->render_offset.x, pos->y + sprite->render_offset.y,
-                                             draw_w, draw_h);
+                                             draw_w, draw_h, sprite->texture_rect);
                         continue;
                     }
                 }

@@ -45,6 +45,7 @@ set(SOURCES
         src/systems/cloud_system.cpp
         src/systems/camera_system.cpp
         src/systems/debug_draw_system.cpp
+        src/systems/animation_system.cpp
 )
 
 set(HEADERS
@@ -57,11 +58,13 @@ set(HEADERS
         include/mario/ecs/components/PlayerInputComponent.hpp
         include/mario/ecs/components/TypeComponent.hpp
         include/mario/ecs/components/SpriteComponent.hpp
+        include/mario/ecs/components/AnimationComponent.hpp
         include/mario/ecs/components/EnemyComponent.hpp
         include/mario/systems/PlayerInputSystem.hpp
         include/mario/systems/PlayerMovementSystem.hpp
         include/mario/systems/EnemySystem.hpp
         include/mario/systems/LevelSystem.hpp
+        include/mario/systems/AnimationSystem.hpp
         include/mario/helpers/Spawner.hpp
         include/mario/ecs/components/BackgroundComponent.hpp
         include/mario/systems/BackgroundSystem.hpp

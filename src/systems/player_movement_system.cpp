@@ -20,7 +20,7 @@ void PlayerMovementSystem::update(EntityManager& registry, float dt) const
         auto* input = registry.get_component<PlayerInputComponent>(entity);
         auto* vel = registry.get_component<VelocityComponent>(entity);
 
-        // Small defensive check in case of unexpected state (keeps behaviour robust)
+        // Small defensive check in case of unexpected state (keeps behavior robust)
         if (!input || !vel) continue;
 
         // Handle horizontal movement based on input axis

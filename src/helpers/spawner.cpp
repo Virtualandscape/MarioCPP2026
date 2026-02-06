@@ -13,6 +13,7 @@
 #include "mario/ecs/components/CollisionInfoComponent.hpp"
 #include "mario/ecs/components/EnemyComponent.hpp"
 #include "mario/ecs/components/SpriteComponent.hpp"
+#include "mario/ecs/components/AnimationComponent.hpp"
 #include "mario/ecs/components/CloudComponent.hpp"
 #include "mario/resources/AssetManager.hpp"
 #include <algorithm>
@@ -38,6 +39,8 @@ namespace mario {
         using namespace mario::constants;
 
         assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
+        assets.load_texture(PLAYER_RUN_ID, "assets/Sprites/Player64/Run.png");
+        assets.load_texture(PLAYER_JUMP_ID, "assets/Sprites/Player64/Jump.png");
 
         EntityID id = registry.create_entity();
 
@@ -67,7 +70,12 @@ namespace mario {
         sc.render_size = { PLAYER_WIDTH, PLAYER_HEIGHT };
         // Center rendered sprite horizontally over the physical hitbox
         sc.render_offset = { -(PLAYER_WIDTH - (PLAYER_WIDTH * 0.5f)) * 0.5f, 0.0f };
+        // Set initial texture_rect for Idle state
+        sc.texture_rect = sf::IntRect({0, 0}, {PLAYER_FRAME_WIDTH, PLAYER_FRAME_HEIGHT});
         registry.add_component<SpriteComponent>(id, sc);
+
+        // Animation component
+        registry.add_component<AnimationComponent>(id, {});
 
         return id;
     }
@@ -78,6 +86,8 @@ namespace mario {
         using namespace mario::constants;
 
         assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
+        assets.load_texture(PLAYER_RUN_ID, "assets/Sprites/Player64/Run.png");
+        assets.load_texture(PLAYER_JUMP_ID, "assets/Sprites/Player64/Jump.png");
 
         EntityID id = registry.create_entity();
 
@@ -101,7 +111,12 @@ namespace mario {
         sc.texture_id = PLAYER_IDLE_ID;
         sc.render_size = { PLAYER_WIDTH, PLAYER_HEIGHT };
         sc.render_offset = { -(PLAYER_WIDTH - (PLAYER_WIDTH * 0.5f)) * 0.5f, 0.0f };
+        // Set initial texture_rect for Idle state
+        sc.texture_rect = sf::IntRect({0, 0}, {PLAYER_FRAME_WIDTH, PLAYER_FRAME_HEIGHT});
         registry.add_component<SpriteComponent>(id, sc);
+
+        // Animation component
+        registry.add_component<AnimationComponent>(id, {});
 
          return id;
      }

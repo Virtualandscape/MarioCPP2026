@@ -6,6 +6,7 @@
 #include "mario/systems/PlayerInputSystem.hpp"
 #include "mario/systems/PlayerMovementSystem.hpp"
 #include "mario/systems/EnemySystem.hpp"
+#include "mario/systems/AnimationSystem.hpp"
 #include "mario/systems/LevelSystem.hpp"
 #include "mario/systems/BackgroundSystem.hpp"
 #include "mario/systems/CloudSystem.hpp"
@@ -46,6 +47,7 @@ namespace mario {
         PlayerInputSystem _player_input;
         PlayerMovementSystem _player_movement;
         EnemySystem _enemy_system;
+        AnimationSystem _animation_system;
         BackgroundSystem _background_system;
         CloudSystem _cloud_system;
         SpriteRenderSystem _sprite_render_system;

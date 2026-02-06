@@ -66,20 +66,32 @@ namespace mario {
         }
     }
 
-    void Renderer::draw_sprite(const sf::Texture* texture, float x, float y, float width, float height) {
+    void Renderer::draw_sprite(const sf::Texture* texture, float x, float y, float width, float height, const sf::IntRect& texture_rect) {
         if (!_window.isOpen() || !texture) {
             return;
         }
 
         sf::Sprite sprite(*texture);
+        
+        sf::Vector2f source_size;
+        if (texture_rect.size.x != 0 && texture_rect.size.y != 0) {
+            sprite.setTextureRect(texture_rect);
+            source_size = { std::abs(static_cast<float>(texture_rect.size.x)), std::abs(static_cast<float>(texture_rect.size.y)) };
+        } else {
+            auto tex_size = texture->getSize();
+            source_size = { static_cast<float>(tex_size.x), static_cast<float>(tex_size.y) };
+        }
+
+        // In SFML 3, a negative size in the texture rect flips the sprite 
+        // but keeps the origin at the top-left of the drawing area.
+        // Therefore, we don't need manual offsets.
         sprite.setPosition({x, y});
 
         // Optional scaling if width/height are provided
         if (width > 0.0f && height > 0.0f) {
-            auto tex_size = texture->getSize();
             sprite.setScale({
-                width / static_cast<float>(tex_size.x),
-                height / static_cast<float>(tex_size.y)
+                (width / source_size.x),
+                (height / source_size.y)
             });
         }
 

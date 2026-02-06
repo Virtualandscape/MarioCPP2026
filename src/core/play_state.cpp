@@ -106,6 +106,7 @@ namespace mario {
         // Update ECS systems
         _player_input.update(_registry, _game.input());
         _player_movement.update(_registry, dt);
+        _animation_system.update(_registry, dt);
         if (tile_map) {
             _enemy_system.update(_registry, *tile_map, dt);
         }
