@@ -4,3 +4,7 @@ out
 .idea
 .vs
 .vscode
+# Ignore CMake build outputs and temporary build folders
+cmake-build-debug/
+# Ignore CMake FetchContent generated dependencies (optional)
+cmake-build-debug/_deps/

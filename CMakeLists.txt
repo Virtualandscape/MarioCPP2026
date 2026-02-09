@@ -34,7 +34,6 @@ set(SOURCES
         src/world/camera.cpp
         src/world/level.cpp
         src/world/tile_map.cpp
-        src/systems/player_movement_system.cpp
         src/helpers/Quadtree.cpp
         src/helpers/TileSweep.cpp
         src/systems/background_system.cpp
@@ -43,7 +42,6 @@ set(SOURCES
         src/render/sprite.cpp
         src/gameplay/power_up.cpp
         src/systems/cloud_system.cpp
-        src/systems/camera_system.cpp
         src/systems/debug_draw_system.cpp
         src/systems/animation_system.cpp
 )

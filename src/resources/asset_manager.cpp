@@ -4,31 +4,30 @@
 #include "mario/resources/AssetManager.hpp"
 
 #include <filesystem>
-#include <fstream>
 #include <iostream>
+#include <optional>
 
 namespace mario {
 
-    // Attempts to open a file by searching several relative locations.
-    static std::ifstream open_file_multi(std::string_view path) {
+    static std::optional<std::filesystem::path> resolve_asset_path(std::string_view path) {
         std::filesystem::path base(path);
-        std::ifstream file{base.string()};
-        if (file) return file;
 
         const std::filesystem::path cwd = std::filesystem::current_path();
         const std::filesystem::path tries[] = {
+            base,
             cwd / base,
             cwd / ".." / base,
             cwd / ".." / ".." / base,
             cwd / ".." / ".." / ".." / base,
         };
 
-        for (const auto &candidate: tries) {
-            file = std::ifstream{candidate.string()};
-            if (file) return file;
+        for (const auto& candidate : tries) {
+            if (std::filesystem::exists(candidate)) {
+                return candidate;
+            }
         }
 
-        return {};
+        return std::nullopt;
     }
 
     // Loads a texture from disk and stores it with the given ID. Returns true on success.
@@ -36,51 +35,20 @@ namespace mario {
         if (path.empty()) return false;
         if (has_texture(id)) return true;
 
-        // Try opening the file first (to search relative paths similarly to other loaders)
-        std::ifstream file = open_file_multi(path);
-        if (!file) {
-            std::cerr << "AssetManager: failed to open texture file '" << std::string(path) << "'\n";
+        const auto resolved_path = resolve_asset_path(path);
+        if (!resolved_path) {
+            std::cerr << "AssetManager: failed to find texture file '" << std::string(path) << "'\n";
             return false;
         }
 
-        // Use SFML texture loading directly from path (sf::Texture::loadFromFile expects a path)
         auto tex = std::make_shared<sf::Texture>();
-        std::string loaded_from; // record which path actually loaded the image
-        if (tex->loadFromFile(std::string(path))) {
-            loaded_from = std::string(path);
-        } else {
-            // If direct load failed, try to load from the actual found path
-            file.clear();
-            file.seekg(0);
-            std::filesystem::path base(path);
-            const std::filesystem::path cwd = std::filesystem::current_path();
-            const std::filesystem::path tries[] = {
-                base,
-                cwd / base,
-                cwd / ".." / base,
-                cwd / ".." / ".." / base,
-                cwd / ".." / ".." / ".." / base,
-            };
-            bool loaded = false;
-            for (const auto &candidate : tries) {
-                if (std::filesystem::exists(candidate)) {
-                    if (tex->loadFromFile(candidate.string())) {
-                        loaded = true;
-                        loaded_from = candidate.string();
-                        break;
-                    }
-                }
-            }
-            if (!loaded) {
-                std::cerr << "AssetManager: failed to load texture '" << std::string(path) << "' as image\n";
-                return false;
-            }
+        if (!tex->loadFromFile(resolved_path->string())) {
+            std::cerr << "AssetManager: failed to load texture '" << std::string(path)
+                      << "' from '" << resolved_path->string() << "'\n";
+            return false;
         }
 
-        // Enable smoothing so scaled-up backgrounds don't look blocky
         tex->setSmooth(true);
-
-
         _textures[id] = tex;
         return true;
     }
