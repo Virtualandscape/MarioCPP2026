@@ -32,7 +32,8 @@ namespace mario {
     private:
         int _width = 0;
         int _height = 0;
-        int _tile_size = 16;
+        // Fixed tile size (pixels). Per-level "tileSize" JSON field is deprecated and ignored.
+        int _tile_size = 32;
         std::vector<unsigned char> _tiles;
     };
 } // namespace mario

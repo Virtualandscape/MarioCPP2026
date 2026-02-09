@@ -1,7 +1,7 @@
 {
   "width": 200,
   "height": 18,
-  "tileSize": 16,
+  "tileSize": 32,
   "background": "assets/environment/background/sky.png",
   "background_scale": 1.0,
   "clouds": true,

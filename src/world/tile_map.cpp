@@ -9,6 +9,9 @@
 
 namespace mario {
     namespace {
+        // Fixed tile size used project-wide (px). JSON "tileSize" is deprecated and ignored.
+        constexpr int kFixedTileSize = 32;
+
         // Loads a default tile map with a single solid tile and entities.
         void build_default(TileMap &map, std::vector<EntitySpawn>* entity_spawns) {
             map.unload();
@@ -212,7 +215,7 @@ namespace mario {
         if (map_id.empty()) {
             _width = 50;
             _height = 18;
-            _tile_size = 16;
+            _tile_size = kFixedTileSize;
             _tiles.assign(static_cast<std::size_t>(_width * _height), 0);
 
             for (int x = 0; x < _width; ++x) {
@@ -241,15 +244,20 @@ namespace mario {
         // If there is no width or height, build a default tile map.
         int width = 0;
         int height = 0;
-        int tile_size = 16;
+        int tile_size = kFixedTileSize;
         if (!extract_int_field(content, "width", width) ||
             !extract_int_field(content, "height", height)) {
             build_default(*this, entity_spawns);
             return;
         }
 
-        extract_int_field(content, "tileSize", tile_size);
+        // NOTE: per-level "tileSize" is deprecated and ignored. Use project-wide TILE_SIZE.
         const auto rows = extract_string_array(content, "rows");
+
+        // Warn if JSON contains a tileSize field to help migration
+        if (content.find("\"tileSize\"") != std::string::npos) {
+            std::cerr << "Warning: level '" << std::string(map_id) << "' contains 'tileSize' which is deprecated and will be ignored; using project TILE_SIZE=" << kFixedTileSize << std::endl;
+        }
 
         // Prefer rows length as source of truth for map width. If the JSON "width" differs, adopt rows length and warn.
         if (!rows.empty()) {

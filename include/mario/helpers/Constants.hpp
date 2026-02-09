@@ -2,9 +2,18 @@
 
 #include <SFML/Graphics/Color.hpp>
 #include <array>
+#include <cmath>
 
 
     namespace mario::constants {
+        // Project-wide fixed tile size (pixels). JSON "tileSize" is deprecated and ignored.
+        inline constexpr int TILE_SIZE = 32;
+        // Scale factor relative to the original tile size (16px). Use to scale movement/gravity constants so gameplay (in tiles) remains consistent.
+        inline constexpr float TILE_SCALE = static_cast<float>(TILE_SIZE) / 16.0f;
+
+        // Default gravity baseline (pixels/sec^2) scaled by TILE_SCALE. PhysicsSystem default uses this value.
+        inline constexpr float DEFAULT_GRAVITY = 1200.0f * TILE_SCALE;
+
         // Player
         inline constexpr float PLAYER_WIDTH = 64.0f;
         inline constexpr float PLAYER_HEIGHT = 64.0f;
@@ -13,13 +22,24 @@
 
         // Velocities
         inline constexpr float ZERO_VELOCITY = 0.0f;
-        // Player movement defaults (used as global defaults when no per-entity component is present)
-        inline constexpr float PLAYER_MOVE_SPEED = 220.0f;
-        inline constexpr float PLAYER_JUMP_SPEED = 400.0f;
+        // Player movement defaults (scaled by tile ratio so movement in tiles/sec remains consistent)
+        inline constexpr float PLAYER_MOVE_SPEED = 220.0f * TILE_SCALE;
+
+        // Desired maximum jump height in tiles. Tweak this to change how many tiles the player can jump.
+        // Previously, jump speed was 400 and gravity 1200 with 16px tiles which yields ~4.1667 tiles of jump height.
+        // Use that value by default to preserve the original feel after switching to 32px tiles.
+        inline constexpr float PLAYER_JUMP_TILES = 4.1666667f;
+
+        // Compute the initial jump speed (pixels/sec) needed to reach 'tiles' tiles height under DEFAULT_GRAVITY.
+        // Formula: v = sqrt(2 * g * h), where h = tiles * TILE_SIZE.
+        inline float jump_speed_for_tiles(float tiles) {
+            return std::sqrt(2.0f * DEFAULT_GRAVITY * (tiles * static_cast<float>(TILE_SIZE)));
+        }
 
         // Enemy
-        inline constexpr float ENEMY_INITIAL_SPEED = -30.0f;
-        inline constexpr float ENEMY_SIZE = 16.0f;
+        // Enemy movement speed and size scaled by tile ratio
+        inline constexpr float ENEMY_INITIAL_SPEED = -30.0f * TILE_SCALE;
+        inline constexpr float ENEMY_SIZE = 16.0f * TILE_SCALE;
 
         // Colors
         inline const sf::Color PLAYER_SPRITE_COLOR_GREEN{50, 100, 80};
@@ -63,6 +83,10 @@
 
         // Central list of available levels (single definition point)
         inline constexpr std::array<const char*, 2> LEVEL_PATHS = { LEVEL1_PATH, LEVEL2_PATH };
+
+        // Camera zoom scale: multiply world viewport to show more/less area. >1 = zoom out (show more tiles), <1 = zoom in.
+        // Default: zoom out a bit so camera shows more area after switching to 32px tiles.
+        inline constexpr float CAMERA_SCALE = 1.15f;
 
         // Player Textures
         inline constexpr int PLAYER_IDLE_ID = 3000;

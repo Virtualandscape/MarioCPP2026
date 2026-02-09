@@ -1,10 +1,12 @@
 // cpp
 #include "mario/render/Renderer.hpp"
+#include "mario/helpers/Constants.hpp"
 #include <iostream>
 
 namespace mario {
     Renderer::Renderer()
-        : _window(sf::VideoMode({800u, 480u}), "Mario Prototype", sf::Style::Titlebar | sf::Style::Close)
+        : _window(sf::VideoMode({800u, 480u}), "Mario Prototype", sf::Style::Titlebar | sf::Style::Close),
+          _camera_scale(mario::constants::TILE_SCALE * mario::constants::CAMERA_SCALE)
     {
         _window.setVerticalSyncEnabled(true);
 
@@ -58,10 +60,22 @@ namespace mario {
             const auto size = _window.getSize();
             const float w = static_cast<float>(size.x);
             const float h = static_cast<float>(size.y);
+            float world_w = 0.0f;
+            float world_h = 0.0f;
+            if (_camera_tiles_w > 0.0f) {
+                // Fit _camera_tiles_w tiles across the viewport width
+                world_w = _camera_tiles_w * static_cast<float>(mario::constants::TILE_SIZE);
+                // Preserve aspect ratio: compute world_h from world_w based on window aspect
+                const float aspect = h > 0.0f ? (w / h) : 1.0f;
+                world_h = world_w / aspect;
+            } else {
+                world_w = w * _camera_scale;
+                world_h = h * _camera_scale;
+            }
             sf::View view;
-            view.setSize({w, h});
-            // setCenter expects the center point: camera x/y are top-left, so add half-size
-            view.setCenter({x + w * 0.5f, y + h * 0.5f});
+            view.setSize({world_w, world_h});
+            // setCenter expects the center point in world coords: camera x/y are top-left, so add half-size
+            view.setCenter({x + world_w * 0.5f, y + world_h * 0.5f});
             _window.setView(view);
         }
     }
@@ -174,6 +188,16 @@ namespace mario {
 
     sf::Vector2f Renderer::viewport_size() const {
         const auto size = _window.getSize();
-        return {static_cast<float>(size.x), static_cast<float>(size.y)};
+        const float w = static_cast<float>(size.x);
+        const float h = static_cast<float>(size.y);
+        if (_camera_tiles_w > 0.0f) {
+            const float world_w = _camera_tiles_w * static_cast<float>(mario::constants::TILE_SIZE);
+            const float aspect = h > 0.0f ? (w / h) : 1.0f;
+            const float world_h = world_w / aspect;
+            return {world_w, world_h};
+        }
+        // Return viewport size in world coordinates (pixels) so camera and rendering subsystems agree on world extents.
+        return {w * _camera_scale,
+                h * _camera_scale};
     }
 } // namespace mario

@@ -35,7 +35,7 @@ namespace mario {
     // Spawns a player entity at a tile position with all required components.
     // Component composition: Position, Velocity, Size, Input, JumpState, PlayerStats, Type, Collision, Sprite.
     // This ensures the entity will be correctly processed by all relevant systems (movement, physics, input, collision, render).
-    EntityID Spawner::spawn_player(EntityManager &registry, const EntitySpawn &spawn, float tile_size, AssetManager& assets) {
+    EntityID Spawner::spawn_player(EntityManager &registry, const EntitySpawn &spawn, AssetManager& assets) {
         using namespace mario::constants;
 
         assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
@@ -46,6 +46,7 @@ namespace mario {
 
         // Spatial component: position from tile coordinates
         // Adjust spawn Y so the player's feet are aligned with the tile row.
+        const float tile_size = static_cast<float>(TILE_SIZE);
         const float spawn_px = static_cast<float>(spawn.tile_x) * tile_size;
         const float spawn_py = static_cast<float>(spawn.tile_y) * tile_size - (PLAYER_HEIGHT - tile_size);
         registry.add_component<PositionComponent>(id, { spawn_px, spawn_py });
@@ -92,8 +93,9 @@ namespace mario {
         EntityID id = registry.create_entity();
 
         // Spatial component: default position
-        // For default spawn, keep previous default X/Y but adjust so feet align when using typical tile size (16px).
-        registry.add_component<PositionComponent>(id, {PLAYER_DEFAULT_X, PLAYER_DEFAULT_Y - (PLAYER_HEIGHT - 16.0f)});
+        // For default spawn, keep previous default X/Y but adjust so feet align when using project tile size.
+        const float tile_size = static_cast<float>(TILE_SIZE);
+        registry.add_component<PositionComponent>(id, {PLAYER_DEFAULT_X, PLAYER_DEFAULT_Y - (PLAYER_HEIGHT - tile_size)});
 
         // Physics components: velocity and size for default spawn
         registry.add_component<VelocityComponent>(id, {ZERO_VELOCITY, ZERO_VELOCITY});
@@ -124,12 +126,13 @@ namespace mario {
     // Spawns an enemy entity at a tile position with type-specific rendering.
     // Component composition: Position, Velocity, Size, Collision, Enemy, Type, Sprite.
     // Enemies follow platforms and reverse direction on collision (see EnemySystem).
-    void Spawner::spawn_enemy(EntityManager &registry, const EntitySpawn &spawn, float tile_size) {
+    void Spawner::spawn_enemy(EntityManager &registry, const EntitySpawn &spawn) {
         using namespace mario::constants;
 
         const std::string type_str = to_lower(spawn.type);
         EntityID entity = registry.create_entity();
 
+        const float tile_size = static_cast<float>(TILE_SIZE);
         float x = static_cast<float>(spawn.tile_x) * tile_size;
         float y = static_cast<float>(spawn.tile_y) * tile_size;
 

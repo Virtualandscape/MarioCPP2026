@@ -28,7 +28,8 @@ void PlayerMovementSystem::update(EntityManager& registry, float dt) const
 
         // Handle jumping: allow jump only if not held and jump count below limit (double-jump)
         if (input->jump_pressed && !input->jump_held && input->jump_count < 2) {
-            vel->vy = -mario::constants::PLAYER_JUMP_SPEED;
+            // Compute jump speed to reach PLAYER_JUMP_TILES using the project's gravity setting.
+            vel->vy = -mario::constants::jump_speed_for_tiles(mario::constants::PLAYER_JUMP_TILES);
             input->jump_count++;
         }
 

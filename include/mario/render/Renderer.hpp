@@ -3,7 +3,7 @@
 #include <SFML/Config.hpp>
 #include <SFML/Graphics.hpp>
 
-#include "mario/helpers/constants.hpp"
+#include "mario/helpers/Constants.hpp"
 
 namespace mario {
     // Draw calls, sprites, layers, parallax
@@ -33,6 +33,15 @@ namespace mario {
 
         sf::Vector2f viewport_size() const;
 
+        // Camera scale controls zoom: multiply world viewport by this factor. Default is TILE_SCALE.
+        void set_camera_scale(float s) { _camera_scale = s; }
+        float camera_scale() const { return _camera_scale; }
+
+        // Set/get target number of visible tiles horizontally; when > 0 this takes precedence and the view
+        // is computed so that that many tiles fit horizontally in the viewport.
+        void set_tiles_visible_width(float tiles) { _camera_tiles_w = tiles; }
+        float tiles_visible_width() const { return _camera_tiles_w; }
+
         // Draw an unfilled outline rectangle in world-space (respects camera view).
         // color: outline color. thickness: outline thickness in pixels.
         void draw_bbox(float x, float y, float width, float height, sf::Color color = sf::Color::Green, float thickness = 1.0f);
@@ -49,5 +58,9 @@ namespace mario {
         float _camera_y = 0.0f;
         // When true, systems will draw entity bounding boxes (debug overlay)
         bool _debug_bboxes = false;
+        // Multiplier applied to view size to control zoom in world coordinates. Default is TILE_SCALE.
+        float _camera_scale = mario::constants::TILE_SCALE;
+        // Target number of tiles visible horizontally; if >0, the renderer computes view size so this many tiles fit across.
+        float _camera_tiles_w = 50.0f; // default corresponds to previous 800px/16px = 50 tiles
     };
 } // namespace mario

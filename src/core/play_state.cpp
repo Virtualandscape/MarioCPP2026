@@ -66,10 +66,10 @@ namespace mario {
             if (tile_size > 0.0f) {
                 for (const auto &spawn: _level.entity_spawns()) {
                     if (spawn.type == "player" || spawn.type == "Player") {
-                        _player_id = Spawner::spawn_player(_registry, spawn, tile_size, _game.assets());
+                        _player_id = Spawner::spawn_player(_registry, spawn, _game.assets());
                         player_spawned = true;
                     } else {
-                        Spawner::spawn_enemy(_registry, spawn, tile_size);
+                        Spawner::spawn_enemy(_registry, spawn);
                     }
                 }
             }
