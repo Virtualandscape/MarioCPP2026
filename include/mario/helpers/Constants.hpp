@@ -36,7 +36,7 @@
             return std::sqrt(2.0f * DEFAULT_GRAVITY * (tiles * static_cast<float>(TILE_SIZE)));
         }
 
-        // Enemy
+
         // Enemy movement speed and size scaled by tile ratio
         inline constexpr float ENEMY_INITIAL_SPEED = -30.0f * TILE_SCALE;
         inline constexpr float ENEMY_SIZE = 16.0f * TILE_SCALE;
