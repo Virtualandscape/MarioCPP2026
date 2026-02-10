@@ -8,3 +8,18 @@ out
 cmake-build-debug/
 # Ignore CMake FetchContent generated dependencies (optional)
 cmake-build-debug/_deps/
+
+# Additional common build dirs and generated outputs to ignore
+cmake-bin-debug/
+cmake-build-*/
+_deps/
+# Common binary/artifact patterns created by build tools
+*.exe
+*.dll
+*.lib
+*.pdb
+*.obj
+build.ninja
+.ninja_log
+.ninja_deps
+CMakeFiles/
