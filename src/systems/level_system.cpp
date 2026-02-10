@@ -19,9 +19,11 @@ namespace mario {
         auto tile_map = level.tile_map();
         if (!tile_map) return false;
 
-        auto *pos = registry.get_component<PositionComponent>(player_id);
-        auto *size = registry.get_component<SizeComponent>(player_id);
-        if (!pos || !size) return false;
+        auto pos_opt = registry.get_component<PositionComponent>(player_id);
+        auto size_opt = registry.get_component<SizeComponent>(player_id);
+        if (!pos_opt || !size_opt) return false;
+        auto& pos = pos_opt->get();
+        auto& size = size_opt->get();
 
         if (transition_delay > 0.0f) {
             transition_delay = std::max(0.0f, transition_delay - dt);
@@ -29,13 +31,13 @@ namespace mario {
 
         // Reset the level if the player falls below the map
         float map_bottom = static_cast<float>(tile_map->height()) * static_cast<float>(tile_map->tile_size());
-        if (pos->y > map_bottom) {
+        if (pos.y > map_bottom) {
             return true;
         }
 
         if (transition_delay <= 0.0f) {
             const int map_right_px = tile_map->width() * tile_map->tile_size();
-            if (pos->x + size->width > static_cast<float>(map_right_px)) {
+            if (pos.x + size.width > static_cast<float>(map_right_px)) {
                 if (current_level_path == mario::constants::LEVEL1_PATH) {
                     current_level_path = mario::constants::LEVEL2_PATH;
                 } else {

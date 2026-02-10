@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <functional>
 #include <initializer_list>
+#include <optional>
 
 namespace mario {
 
@@ -24,30 +25,30 @@ public:
     }
 
     template<typename T>
-    T* get_component(EntityID id) {
+    std::optional<std::reference_wrapper<T>> get_component(EntityID id) {
         auto type_it = _components.find(std::type_index(typeid(T)));
-        if (type_it == _components.end()) return nullptr;
+        if (type_it == _components.end()) return std::nullopt;
         auto& map = type_it->second;
         auto it = map.find(id);
-        if (it == map.end()) return nullptr;
+        if (it == map.end()) return std::nullopt;
         try {
-            return &std::any_cast<T&>(it->second);
+            return std::optional<std::reference_wrapper<T>>(std::ref(std::any_cast<T&>(it->second)));
         } catch (const std::bad_any_cast&) {
-            return nullptr;
+            return std::nullopt;
         }
     }
 
     template<typename T>
-    const T* get_component(EntityID id) const {
+    std::optional<std::reference_wrapper<const T>> get_component(EntityID id) const {
         auto type_it = _components.find(std::type_index(typeid(T)));
-        if (type_it == _components.end()) return nullptr;
+        if (type_it == _components.end()) return std::nullopt;
         const auto& map = type_it->second;
         auto it = map.find(id);
-        if (it == map.end()) return nullptr;
+        if (it == map.end()) return std::nullopt;
         try {
-            return &std::any_cast<const T&>(it->second);
+            return std::optional<std::reference_wrapper<const T>>(std::cref(std::any_cast<const T&>(it->second)));
         } catch (const std::bad_any_cast&) {
-            return nullptr;
+            return std::nullopt;
         }
     }
 

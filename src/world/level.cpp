@@ -42,8 +42,8 @@ namespace mario {
 
         // Extracts a string field from a JSON-like text by key.
         // Returns true if the field is found and sets 'value'.
-        bool extract_string_field(const std::string &text, const char *key, std::string &value) {
-            const std::string needle = std::string("\"") + key + "\"";
+        bool extract_string_field(const std::string &text, std::string_view key, std::string &value) {
+            const std::string needle = std::string("\"") + std::string(key) + "\"";
             std::size_t pos = text.find(needle);
             if (pos == std::string::npos) {
                 return false;
@@ -75,8 +75,8 @@ namespace mario {
 
         // Extracts a float field from a JSON-like text by key.
         // Returns true if the field is found and sets 'value'.
-        bool extract_float_field(const std::string &text, const char *key, float &value) {
-            const std::string needle = std::string("\"") + key + "\"";
+        bool extract_float_field(const std::string &text, std::string_view key, float &value) {
+            const std::string needle = std::string("\"") + std::string(key) + "\"";
             std::size_t pos = text.find(needle);
             if (pos == std::string::npos) {
                 return false;
@@ -116,8 +116,8 @@ namespace mario {
 
         // Extracts a bool field from a JSON-like text by key.
         // Returns true if the field is found and sets 'value'.
-        bool extract_bool_field(const std::string &text, const char *key, bool &value) {
-            const std::string needle = std::string("\"") + key + "\"";
+        bool extract_bool_field(const std::string &text, std::string_view key, bool &value) {
+            const std::string needle = std::string("\"") + std::string(key) + "\"";
             std::size_t pos = text.find(needle);
             if (pos == std::string::npos) {
                 return false;
@@ -149,7 +149,7 @@ namespace mario {
     void Level::load(std::string_view level_id) {
         _tile_map = std::make_shared<TileMap>();
         std::vector<EntitySpawn> spawns;
-        _tile_map->load(level_id, &spawns); // Load tile map and collect entity spawn points
+        _tile_map->load(level_id, std::optional<std::reference_wrapper<std::vector<EntitySpawn>>>(std::ref(spawns))); // Load tile map and collect entity spawn points
         _entity_spawns = std::move(spawns);
 
         // Try to read the background image path and scale from the level file (if present)

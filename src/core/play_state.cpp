@@ -171,14 +171,20 @@ namespace mario {
         // Sorting backgrounds every frame is only needed if they change.
         // Keep it simple here.
         std::sort(bg_entities.begin(), bg_entities.end(), [&](EntityID a, EntityID b) {
-            auto *bga = _registry.get_component<BackgroundComponent>(a);
-            auto *bgb = _registry.get_component<BackgroundComponent>(b);
-            return (bga && bgb) ? (bga->parallax < bgb->parallax) : false;
+            // Get background components as optionals; compare parallax if both present.
+            auto a_opt = _registry.get_component<BackgroundComponent>(a);
+            auto b_opt = _registry.get_component<BackgroundComponent>(b);
+            if (!a_opt || !b_opt) return false;
+            const auto &a_ref = a_opt->get();
+            const auto &b_ref = b_opt->get();
+            return (a_ref.parallax < b_ref.parallax);
         });
 
         for (auto entity: bg_entities) {
-            if (auto *bg = _registry.get_component<BackgroundComponent>(entity)) {
-                _background_system.render(_game.renderer(), *cam, _game.assets(), *bg);
+            auto bg_opt = _registry.get_component<BackgroundComponent>(entity);
+            if (bg_opt) {
+                auto &bg = bg_opt->get();
+                _background_system.render(_game.renderer(), *cam, _game.assets(), bg);
             }
         }
         _cloud_system.render(_game.renderer(), *cam, _game.assets(), _registry);

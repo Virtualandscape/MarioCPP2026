@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <string_view>
+#include <optional>
+#include <functional>
 
 #include "mario/world/EntitySpawn.hpp"
 
@@ -9,7 +11,8 @@ namespace mario {
     //  Tile grid data, collision layer, rendering chunks.
     class TileMap {
     public:
-        void load(std::string_view map_id, std::vector<EntitySpawn>* entity_spawns = nullptr);
+        // Accept an optional reference to a vector to collect entity spawns (no raw pointer)
+        void load(std::string_view map_id, std::optional<std::reference_wrapper<std::vector<EntitySpawn>>> entity_spawns = std::nullopt);
 
         void unload();
 

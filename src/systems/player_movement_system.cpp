@@ -17,24 +17,26 @@ void PlayerMovementSystem::update(EntityManager& registry, float dt) const
 
     for (const auto entity : entities) {
         // Components must exist for each returned entity, so direct access is safe.
-        auto* input = registry.get_component<PlayerInputComponent>(entity);
-        auto* vel = registry.get_component<VelocityComponent>(entity);
+        auto input_opt = registry.get_component<PlayerInputComponent>(entity);
+        auto vel_opt = registry.get_component<VelocityComponent>(entity);
 
-        // Small defensive check in case of unexpected state (keeps behavior robust)
-        if (!input || !vel) continue;
+        if (!input_opt || !vel_opt) continue;
+
+        auto& input = input_opt->get();
+        auto& vel = vel_opt->get();
 
         // Handle horizontal movement based on input axis
-        vel->vx = input->move_axis * mario::constants::PLAYER_MOVE_SPEED;
+        vel.vx = input.move_axis * mario::constants::PLAYER_MOVE_SPEED;
 
         // Handle jumping: allow jump only if not held and jump count below limit (double-jump)
-        if (input->jump_pressed && !input->jump_held && input->jump_count < 2) {
+        if (input.jump_pressed && !input.jump_held && input.jump_count < 2) {
             // Compute jump speed to reach PLAYER_JUMP_TILES using the project's gravity setting.
-            vel->vy = -mario::constants::jump_speed_for_tiles(mario::constants::PLAYER_JUMP_TILES);
-            input->jump_count++;
+            vel.vy = -mario::constants::jump_speed_for_tiles(mario::constants::PLAYER_JUMP_TILES);
+            input.jump_count++;
         }
 
         // Update jump held state for next frame
-        input->jump_held = input->jump_pressed;
+        input.jump_held = input.jump_pressed;
     }
 }
 

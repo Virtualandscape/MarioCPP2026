@@ -12,8 +12,8 @@ namespace mario {
     void BackgroundSystem::render(Renderer& renderer, const Camera& camera, AssetManager& assets, const BackgroundComponent& bg) {
         // Get viewport dimensions
         const auto viewport = renderer.viewport_size();
-        // Retrieve the texture for the background
-        sf::Texture* tex = assets.get_mutable_texture(bg.texture_id);
+        // Retrieve the texture for the background (returns shared_ptr)
+        auto tex = assets.get_mutable_texture(bg.texture_id);
         if (!tex) {
             return; // nothing to draw
         }

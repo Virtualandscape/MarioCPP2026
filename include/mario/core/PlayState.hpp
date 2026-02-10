@@ -58,7 +58,7 @@ namespace mario {
         EntityManager _registry;
         bool _running = true;
         float _level_transition_delay = 0.0f;
-        std::string _current_level_path = mario::constants::LEVEL1_PATH;
+        std::string _current_level_path = std::string(mario::constants::LEVEL1_PATH); // Initialize current level path from constants; construct std::string from string_view to avoid narrowing.
 
         // Track the previous state of the ToggleDebug key to perform a rising-edge toggle
         bool _debug_toggle_last_state = false;

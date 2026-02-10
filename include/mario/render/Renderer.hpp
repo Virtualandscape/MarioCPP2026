@@ -17,7 +17,8 @@ namespace mario {
 
         void set_camera(float x, float y);
 
-        void draw_sprite(const sf::Texture* texture, float x, float y, float width = -1.0f, float height = -1.0f, const sf::IntRect& texture_rect = sf::IntRect());
+        // Draw using a texture reference (avoids raw pointer parameters in public API)
+        void draw_sprite(const sf::Texture& texture, float x, float y, float width = -1.0f, float height = -1.0f, const sf::IntRect& texture_rect = sf::IntRect());
 
         void draw_sprite(int sprite_id, float x, float y);
 

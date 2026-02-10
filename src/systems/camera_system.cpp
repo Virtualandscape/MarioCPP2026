@@ -20,12 +20,11 @@ namespace mario {
             return;
         }
 
-        // Query target entity components using safe component access
-        const auto* pos_comp = registry.get_component<PositionComponent>(target);
-        const auto* size_comp = registry.get_component<SizeComponent>(target);
-
-        if (pos_comp && size_comp) {
-            _update_camera_target(camera, *pos_comp, *size_comp);
+        // Query target entity components using optional reference API
+        auto pos_opt = registry.get_component<PositionComponent>(target);
+        auto size_opt = registry.get_component<SizeComponent>(target);
+        if (pos_opt && size_opt) {
+            _update_camera_target(camera, pos_opt->get(), size_opt->get());
         }
     }
 
@@ -41,12 +40,11 @@ namespace mario {
             return;
         }
 
-        // Query target entity components using safe component access
-        const auto* pos_comp = registry.get_component<PositionComponent>(target);
-        const auto* size_comp = registry.get_component<SizeComponent>(target);
-
-        if (pos_comp && size_comp) {
-            _initialize_camera_target(camera, *pos_comp, *size_comp, viewport_w, viewport_h, initial_offset_x, initial_offset_y);
+        // Query target entity components using optional reference API
+        auto pos_opt2 = registry.get_component<PositionComponent>(target);
+        auto size_opt2 = registry.get_component<SizeComponent>(target);
+        if (pos_opt2 && size_opt2) {
+            _initialize_camera_target(camera, pos_opt2->get(), size_opt2->get(), viewport_w, viewport_h, initial_offset_x, initial_offset_y);
         }
     }
 

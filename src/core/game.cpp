@@ -16,7 +16,12 @@ namespace mario {
 
     // Cleanup resources and set the running flag to false.
     void Game::shutdown() {
+        // First clear states so GameState destructors run and release any resources they own.
         _states.clear();
+
+        // Explicitly unload cached assets to release SFML resources promptly.
+        _assets.unload_all();
+
         _running = false;
     }
 

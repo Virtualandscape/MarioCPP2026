@@ -80,19 +80,19 @@ namespace mario {
         }
     }
 
-    void Renderer::draw_sprite(const sf::Texture* texture, float x, float y, float width, float height, const sf::IntRect& texture_rect) {
-        if (!_window.isOpen() || !texture) {
+    void Renderer::draw_sprite(const sf::Texture& texture, float x, float y, float width, float height, const sf::IntRect& texture_rect) {
+        if (!_window.isOpen()) {
             return;
         }
 
-        sf::Sprite sprite(*texture);
-        
+        sf::Sprite sprite(texture);
+
         sf::Vector2f source_size;
         if (texture_rect.size.x != 0 && texture_rect.size.y != 0) {
             sprite.setTextureRect(texture_rect);
             source_size = { std::abs(static_cast<float>(texture_rect.size.x)), std::abs(static_cast<float>(texture_rect.size.y)) };
         } else {
-            auto tex_size = texture->getSize();
+            auto tex_size = texture.getSize();
             source_size = { static_cast<float>(tex_size.x), static_cast<float>(tex_size.y) };
         }
 

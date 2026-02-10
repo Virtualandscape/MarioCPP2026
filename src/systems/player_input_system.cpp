@@ -23,13 +23,14 @@ namespace mario {
 
         // Update all player input components with current input state
         for (auto entity: entities) {
-            auto* player_input = registry.get_component<PlayerInputComponent>(entity);
-            if (player_input) {
+            auto player_input_opt = registry.get_component<PlayerInputComponent>(entity);
+            if (player_input_opt) {
+                auto& player_input = player_input_opt->get();
                 // Cache previous jump state (held) before updating current
-                player_input->jump_held = player_input->jump_pressed;
+                player_input.jump_held = player_input.jump_pressed;
                 // Update with current frame input
-                player_input->jump_pressed = jump_pressed;
-                player_input->move_axis = move_axis;
+                player_input.jump_pressed = jump_pressed;
+                player_input.move_axis = move_axis;
             }
         }
     }

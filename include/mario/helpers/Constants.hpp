@@ -3,6 +3,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <array>
 #include <cmath>
+#include <string_view>
 
 
     namespace mario::constants {
@@ -77,12 +78,12 @@
         inline constexpr float CLOUD_BIG_SPACING = 300.0f;
         inline constexpr float CLOUD_MEDIUM_SPACING = 250.0f;
         inline constexpr float CLOUD_SMALL_SPACING = 200.0f;
-        // Level paths
-        inline constexpr const char* LEVEL1_PATH = "assets/levels/level1.json";
-        inline constexpr const char* LEVEL2_PATH = "assets/levels/level2.json";
+        // Level paths (string_view avoids raw pointer usage for literals)
+        inline constexpr std::string_view LEVEL1_PATH = "assets/levels/level1.json";
+        inline constexpr std::string_view LEVEL2_PATH = "assets/levels/level2.json";
 
         // Central list of available levels (single definition point)
-        inline constexpr std::array<const char*, 2> LEVEL_PATHS = { LEVEL1_PATH, LEVEL2_PATH };
+        inline constexpr std::array<std::string_view, 2> LEVEL_PATHS = { LEVEL1_PATH, LEVEL2_PATH };
 
         // Camera zoom scale: multiply world viewport to show more/less area. >1 = zoom out (show more tiles), <1 = zoom in.
         // Default: zoom out a bit so camera shows more area after switching to 32px tiles.

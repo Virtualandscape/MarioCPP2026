@@ -20,19 +20,24 @@ namespace mario {
         registry.get_entities_with<EnemyComponent>(entities);
 
         for (auto entity : entities) {
-            auto* enemy = registry.get_component<EnemyComponent>(entity);
-            auto* vel = registry.get_component<VelocityComponent>(entity);
-            auto* coll = registry.get_component<CollisionInfoComponent>(entity);
-            auto* pos = registry.get_component<PositionComponent>(entity);
-            auto* size = registry.get_component<SizeComponent>(entity);
+            auto enemy_opt = registry.get_component<EnemyComponent>(entity);
+            auto vel_opt = registry.get_component<VelocityComponent>(entity);
+            auto coll_opt = registry.get_component<CollisionInfoComponent>(entity);
+            auto pos_opt = registry.get_component<PositionComponent>(entity);
+            auto size_opt = registry.get_component<SizeComponent>(entity);
 
-            if (enemy && vel && coll && pos && size) {
-                // Only reverse direction if collision occurred and velocity is significant
+            if (enemy_opt && vel_opt && coll_opt && pos_opt && size_opt) {
+                auto& enemy = enemy_opt->get();
+                auto& vel = vel_opt->get();
+                auto& coll = coll_opt->get();
+                auto& pos = pos_opt->get();
+                auto& size = size_opt->get();
+                // Only reverse direction on collision and velocity is significant
                 constexpr float MIN_SPEED_THRES = 0.1f;
-                float speed = std::abs(vel->vx);
+                float speed = std::abs(vel.vx);
 
-                if (coll->collided && speed >= MIN_SPEED_THRES) {
-                    vel->vx = -vel->vx;
+                if (coll.collided && speed >= MIN_SPEED_THRES) {
+                    vel.vx = -vel.vx;
                 }
 
                 // Constrain movement to the contiguous solid platform beneath the enemy
@@ -40,8 +45,8 @@ namespace mario {
                 if (tile_size <= 0) continue;
 
                 // Calculate tile coordinates for the tile directly below the enemy's feet
-                const float feet_x = pos->x + size->width * 0.5f; // center x
-                const float feet_y = pos->y + size->height; // bottom y
+                const float feet_x = pos.x + size.width * 0.5f; // center x
+                const float feet_y = pos.y + size.height; // bottom y
 
                 const int tile_x = static_cast<int>(std::floor(feet_x / static_cast<float>(tile_size)));
                 const int tile_y = static_cast<int>(std::floor((feet_y + 1.0f) / static_cast<float>(tile_size)));
@@ -64,12 +69,12 @@ namespace mario {
 
                 // Check if enemy is approaching platform edge and reverse direction if needed
                 constexpr float eps = 0.001f;
-                const float next_x = pos->x + vel->vx * dt;
+                const float next_x = pos.x + vel.vx * dt;
 
-                if (vel->vx > 0.0f && (next_x + size->width) > (platform_right - eps)) {
-                    if (std::abs(vel->vx) >= MIN_SPEED_THRES) vel->vx = -vel->vx;
-                } else if (vel->vx < 0.0f && next_x < (platform_left + eps)) {
-                    if (std::abs(vel->vx) >= MIN_SPEED_THRES) vel->vx = -vel->vx;
+                if (vel.vx > 0.0f && (next_x + size.width) > (platform_right - eps)) {
+                    if (std::abs(vel.vx) >= MIN_SPEED_THRES) vel.vx = -vel.vx;
+                } else if (vel.vx < 0.0f && next_x < (platform_left + eps)) {
+                    if (std::abs(vel.vx) >= MIN_SPEED_THRES) vel.vx = -vel.vx;
                 }
             }
         }

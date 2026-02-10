@@ -24,15 +24,16 @@ void CloudSystem::update(EntityManager& registry, float dt) {
     registry.get_entities_with<CloudComponent>(entities);
 
     for (auto entity : entities) {
-        auto* cloud = registry.get_component<CloudComponent>(entity);
-        if (!cloud) continue;
+        auto cloud_opt = registry.get_component<CloudComponent>(entity);
+        if (!cloud_opt) continue;
+        auto& cloud = cloud_opt->get();
 
         // Move cloud horizontally based on speed and delta time
-        cloud->x += cloud->speed * dt;
+        cloud.x += cloud.speed * dt;
 
         // Reset cloud to spawn position when it goes off-screen
-        if (cloud->x > CLOUD_RESET_X) {
-            cloud->x = CLOUD_SPAWN_X;
+        if (cloud.x > CLOUD_RESET_X) {
+            cloud.x = CLOUD_SPAWN_X;
         }
     }
 }
@@ -45,10 +46,10 @@ void CloudSystem::render(Renderer& renderer, const Camera& camera, AssetManager&
 
     // Sort clouds by layer for correct depth ordering (Big < Medium < Small means Big renders first)
     std::sort(entities.begin(), entities.end(), [&](EntityID a, EntityID b) {
-        auto* ca = registry.get_component<CloudComponent>(a);
-        auto* cb = registry.get_component<CloudComponent>(b);
-        if (!ca || !cb) return false;
-        return static_cast<int>(ca->layer) < static_cast<int>(cb->layer);
+        auto ca_opt = registry.get_component<CloudComponent>(a);
+        auto cb_opt = registry.get_component<CloudComponent>(b);
+        if (!ca_opt || !cb_opt) return false;
+        return static_cast<int>(ca_opt->get().layer) < static_cast<int>(cb_opt->get().layer);
     });
 
     sf::RenderWindow& window = renderer.window();
@@ -56,19 +57,20 @@ void CloudSystem::render(Renderer& renderer, const Camera& camera, AssetManager&
     window.setView(window.getDefaultView());
 
     for (auto entity : entities) {
-        auto* cloud = registry.get_component<CloudComponent>(entity);
-        if (!cloud) continue;
+        auto cloud_opt = registry.get_component<CloudComponent>(entity);
+        if (!cloud_opt) continue;
+        auto& cloud = cloud_opt->get();
 
-        sf::Texture* tex = assets.get_mutable_texture(cloud->texture_id);
+        auto tex = assets.get_mutable_texture(cloud.texture_id);
         if (!tex) continue;
 
         // Create sprite and apply scale
         sf::Sprite sprite(*tex);
-        sprite.setScale({cloud->scale, cloud->scale});
+        sprite.setScale({cloud.scale, cloud.scale});
 
         // Position with parallax effect: clouds move less than camera
-        float pos_x = cloud->x - camera.x() * CLOUD_PARALLAX;
-        float pos_y = cloud->y;
+        float pos_x = cloud.x - camera.x() * CLOUD_PARALLAX;
+        float pos_y = cloud.y;
         sprite.setPosition({pos_x, pos_y});
         window.draw(sprite);
     }

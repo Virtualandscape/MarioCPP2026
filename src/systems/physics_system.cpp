@@ -14,11 +14,13 @@ void PhysicsSystem::update(EntityManager& registry, float dt) const
     static thread_local std::vector<EntityID> entities;
     registry.get_entities_with<PositionComponent, VelocityComponent>(entities);
     for (auto entity : entities) {
-        auto* pos = registry.get_component<PositionComponent>(entity);
-        auto* vel = registry.get_component<VelocityComponent>(entity);
-        if (pos && vel) {
+        auto pos_opt = registry.get_component<PositionComponent>(entity);
+        auto vel_opt = registry.get_component<VelocityComponent>(entity);
+        if (pos_opt && vel_opt) {
+            auto& pos = pos_opt->get();
+            auto& vel = vel_opt->get();
             // Apply gravity acceleration to vertical velocity
-            vel->vy += _gravity * dt;
+            vel.vy += _gravity * dt;
             // Note: Position integration is handled by the CollisionSystem after resolving tile collisions
         }
     }

@@ -53,16 +53,20 @@ namespace mario {
         return true;
     }
 
-    sf::Texture* AssetManager::get_mutable_texture(int id) {
+    // Return a shared ownership pointer to the texture so callers don't hold raw pointers.
+    // This matches the declaration in the header and avoids returning raw pointers.
+    std::shared_ptr<sf::Texture> AssetManager::get_mutable_texture(int id) {
         auto it = _textures.find(id);
-        if (it == _textures.end()) return nullptr;
-        return it->second.get();
+        if (it == _textures.end()) return std::shared_ptr<sf::Texture>();
+        return it->second;
     }
 
-    const sf::Texture* AssetManager::get_texture(int id) const {
+    // Return a shared_ptr to a const texture. We cast the stored shared_ptr<sf::Texture>
+    // to shared_ptr<const sf::Texture> for callers that need a read-only view.
+    std::shared_ptr<const sf::Texture> AssetManager::get_texture(int id) const {
         auto it = _textures.find(id);
-        if (it == _textures.end()) return nullptr;
-        return it->second.get();
+        if (it == _textures.end()) return std::shared_ptr<const sf::Texture>();
+        return std::static_pointer_cast<const sf::Texture>(it->second);
     }
 
     bool AssetManager::has_texture(int id) const {
