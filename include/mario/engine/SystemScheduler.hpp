@@ -8,28 +8,25 @@
 #include <functional>
 #include <vector>
 
-namespace mario {
-namespace engine {
+namespace mario::engine {
 
-// Simple scheduler to run ordered ECS systems inside the engine loop.
-class SystemScheduler {
-public:
-    using UpdateFn = std::function<void(EntityManager&, float)>;
-    using RenderFn = std::function<void(EntityManager&, Renderer&, AssetManager&, const Camera&)>;
+    // Simple scheduler to run ordered ECS systems inside the engine loop.
+    class SystemScheduler {
+    public:
+        using UpdateFn = std::function<void(EntityManager&, float)>;
+        using RenderFn = std::function<void(EntityManager&, Renderer&, AssetManager&, const Camera&)>;
 
-    void add_system(UpdateFn system);
-    void add_render_system(RenderFn system);
+        void add_system(UpdateFn system);
+        void add_render_system(RenderFn system);
 
-    void update(EntityManager& registry, float dt);
-    void render(EntityManager& registry, Renderer& renderer, AssetManager& assets, const Camera& camera);
+        void update(EntityManager& registry, float dt);
+        void render(EntityManager& registry, Renderer& renderer, AssetManager& assets, const Camera& camera);
 
-    void clear();
+        void clear();
 
-private:
-    std::vector<UpdateFn> _update_systems;
-    std::vector<RenderFn> _render_systems;
-};
+    private:
+        std::vector<UpdateFn> _update_systems;
+        std::vector<RenderFn> _render_systems;
+    };
 
-} // namespace engine
-} // namespace mario
-
+}

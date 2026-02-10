@@ -9,6 +9,7 @@
 #include "mario/world/TileMap.hpp"
 #include "mario/helpers/Constants.hpp"
 #include "mario/resources/AssetManager.hpp"
+#include "mario/systems/CollisionSystem.hpp"
 
 #include <algorithm>
 #include <string>
@@ -119,8 +120,8 @@ namespace mario {
 
 
     void PlayState::handle_level_transitions() {
-        if (LevelSystem::handle_transitions(_game.entity_manager(), _player_id, _level, _current_level_path, _level_transition_delay,
-                                            0.016f)) {
+        if (_level_transition_pending) {
+            _level_transition_pending = false;
             on_exit();
             on_enter();
         }
@@ -143,8 +144,8 @@ namespace mario {
     void PlayState::setup_systems() {
         auto& scheduler = _game.system_scheduler();
         scheduler.add_system([this](EntityManager& registry, float dt) {
-             _player_input.update(registry, _game.input());
-         });
+            _player_input.update(registry, _game.input());
+        });
         scheduler.add_system([this](EntityManager& registry, float dt) {
             _player_movement.update(registry, dt);
         });
@@ -165,6 +166,11 @@ namespace mario {
         scheduler.add_system([this](EntityManager& registry, float dt) {
             if (const auto tile_map = _level.tile_map()) {
                 CollisionSystem::update(registry, *tile_map, dt);
+            }
+        });
+        scheduler.add_system([this](EntityManager& registry, float dt) {
+            if (LevelSystem::handle_transitions(registry, _player_id, _level, _current_level_path, _level_transition_delay, dt)) {
+                _level_transition_pending = true;
             }
         });
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "mario/core/GameState.hpp"
-#include "mario/systems/CollisionSystem.hpp"
 #include "mario/systems/PhysicsSystem.hpp"
 #include "mario/systems/PlayerInputSystem.hpp"
 #include "mario/systems/PlayerMovementSystem.hpp"
@@ -14,12 +13,9 @@
 #include "mario/systems/CameraSystem.hpp"
 #include "mario/systems/DebugDrawSystem.hpp"
 #include "mario/world/Level.hpp"
-#include "mario/world/TileMap.hpp"
 #include "mario/ui/HUD.hpp"
 #include "mario/ecs/EntityManager.hpp"
-#include "mario/ecs/components/SpriteComponent.hpp"
 #include "mario/helpers/Constants.hpp"
-#include <memory>
 #include <string>
 
 namespace mario {
@@ -27,21 +23,28 @@ namespace mario {
 
     class PlayState : public GameState {
     public:
-        PlayState(Game& game);
-        PlayState(Game& game, std::string level_path);
+        PlayState(Game &game);
+
+        PlayState(Game &game, std::string level_path);
 
         void on_enter() override;
+
         void on_exit() override;
+
         void update(float dt) override;
+
         void render() override;
+
         bool is_running() const override;
 
     private:
         void handle_level_transitions();
+
         void handle_input();
+
         void setup_systems();
 
-        Game& _game;
+        Game &_game;
         EntityID _player_id;
         PhysicsSystem _physics;
         PlayerInputSystem _player_input;
@@ -57,6 +60,7 @@ namespace mario {
         HUD _hud;
         bool _running = true;
         float _level_transition_delay = 0.0f;
+        bool _level_transition_pending = false;
         std::string _current_level_path = std::string(mario::constants::LEVEL1_PATH); // Initialize current level path from constants; construct std::string from string_view to avoid narrowing.
 
         // Track the previous state of the ToggleDebug key to perform a rising-edge toggle
