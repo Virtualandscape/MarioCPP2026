@@ -8,6 +8,8 @@ out
 cmake-build-debug/
 # Ignore CMake FetchContent generated dependencies (optional)
 cmake-build-debug/_deps/
+# Ignore specific FetchContent dependency folder that can be in a detached HEAD state
+/cmake-build-debug/_deps/flac-src/
 
 # Additional common build dirs and generated outputs to ignore
 cmake-bin-debug/
