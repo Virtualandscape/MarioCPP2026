@@ -10,7 +10,7 @@
 
 namespace mario {
     namespace {
-        // Fixed tile size used project-wide (px). JSON "tileSize" is deprecated and ignored.
+        // Fixed the tile size used project-wide (px). JSON "tileSize" is deprecated and ignored.
         constexpr int kFixedTileSize = 32;
 
         // Loads a default tile map with a single solid tile and entities.
@@ -258,7 +258,7 @@ namespace mario {
             std::cerr << "Warning: level '" << std::string(map_id) << "' contains 'tileSize' which is deprecated and will be ignored; using project TILE_SIZE=" << kFixedTileSize << std::endl;
         }
 
-        // Prefer rows length as source of truth for map width. If the JSON "width" differs, adopt rows length and warn.
+        // Prefer rows length as a source of truth for map width. If the JSON "width" differs, adopt rows length and warn.
         if (!rows.empty()) {
             const int rows_len = static_cast<int>(rows[0].size());
             if (width != rows_len) {

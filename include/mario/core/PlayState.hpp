@@ -39,11 +39,11 @@ namespace mario {
     private:
         void handle_level_transitions();
         void handle_input();
+        void setup_systems();
 
         Game& _game;
         EntityID _player_id;
         PhysicsSystem _physics;
-        CollisionSystem _collision;
         PlayerInputSystem _player_input;
         PlayerMovementSystem _player_movement;
         EnemySystem _enemy_system;
@@ -55,7 +55,6 @@ namespace mario {
         DebugDrawSystem _debug_draw_system;
         Level _level;
         HUD _hud;
-        EntityManager _registry;
         bool _running = true;
         float _level_transition_delay = 0.0f;
         std::string _current_level_path = std::string(mario::constants::LEVEL1_PATH); // Initialize current level path from constants; construct std::string from string_view to avoid narrowing.

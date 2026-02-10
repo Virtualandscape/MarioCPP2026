@@ -4,15 +4,15 @@
 #include "mario/core/PlayState.hpp"
 #include "mario/core/Game.hpp"
 #include "mario/world/Camera.hpp"
-#include "mario/ecs/components/PositionComponent.hpp"
-#include "mario/ecs/components/SizeComponent.hpp"
 #include "mario/ecs/components/BackgroundComponent.hpp"
 #include "mario/helpers/Spawner.hpp"
 #include "mario/world/TileMap.hpp"
 #include "mario/helpers/Constants.hpp"
+#include "mario/resources/AssetManager.hpp"
 
 #include <algorithm>
 #include <string>
+#include <vector>
 
 namespace mario {
 
@@ -22,13 +22,13 @@ namespace mario {
 
     PlayState::PlayState(Game &game, std::string level_path) : _game(game), _player_id(0),
                                                                _current_level_path(std::move(level_path)),
-                                                               _hud(game.renderer()) {
-    }
+                                                               _hud(game.renderer()) {}
 
     // Called when entering the play state. Loads the level, background, and spawns the player.
     void PlayState::on_enter() {
         // Load level
         _level.load(_current_level_path);
+        auto& registry = _game.entity_manager();
 
         // Background loading (level dependent)
         const std::string &level_bg_path = _level.background_path();
@@ -36,7 +36,7 @@ namespace mario {
             if (_game.assets().load_texture(mario::constants::BACKGROUND_TEXTURE_ID, level_bg_path)) {
                 // Create the main background entity. BackgroundSystem will create an entity and attach a BackgroundComponent
                 // configured with scale, parallax and tiling parameters.
-                _background_system.create_background_entity(_registry, mario::constants::BACKGROUND_TEXTURE_ID, true, BackgroundComponent::ScaleMode::Fill,
+                _background_system.create_background_entity(registry, mario::constants::BACKGROUND_TEXTURE_ID, true, BackgroundComponent::ScaleMode::Fill,
                                          _level.background_scale(), 0.0f, false, false, 0.0f, 0.0f);
             }
 
@@ -45,7 +45,7 @@ namespace mario {
             for (const auto &layer: _level.background_layers()) {
                 if (_game.assets().load_texture(texture_id, layer.path)) {
                     // Create a background entity for this layer (parallax, repeat and offsets are handled by BackgroundSystem).
-                    _background_system.create_background_entity(_registry, texture_id, true, BackgroundComponent::ScaleMode::Fit, layer.scale,
+                    _background_system.create_background_entity(registry, texture_id, true, BackgroundComponent::ScaleMode::Fit, layer.scale,
                                              layer.parallax, layer.repeat, layer.repeat_x, 0.0f, 0.0f);
                 }
                 ++texture_id;
@@ -55,7 +55,7 @@ namespace mario {
         // Initialize clouds if enabled for this level
         if (_level.clouds_enabled()) {
             // Initialize cloud entities via CloudSystem: it creates and configures cloud entities/components using the AssetManager and registry.
-            _cloud_system.initialize(_game.assets(), _registry);
+            _cloud_system.initialize(_game.assets(), registry);
         }
 
         // Spawn entities
@@ -66,33 +66,37 @@ namespace mario {
             if (tile_size > 0.0f) {
                 for (const auto &spawn: _level.entity_spawns()) {
                     if (spawn.type == "player" || spawn.type == "Player") {
-                        _player_id = Spawner::spawn_player(_registry, spawn, _game.assets());
+                        _player_id = Spawner::spawn_player(registry, spawn, _game.assets());
                         player_spawned = true;
                     } else {
-                        Spawner::spawn_enemy(_registry, spawn);
+                        Spawner::spawn_enemy(registry, spawn);
                     }
                 }
             }
         }
         if (!player_spawned) {
-            _player_id = Spawner::spawn_player_default(_registry, _game.assets());
+            _player_id = Spawner::spawn_player_default(registry, _game.assets());
         }
 
         // Initialize camera via CameraSystem (sets viewport, centers on player if available and applies initial offset)
         if (auto camera = _level.camera()) {
             const auto viewport = _game.renderer().viewport_size();
             // Apply initial horizontal offset (-100) to make the damping animation visible on enter
-            _camera_system.initialize(_registry, *camera, viewport.x, viewport.y, _player_id, -100.0f, 0.0f);
+            _camera_system.initialize(registry, *camera, viewport.x, viewport.y, _player_id, -100.0f, 0.0f);
         }
 
         _running = true;
         _level_transition_delay = 0.5f; // LevelTransitionCooldown
+        auto& scheduler = _game.system_scheduler();
+        scheduler.clear();
+        setup_systems();
     }
 
     // Called when exiting the play state. Unloads the level and clears the registry.
     void PlayState::on_exit() {
         // Clear registry to remove entities/components from the previous level
-        _registry.clear();
+        auto& registry = _game.entity_manager();
+        registry.clear();
         _player_id = 0;
         _level.unload();
     }
@@ -100,27 +104,12 @@ namespace mario {
     // Updates the game logic, including the level, player, and HUD.
     void PlayState::update(float dt) {
         handle_input();
+        auto& registry = _game.entity_manager();
+        _game.system_scheduler().update(registry, dt);
 
-        auto tile_map = _level.tile_map();
-
-        // Update ECS systems
-        _player_input.update(_registry, _game.input());
-        _player_movement.update(_registry, dt);
-        _animation_system.update(_registry, dt);
-        if (tile_map) {
-            _enemy_system.update(_registry, *tile_map, dt);
-        }
-        _physics.update(_registry, dt);
-        _cloud_system.update(_registry, dt);
-        if (tile_map) {
-            CollisionSystem::update(_registry, *tile_map, dt);
-        }
-
-        // Delegate camera following logic to the CameraSystem.
-        // CameraSystem will set viewport and follow the player entity when available.
         if (auto camera_ptr = _level.camera()) {
             const auto viewport = _game.renderer().viewport_size();
-            _camera_system.update(_registry, *camera_ptr, dt, viewport.x, viewport.y, _player_id);
+            _camera_system.update(registry, *camera_ptr, dt, viewport.x, viewport.y, _player_id);
         }
 
         _level.update(dt);
@@ -130,7 +119,7 @@ namespace mario {
 
 
     void PlayState::handle_level_transitions() {
-        if (LevelSystem::handle_transitions(_registry, _player_id, _level, _current_level_path, _level_transition_delay,
+        if (LevelSystem::handle_transitions(_game.entity_manager(), _player_id, _level, _current_level_path, _level_transition_delay,
                                             0.016f)) {
             on_exit();
             on_enter();
@@ -151,59 +140,74 @@ namespace mario {
         _debug_toggle_last_state = current;
     }
 
+    void PlayState::setup_systems() {
+        auto& scheduler = _game.system_scheduler();
+        scheduler.add_system([this](EntityManager& registry, float dt) {
+             _player_input.update(registry, _game.input());
+         });
+        scheduler.add_system([this](EntityManager& registry, float dt) {
+            _player_movement.update(registry, dt);
+        });
+        scheduler.add_system([this](EntityManager& registry, float dt) {
+            _animation_system.update(registry, dt);
+        });
+        scheduler.add_system([this](EntityManager& registry, float dt) {
+            if (const auto tile_map = _level.tile_map()) {
+                _enemy_system.update(registry, *tile_map, dt);
+            }
+        });
+        scheduler.add_system([this](EntityManager& registry, float dt) {
+            _physics.update(registry, dt);
+        });
+        scheduler.add_system([this](EntityManager& registry, float dt) {
+            _cloud_system.update(registry, dt);
+        });
+        scheduler.add_system([this](EntityManager& registry, float dt) {
+            if (const auto tile_map = _level.tile_map()) {
+                CollisionSystem::update(registry, *tile_map, dt);
+            }
+        });
+
+        scheduler.add_render_system([this](EntityManager& registry, Renderer& renderer, AssetManager& assets, const Camera& camera) {
+            static thread_local std::vector<EntityID> bg_entities;
+            registry.get_entities_with<BackgroundComponent>(bg_entities);
+            std::sort(bg_entities.begin(), bg_entities.end(), [&](EntityID a, EntityID b) {
+                auto a_opt = registry.get_component<BackgroundComponent>(a);
+                auto b_opt = registry.get_component<BackgroundComponent>(b);
+                if (!a_opt || !b_opt) return false;
+                return (a_opt->get().parallax < b_opt->get().parallax);
+            });
+            for (auto entity: bg_entities) {
+                if (auto bg_opt = registry.get_component<BackgroundComponent>(entity)) {
+                    _background_system.render(renderer, camera, assets, bg_opt->get());
+                }
+            }
+            _cloud_system.render(renderer, camera, assets, registry);
+            _level.render(renderer);
+            _sprite_render_system.render(renderer, camera, registry, assets);
+            _debug_draw_system.render(renderer, camera, registry);
+
+            std::string level_name = "Level 1";
+            if (_current_level_path == mario::constants::LEVEL2_PATH) {
+                level_name = "Level 2";
+            }
+            _hud.set_level_name(level_name);
+            _hud.render();
+        });
+    }
+
     // Renders the game world and HUD.
     void PlayState::render() {
         _game.renderer().begin_frame();
 
         auto camera_ptr = _level.camera();
-        // Prepare a camera pointer (use a dummy camera when none is provided by the level)
         Camera dummy;
-        // camera_ptr is a std::shared_ptr<Camera>; get a raw pointer for APIs that expect Camera*.
         Camera *cam = camera_ptr ? camera_ptr.get() : &dummy;
         if (camera_ptr) {
             _game.renderer().set_camera(cam->x(), cam->y());
         }
 
-        // Render background(s)
-        static thread_local std::vector<EntityID> bg_entities;
-        _registry.get_entities_with<BackgroundComponent>(bg_entities);
-
-        // Sorting backgrounds every frame is only needed if they change.
-        // Keep it simple here.
-        std::sort(bg_entities.begin(), bg_entities.end(), [&](EntityID a, EntityID b) {
-            // Get background components as optionals; compare parallax if both present.
-            auto a_opt = _registry.get_component<BackgroundComponent>(a);
-            auto b_opt = _registry.get_component<BackgroundComponent>(b);
-            if (!a_opt || !b_opt) return false;
-            const auto &a_ref = a_opt->get();
-            const auto &b_ref = b_opt->get();
-            return (a_ref.parallax < b_ref.parallax);
-        });
-
-        for (auto entity: bg_entities) {
-            auto bg_opt = _registry.get_component<BackgroundComponent>(entity);
-            if (bg_opt) {
-                auto &bg = bg_opt->get();
-                _background_system.render(_game.renderer(), *cam, _game.assets(), bg);
-            }
-        }
-        _cloud_system.render(_game.renderer(), *cam, _game.assets(), _registry);
-
-        _level.render(_game.renderer());
-
-        // Render all entities that have a SpriteComponent. SpriteRenderSystem reads Position/Size/SpriteComponent and issues draw calls.
-        _sprite_render_system.render(_game.renderer(), *cam, _registry, _game.assets());
-
-        // Render debug overlays (bounding boxes, etc.) via the dedicated DebugDrawSystem.
-        _debug_draw_system.render(_game.renderer(), *cam, _registry);
-
-        // Draw HUD
-        std::string level_name = "Level 1";
-        if (_current_level_path == mario::constants::LEVEL2_PATH) {
-            level_name = "Level 2";
-        }
-        _hud.set_level_name(level_name);
-        _hud.render();
+        _game.system_scheduler().render(_game.entity_manager(), _game.renderer(), _game.assets(), *cam);
 
         _game.renderer().end_frame();
     }
