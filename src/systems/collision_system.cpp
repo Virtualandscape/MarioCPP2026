@@ -6,7 +6,7 @@
 #include "mario/ecs/components/SizeComponent.hpp"
 #include "mario/ecs/components/CollisionInfoComponent.hpp"
 #include "mario/ecs/components/TypeComponent.hpp"
-#include "mario/ecs/components/PlayerInputComponent.hpp"
+#include "mario/ecs/components/PlayerControllerComponent.hpp"
 #include "mario/ecs/EntityTypeComponent.hpp"
 #include "mario/world/TileMap.hpp"
 #include "mario/helpers/quadtree.h"
@@ -140,8 +140,8 @@ namespace mario {
                 vel.vx = result.vx;
                 vel.vy = result.vy;
 
-                // Ground check for JumpComponent
-                if (auto input_opt = registry.get_component<PlayerInputComponent>(entity)) {
+                // Ground check for controller: reset jump_count when grounded and set on_ground flag
+                if (auto ctrl_opt = registry.get_component<PlayerControllerComponent>(entity)) {
                     constexpr float epsilon = 0.1f;
                     const float bottom = pos.y + size.height;
                     const int ty = static_cast<int>(std::floor((bottom + epsilon) / static_cast<float>(map.tile_size())));
@@ -157,7 +157,11 @@ namespace mario {
                         }
                     }
                     if (on_ground) {
-                        input_opt->get().jump_count = 0;
+                        auto &ctrl = ctrl_opt->get();
+                        ctrl.jump_count = 0;
+                        ctrl.on_ground = true;
+                    } else {
+                        ctrl_opt->get().on_ground = false;
                     }
                 }
             }

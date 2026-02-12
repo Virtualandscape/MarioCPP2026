@@ -1,9 +1,12 @@
+/*
 #pragma once
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <string>
+
+#include "mario/ecs/components/PlayerControllerComponent.hpp"
 
 namespace mario {
 
@@ -109,14 +112,8 @@ namespace mario {
         bool active = true;
     };
 
-    // Input state for player-controlled entities.
-    struct PlayerInputComponent {
-        float move_axis = 0.0f;
-        bool jump_pressed = false;
-        bool jump_held = false;
-        // Track how many jumps have been used (reset when grounded).
-        int jump_count = 0;
-    };
+    // PlayerControllerComponent is provided via dedicated header and contains input and movement state.
 
 } // namespace mario
+*/
 

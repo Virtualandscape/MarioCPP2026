@@ -2,8 +2,7 @@
 
 #include "mario/core/GameState.hpp"
 #include "mario/systems/PhysicsSystem.hpp"
-#include "mario/systems/PlayerInputSystem.hpp"
-#include "mario/systems/PlayerMovementSystem.hpp"
+#include "mario/systems/PlayerControllerSystem.hpp"
 #include "mario/systems/EnemySystem.hpp"
 #include "mario/systems/AnimationSystem.hpp"
 #include "mario/systems/LevelSystem.hpp"
@@ -47,8 +46,7 @@ namespace mario {
         Game &_game;
         EntityID _player_id;
         PhysicsSystem _physics;
-        PlayerInputSystem _player_input;
-        PlayerMovementSystem _player_movement;
+        PlayerControllerSystem _player_controller;
         EnemySystem _enemy_system;
         AnimationSystem _animation_system;
         BackgroundSystem _background_system;

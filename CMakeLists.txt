@@ -27,8 +27,7 @@ set(SOURCES
         src/resources/asset_manager.cpp
         src/systems/collision_system.cpp
         src/systems/physics_system.cpp
-        src/systems/player_input_system.cpp
-        src/systems/player_movement_system.cpp
+        src/systems/player_controller_system.cpp
         src/systems/enemy_system.cpp
         src/systems/level_system.cpp
         src/helpers/spawner.cpp
@@ -59,13 +58,12 @@ set(HEADERS
         include/mario/ecs/components/VelocityComponent.hpp
         include/mario/ecs/components/SizeComponent.hpp
         include/mario/ecs/components/CollisionInfoComponent.hpp
-        include/mario/ecs/components/PlayerInputComponent.hpp
+        include/mario/ecs/components/PlayerControllerComponent.hpp
         include/mario/ecs/components/TypeComponent.hpp
         include/mario/ecs/components/SpriteComponent.hpp
         include/mario/ecs/components/AnimationComponent.hpp
         include/mario/ecs/components/EnemyComponent.hpp
-        include/mario/systems/PlayerInputSystem.hpp
-        include/mario/systems/PlayerMovementSystem.hpp
+        include/mario/systems/PlayerControllerSystem.hpp
         include/mario/systems/EnemySystem.hpp
         include/mario/systems/LevelSystem.hpp
         include/mario/systems/AnimationSystem.hpp

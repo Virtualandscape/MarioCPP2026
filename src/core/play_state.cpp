@@ -144,10 +144,7 @@ namespace mario {
     void PlayState::setup_systems() {
         auto& scheduler = _game.system_scheduler();
         scheduler.add_system([this](EntityManager& registry, float dt) {
-            _player_input.update(registry, _game.input());
-        });
-        scheduler.add_system([this](EntityManager& registry, float dt) {
-            _player_movement.update(registry, dt);
+            _player_controller.update(registry, _game.input(), dt);
         });
         scheduler.add_system([this](EntityManager& registry, float dt) {
             _animation_system.update(registry, dt);

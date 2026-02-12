@@ -8,7 +8,7 @@
 #include "mario/ecs/components/PositionComponent.hpp"
 #include "mario/ecs/components/VelocityComponent.hpp"
 #include "mario/ecs/components/SizeComponent.hpp"
-#include "mario/ecs/components/PlayerInputComponent.hpp"
+#include "mario/ecs/components/PlayerControllerComponent.hpp"
 #include "mario/ecs/components/TypeComponent.hpp"
 #include "mario/ecs/components/CollisionInfoComponent.hpp"
 #include "mario/ecs/components/EnemyComponent.hpp"
@@ -58,7 +58,7 @@ namespace mario {
 
         // Gameplay components: input, jump state, player movement parameters
         // PlayerInputComponent contains input and jump_count now. Movement uses global constants.
-        registry.add_component<PlayerInputComponent>(id, {});
+        registry.add_component<PlayerControllerComponent>(id, {});
 
         // ECS metadata: entity type and collision info
         registry.add_component<TypeComponent>(id, {EntityTypeComponent::Player});
@@ -102,7 +102,7 @@ namespace mario {
         registry.add_component<SizeComponent>(id, {PLAYER_WIDTH * 0.5f, PLAYER_HEIGHT});
 
         // Gameplay components: input, jump state, player movement parameters
-        registry.add_component<PlayerInputComponent>(id, {});
+        registry.add_component<PlayerControllerComponent>(id, {});
 
         // ECS metadata: entity type and collision info
         registry.add_component<TypeComponent>(id, {EntityTypeComponent::Player});

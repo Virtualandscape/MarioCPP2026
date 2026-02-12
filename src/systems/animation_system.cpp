@@ -2,7 +2,7 @@
 #include "mario/ecs/components/AnimationComponent.hpp"
 #include "mario/ecs/components/SpriteComponent.hpp"
 #include "mario/ecs/components/VelocityComponent.hpp"
-#include "mario/ecs/components/PlayerInputComponent.hpp"
+#include "mario/ecs/components/PlayerControllerComponent.hpp"
 #include "mario/helpers/Constants.hpp"
 #include <cmath>
 
@@ -17,7 +17,7 @@ void AnimationSystem::update(EntityManager& registry, float dt) const {
         auto anim_opt = registry.get_component<AnimationComponent>(entity);
         auto sprite_opt = registry.get_component<SpriteComponent>(entity);
         auto vel_opt = registry.get_component<VelocityComponent>(entity);
-        auto input_opt = registry.get_component<PlayerInputComponent>(entity);
+        auto ctrl_opt = registry.get_component<PlayerControllerComponent>(entity);
 
         // If mandatory components are missing, skip entity.
         if (!anim_opt || !sprite_opt) continue;
@@ -28,27 +28,30 @@ void AnimationSystem::update(EntityManager& registry, float dt) const {
 
         AnimationComponent::State next_state = anim.current_state;
 
-        // Logic for player animation switching
-        if (vel_opt && input_opt) {
-            VelocityComponent& vel = vel_opt->get();
-            PlayerInputComponent& input = input_opt->get();
+        // Prefer controller-driven animation state when available
+        if (ctrl_opt) {
+            PlayerControllerComponent& ctrl = ctrl_opt->get();
+            next_state = ctrl.requested_state;
 
-            // Check if jumping (assuming jump_count > 0 means in air for now,
-            // though a grounded check would be better if available)
-            if (input.jump_count > 0) {
-                next_state = AnimationComponent::State::Jump;
-            } else if (std::abs(vel.vx) > 0.1f) {
+            // Update flip from controller facing direction
+            bool old_flip = anim.flip_x;
+            anim.flip_x = ctrl.facing_right;
+            if (old_flip != anim.flip_x) anim.is_dirty = true;
+        }
+        // Fallback: derive state from velocity if no controller present
+        else if (vel_opt) {
+            VelocityComponent& vel = vel_opt->get();
+            if (std::abs(vel.vx) > 0.1f) {
                 next_state = AnimationComponent::State::Run;
             } else {
                 next_state = AnimationComponent::State::Idle;
             }
 
-            // Update flip: assume true means face right, false means face left
+            // Update flip based on velocity
             bool old_flip = anim.flip_x;
             if (vel.vx > 0.1f) anim.flip_x = true;
             else if (vel.vx < -0.1f) anim.flip_x = false;
-            else anim.flip_x = true; // Default to facing right when stopped
-
+            else anim.flip_x = true; // default
             if (old_flip != anim.flip_x) anim.is_dirty = true;
         }
 
@@ -87,7 +90,7 @@ void AnimationSystem::update(EntityManager& registry, float dt) const {
             anim.is_dirty = true;
         }
 
-            // Update texture rect if dirty
+        // Update texture rect if dirty
         if (anim.is_dirty) {
             int left = anim.current_frame * constants::PLAYER_FRAME_WIDTH;
             int top = 0;
