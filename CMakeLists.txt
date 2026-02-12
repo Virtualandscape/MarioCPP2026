@@ -46,9 +46,6 @@ set(SOURCES
         src/systems/cloud_system.cpp
         src/systems/debug_draw_system.cpp
         src/systems/animation_system.cpp
-        src/engine/engine.cpp
-        src/engine/system_scheduler.cpp
-        src/engine/system_scheduler.cpp
 )
 
 set(HEADERS
@@ -70,9 +67,6 @@ set(HEADERS
         include/mario/helpers/Spawner.hpp
         include/mario/ecs/components/BackgroundComponent.hpp
         include/mario/systems/BackgroundSystem.hpp
-        include/mario/engine/Engine.hpp
-        include/mario/engine/EngineState.hpp
-        include/mario/engine/SystemScheduler.hpp
 )
 
 add_executable(Mario ${SOURCES} ${HEADERS})

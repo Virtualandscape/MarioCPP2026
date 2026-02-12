@@ -15,7 +15,10 @@
 #include "mario/ui/HUD.hpp"
 #include "mario/ecs/EntityManager.hpp"
 #include "mario/helpers/Constants.hpp"
+
 #include <string>
+#include <functional>
+#include <vector>
 
 namespace mario {
     class Game;
@@ -43,6 +46,10 @@ namespace mario {
 
         void setup_systems();
 
+        void run_update_systems(EntityManager &registry, float dt);
+
+        void run_render_systems(EntityManager &registry, const Camera &camera);
+
         Game &_game;
         EntityID _player_id;
         PhysicsSystem _physics;
@@ -59,9 +66,16 @@ namespace mario {
         bool _running = true;
         float _level_transition_delay = 0.0f;
         bool _level_transition_pending = false;
-        std::string _current_level_path = std::string(mario::constants::LEVEL1_PATH); // Initialize current level path from constants; construct std::string from string_view to avoid narrowing.
+
+        // Initialize current level path using constants so the default matches the first level.
+        std::string _current_level_path = std::string(mario::constants::LEVEL1_PATH);
 
         // Track the previous state of the ToggleDebug key to perform a rising-edge toggle
         bool _debug_toggle_last_state = false;
+
+        // Ordered update callbacks to keep the ECS steps deterministic.
+        std::vector<std::function<void(EntityManager&, float)>> _update_systems;
+        // Render callbacks that rely on the camera context provided each frame.
+        std::vector<std::function<void(EntityManager&, Renderer&, AssetManager&, const Camera&)>> _render_systems;
     };
 } // namespace mario
