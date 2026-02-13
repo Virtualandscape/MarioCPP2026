@@ -14,12 +14,14 @@ namespace mario {
         constexpr int kFixedTileSize = 32;
 
         // Loads a default tile map with a single solid tile and entities.
+        // Used by: TileMap::load (fallback when file not found or invalid)
         void build_default(TileMap &map, std::optional<std::reference_wrapper<std::vector<EntitySpawn>>> entity_spawns) {
             map.unload();
             map.load({}, entity_spawns);
         }
 
         // Extract an integer field from a JSON-like string.
+        // Used by: TileMap::load (parsing level JSON)
         bool extract_int_field(const std::string &text, std::string_view key, int &value) {
             const std::string needle = std::string("\"") + std::string(key) + "\"";
             std::size_t pos = text.find(needle);
@@ -60,6 +62,7 @@ namespace mario {
         }
 
         // Extract a quoted string field from a JSON-like string.
+        // Used by: TileMap::load (parsing level JSON, entity parsing)
         bool extract_string_field(const std::string &text, std::string_view key, std::string &value) {
             const std::string needle = std::string("\"") + std::string(key) + "\"";
             std::size_t pos = text.find(needle);
@@ -99,6 +102,7 @@ namespace mario {
             }
             return false;
         }
+        // Used by: TileMap::load (parsing player entity spawn)
         bool extract_player_spawn(const std::string &text, EntitySpawn &spawn) {
             const std::string needle = "\"entities\"";
             std::size_t pos = text.find(needle);
@@ -146,6 +150,7 @@ namespace mario {
         }
 
         // Extract an array of strings from a JSON-like string.
+        // Used by: TileMap::load (parsing rows array from level JSON)
         std::vector<std::string> extract_string_array(const std::string &text, std::string_view key) {
             std::vector<std::string> result;
             const std::string needle = std::string("\"") + std::string(key) + "\"";
@@ -183,6 +188,7 @@ namespace mario {
         }
 
         // Open a level file from a given path, searching in multiple locations if necessary.
+        // Used by: TileMap::load (opening JSON level files)
         std::ifstream open_level_file(std::string_view path) {
             std::filesystem::path base(path);
             std::ifstream file{base.string()};
@@ -210,6 +216,7 @@ namespace mario {
     }
 
     // Load a tile map from a given identifier, either by ID or by file path.
+    // Used by: Level::load (initializes tile map for a level), tests, and any caller that needs to (re)load map data
     void TileMap::load(std::string_view map_id, std::optional<std::reference_wrapper<std::vector<EntitySpawn>>> entity_spawns) {
         if (map_id.empty()) {
             _width = 50;
@@ -308,34 +315,43 @@ namespace mario {
         }
     }
 
+    // Used by: Level::unload, build_default
     void TileMap::unload() {
         _tiles.clear();
         _width = 0;
         _height = 0;
     }
 
+    // Used by: systems that poll TileMap for time-based behavior; currently not used directly but kept for API consistency
     void TileMap::update(float dt) { (void) dt; }
 
+    // Used by: Level::render (eventual tile rendering). Implementation is currently empty.
     void TileMap::render() {
     }
 
+    // Used by: collision_system.cpp, level.cpp, enemy_system.cpp, helpers/tileSweep.cpp
     int TileMap::width() const { return _width; }
 
+    // Used by: collision_system.cpp, level.cpp, enemy_system.cpp, helpers/tileSweep.cpp
     int TileMap::height() const { return _height; }
 
+    // Used by: collision_system.cpp, level.cpp, enemy_system.cpp, helpers/tileSweep.cpp
     int TileMap::tile_size() const { return _tile_size; }
 
     // Check if a tile at the given coordinates is solid.
+    // Used by: collision_system.cpp, enemy_system.cpp, helpers/tileSweep.cpp, level.cpp
     bool TileMap::is_solid(int tx, int ty) const {
         if (tx < 0 || ty < 0 || tx >= _width || ty >= _height) {
             return false;
         }
 
-        const std::size_t index = static_cast<std::size_t>(ty * _width + tx);
+        const auto index = static_cast<std::size_t>(ty * _width + tx);
         return _tiles[index] != 0;
     }
 
+    // Used by: various callers that need clamped tile indices (helpers/tileSweep, systems). Provides safe clamping.
     int TileMap::clamp_tile_x(int tx) const { return std::clamp(tx, 0, std::max(0, _width - 1)); }
 
+    // Used by: various callers that need clamped tile indices (helpers/tileSweep, systems). Provides safe clamping.
     int TileMap::clamp_tile_y(int ty) const { return std::clamp(ty, 0, std::max(0, _height - 1)); }
 } // namespace mario

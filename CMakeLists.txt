@@ -32,7 +32,6 @@ set(SOURCES
         src/systems/level_system.cpp
         src/helpers/spawner.cpp
         src/ui/hud.cpp
-        src/helpers/timer.cpp
         src/world/camera.cpp
         src/world/level.cpp
         src/world/tile_map.cpp
