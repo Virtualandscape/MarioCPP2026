@@ -5,6 +5,9 @@
 #include <memory>
 
 #include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/Image.hpp>
+#include <mutex>
+#include <queue>
 
 namespace mario {
 
@@ -22,7 +25,16 @@ namespace mario {
 
         void unload_all();
 
+        // Push an already-decoded image from background thread. Main thread must call finalize_decoded_images to create textures.
+        void push_decoded_image(int id, sf::Image &&image);
+
+        // Finalize any decoded images by creating sf::Texture objects on the main thread.
+        void finalize_decoded_images();
+
     private:
         std::unordered_map<int, std::shared_ptr<sf::Texture>> _textures;
+        // Queue of decoded images waiting to be converted to textures on the main thread.
+        std::mutex _pending_mutex;
+        std::queue<std::pair<int, sf::Image>> _pending_images;
     };
 };

@@ -19,6 +19,7 @@
 #include <string>
 #include <functional>
 #include <vector>
+#include <future>
 
 namespace mario {
     class Game;
@@ -77,5 +78,9 @@ namespace mario {
         std::vector<std::function<void(EntityManager&, float)>> _update_systems;
         // Render callbacks that rely on the camera context provided each frame.
         std::vector<std::function<void(EntityManager&, Renderer&, AssetManager&, const Camera&)>> _render_systems;
+
+        // Async asset loading future and flag. When true, background decode is running and update() will finalize textures each frame.
+        std::future<void> _asset_loading_future;
+        bool _assets_loading = false;
     };
 } // namespace mario

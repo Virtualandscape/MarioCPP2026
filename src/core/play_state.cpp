@@ -20,6 +20,9 @@
 #include <sstream>
 #include <future>
 #include <thread>
+#include <filesystem>
+#include <optional>
+#include <SFML/Graphics/Image.hpp>
 
 namespace mario {
 
@@ -49,13 +52,30 @@ namespace mario {
         // Background path is used for preloading; fetch it before starting preload.
         const std::string &level_bg_path = _level.background_path();
 
+        // Local resolver used by background thread to find asset file paths.
+        auto resolve_asset_path_local = [](std::string_view path) -> std::optional<std::filesystem::path> {
+            std::filesystem::path base(path);
+            const std::filesystem::path cwd = std::filesystem::current_path();
+            const std::filesystem::path tries[] = {
+                base,
+                cwd / base,
+                cwd / ".." / base,
+                cwd / ".." / ".." / base,
+                cwd / ".." / ".." / ".." / base,
+            };
+            for (const auto &candidate : tries) {
+                if (std::filesystem::exists(candidate)) return candidate;
+            }
+            return std::nullopt;
+        };
+
         // Preload common textures (player, clouds, background layers) to avoid IO during spawn and to measure timings.
         {
             using clock = std::chrono::steady_clock;
             std::ofstream ofs("startup_asset_log.txt", std::ios::app);
             auto log_line = [&](const std::string &s){
+                // Keep only stderr log in debug; avoid writing to disk in production builds.
                 std::cerr << s << std::endl;
-                if (ofs) ofs << s << std::endl;
             };
 
             // Light assets to load synchronously (fast, small files)
@@ -92,27 +112,24 @@ namespace mario {
                 log_line(ss.str());
             }
 
-            // Launch async task to load heavy assets while we render frames to avoid a single-frame hitch.
-            auto heavy_task = std::async(std::launch::async, [&, heavy_list]() {
-                using clock_inner = std::chrono::steady_clock;
-                std::ofstream ofs_inner("startup_asset_log.txt", std::ios::app);
+            // Launch async task to load heavy assets without blocking; update() will finalize textures progressively.
+            _assets_loading = true;
+            _asset_loading_future = std::async(std::launch::async, [this, heavy_list, resolve_asset_path_local]() {
                 for (const auto &p : heavy_list) {
-                    const auto t0 = clock_inner::now();
-                    bool ok = _game.assets().load_texture(p.first, p.second);
-                    const auto t1 = clock_inner::now();
-                    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-                    if (ofs_inner) ofs_inner << "Async preload '" << p.second << "' id=" << p.first << " ok=" << ok << " took=" << ms << "ms\n";
+                    sf::Image img;
+                    bool ok = false;
+                    const auto resolved = resolve_asset_path_local(p.second);
+                    if (resolved) {
+                        ok = img.loadFromFile(resolved->string());
+                        if (ok) {
+                            _game.assets().push_decoded_image(p.first, std::move(img));
+                        }
+                    }
                 }
+                // mark done by setting assets_loading false on main thread later after future ready
             });
 
-            // While heavy assets load, pump events and render simple frames to keep the window responsive and avoid a single long frame.
-            while (heavy_task.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) {
-                _game.input().poll();
-                // Render an empty frame (could draw a loading spinner here if desired)
-                _game.renderer().begin_frame();
-                _game.renderer().end_frame();
-                std::this_thread::sleep_for(std::chrono::milliseconds(8));
-            }
+            // Note: do not block here — update() will call finalize_decoded_images each frame.
         }
 
         // Background loading (level dependent)
@@ -210,6 +227,21 @@ namespace mario {
         // Poll input and handle user-driven actions (escape, debug toggle, etc.).
         handle_input();
         auto& registry = _game.entity_manager();
+
+        // Finalize any decoded images from background thread into textures on main thread.
+        _game.assets().finalize_decoded_images();
+        // If the future is valid and ready, reset the loading flag.
+        if (_assets_loading) {
+            if (_asset_loading_future.valid()) {
+                using namespace std::chrono_literals;
+                if (_asset_loading_future.wait_for(0ms) == std::future_status::ready) {
+                    _assets_loading = false;
+                }
+            } else {
+                _assets_loading = false;
+            }
+        }
+
         // Execute the ordered update pipeline built in setup_systems.
         run_update_systems(registry, dt);
 
