@@ -38,14 +38,8 @@ namespace mario {
 
     // Called when entering the play state. Loads level assets, spawns entities and builds system pipelines.
     void PlayState::on_enter() {
-        using clock = std::chrono::steady_clock;
-        const auto t_start = clock::now();
-
         // Load the level data from the configured path into the Level object.
-        const auto t0 = clock::now();
         _level.load(_current_level_path);
-        const auto t1 = clock::now();
-        std::cerr << "PlayState::on_enter: level.load took " << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() << "ms\n";
 
         auto& registry = _game.entity_manager();
 
@@ -53,6 +47,7 @@ namespace mario {
         const std::string &level_bg_path = _level.background_path();
 
         // Local resolver used by background thread to find asset file paths.
+        // This helper tries multiple relative locations to find the file on disk.
         auto resolve_asset_path_local = [](std::string_view path) -> std::optional<std::filesystem::path> {
             std::filesystem::path base(path);
             const std::filesystem::path cwd = std::filesystem::current_path();
@@ -69,14 +64,10 @@ namespace mario {
             return std::nullopt;
         };
 
-        // Preload common textures (player, clouds, background layers) to avoid IO during spawn and to measure timings.
+        // Preload common textures (player, clouds, background layers) to avoid IO during spawn.
         {
-            using clock = std::chrono::steady_clock;
-            std::ofstream ofs("startup_asset_log.txt", std::ios::app);
-            auto log_line = [&](const std::string &s){
-                // Keep only stderr log in debug; avoid writing to disk in production builds.
-                std::cerr << s << std::endl;
-            };
+            // Logging removed per request; preserve no-op logger for possible future use.
+            auto log_line = [&](const std::string &/*s*/){};
 
             // Light assets to load synchronously (fast, small files)
             std::vector<std::pair<int,std::string>> light_list;
@@ -101,27 +92,25 @@ namespace mario {
                 heavy_list.emplace_back(mario::constants::BACKGROUND_TEXTURE_ID + 1, "assets/environment/background/mountains.png");
             }
 
-            // Load light assets synchronously and log timings.
+            // Load light assets synchronously.
             for (const auto &p : light_list) {
-                const auto t0 = clock::now();
-                bool ok = _game.assets().load_texture(p.first, p.second);
-                const auto t1 = clock::now();
-                auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-                std::stringstream ss;
-                ss << "PlayState::preload texture '" << p.second << "' id=" << p.first << " ok=" << ok << " took=" << ms << "ms";
-                log_line(ss.str());
+                // Load small/fast textures synchronously to ensure they're available.
+                (void)_game.assets().load_texture(p.first, p.second);
             }
 
             // Launch async task to load heavy assets without blocking; update() will finalize textures progressively.
+            // The async worker decodes images into sf::Image and pushes them to the AssetManager for main-thread finalization.
             _assets_loading = true;
             _asset_loading_future = std::async(std::launch::async, [this, heavy_list, resolve_asset_path_local]() {
                 for (const auto &p : heavy_list) {
+                    // Local decoded image buffer used to hold decoded pixels off the main thread.
                     sf::Image img;
                     bool ok = false;
                     const auto resolved = resolve_asset_path_local(p.second);
                     if (resolved) {
                         ok = img.loadFromFile(resolved->string());
                         if (ok) {
+                            // Push the decoded image to the global asset manager. Main thread will finalize to a texture.
                             _game.assets().push_decoded_image(p.first, std::move(img));
                         }
                     }
@@ -135,40 +124,30 @@ namespace mario {
         // Background loading (level dependent)
         // If the level defines a background image path, load it and create background entities.
         if (!level_bg_path.empty()) {
-            const auto t_bg0 = clock::now();
             if (_game.assets().load_texture(mario::constants::BACKGROUND_TEXTURE_ID, level_bg_path)) {
                 // Create the main background entity. BackgroundSystem will attach a BackgroundComponent
                 // configured with scale, parallax and tiling parameters.
                 _background_system.create_background_entity(registry, mario::constants::BACKGROUND_TEXTURE_ID, true, BackgroundComponent::ScaleMode::Fill,
                                          _level.background_scale(), 0.0f, false, false, 0.0f, 0.0f);
             }
-            const auto t_bg1 = clock::now();
-            std::cerr << "PlayState::on_enter: background main load took " << std::chrono::duration_cast<std::chrono::milliseconds>(t_bg1 - t_bg0).count() << "ms\n";
 
             // Load additional background layers defined in the level file.
             int texture_id = mario::constants::BACKGROUND_TEXTURE_ID + 1;
             for (const auto &layer: _level.background_layers()) {
-                const auto t_layer0 = clock::now();
                 if (_game.assets().load_texture(texture_id, layer.path)) {
                     // Create a background entity for this layer; parallax and repeating handled by BackgroundSystem.
                     _background_system.create_background_entity(registry, texture_id, true, BackgroundComponent::ScaleMode::Fit, layer.scale,
                                              layer.parallax, layer.repeat, layer.repeat_x, 0.0f, 0.0f);
                 }
-                const auto t_layer1 = clock::now();
-                std::cerr << "PlayState::on_enter: background layer " << texture_id << " load took " << std::chrono::duration_cast<std::chrono::milliseconds>(t_layer1 - t_layer0).count() << "ms\n";
                 ++texture_id;
             }
         }
 
-        const auto t_clouds0 = clock::now();
         // Initialize clouds if the level enables them. CloudSystem will create cloud entities/components.
         if (_level.clouds_enabled()) {
             _cloud_system.initialize(_game.assets(), registry);
         }
-        const auto t_clouds1 = clock::now();
-        std::cerr << "PlayState::on_enter: cloud init took " << std::chrono::duration_cast<std::chrono::milliseconds>(t_clouds1 - t_clouds0).count() << "ms\n";
 
-        const auto t_spawn0 = clock::now();
         // Spawn entities declared in the level (player and enemies).
         bool player_spawned = false;
         if (const auto tile_map = _level.tile_map()) {
@@ -176,6 +155,7 @@ namespace mario {
             const auto tile_size = static_cast<float>(tm.tile_size());
             if (tile_size > 0.0f) {
                 for (const auto &spawn: _level.entity_spawns()) {
+                    // Decide spawn type and delegate to Spawner helper which sets up components.
                     if (spawn.type == "player" || spawn.type == "Player") {
                         // Spawn the player using the Spawner helper which configures components and assets.
                         _player_id = Spawner::spawn_player(registry, spawn, _game.assets());
@@ -191,26 +171,18 @@ namespace mario {
             // Fallback: spawn a default player if no player spawn was found in the level.
             _player_id = Spawner::spawn_player_default(registry, _game.assets());
         }
-        const auto t_spawn1 = clock::now();
-        std::cerr << "PlayState::on_enter: spawning entities took " << std::chrono::duration_cast<std::chrono::milliseconds>(t_spawn1 - t_spawn0).count() << "ms\n";
 
-        const auto t_cam0 = clock::now();
         // Initialize camera via CameraSystem. This sets the viewport and optionally centers on the player.
         if (auto camera = _level.camera()) {
             const auto viewport = _game.renderer().viewport_size();
             // Apply an initial horizontal offset to make enter-damping visible to the player.
             _camera_system.initialize(registry, *camera, viewport.x, viewport.y, _player_id, -100.0f, 0.0f);
         }
-        const auto t_cam1 = clock::now();
-        std::cerr << "PlayState::on_enter: camera init took " << std::chrono::duration_cast<std::chrono::milliseconds>(t_cam1 - t_cam0).count() << "ms\n";
 
         // Mark state as running and prepare the per-frame system pipelines.
         _running = true;
         _level_transition_delay = 0.5f; // LevelTransitionCooldown
         setup_systems();
-
-        const auto t_end = clock::now();
-        std::cerr << "PlayState::on_enter: total on_enter took " << std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count() << "ms\n";
     }
 
     // Called when exiting the play state. Clears ECS registry and unloads level resources.
@@ -288,35 +260,35 @@ namespace mario {
         // Clear any previous pipeline entries.
         _update_systems.clear();
         // Player input and movement controller must run early so subsequent systems see updated control state.
-        _update_systems.push_back([this](EntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](EntityManager& registry, float dt) {
             _player_controller.update(registry, _game.input(), dt);
         });
         // Update animations after player and AI logic so they reflect the current state.
-        _update_systems.push_back([this](EntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](EntityManager& registry, float dt) {
             _animation_system.update(registry, dt);
         });
         // Run enemy AI and movement which may depend on the current tilemap.
-        _update_systems.push_back([this](EntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](EntityManager& registry, float dt) {
             if (const auto tile_map = _level.tile_map()) {
                 _enemy_system.update(registry, *tile_map, dt);
             }
         });
         // Physics simulation (collisions, velocity integration) runs after motion inputs.
-        _update_systems.push_back([this](EntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](EntityManager& registry, float dt) {
             _physics.update(registry, dt);
         });
         // Cloud system updates visual cloud entities (non-critical gameplay elements).
-        _update_systems.push_back([this](EntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](EntityManager& registry, float dt) {
             _cloud_system.update(registry, dt);
         });
         // Tile/level collision detection and resolution.
-        _update_systems.push_back([this](EntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](EntityManager& registry, float dt) {
             if (const auto tile_map = _level.tile_map()) {
                 CollisionSystem::update(registry, *tile_map, dt);
             }
         });
         // Level transitions check should run after all simulation so it can act on final state.
-        _update_systems.push_back([this](EntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](EntityManager& registry, float dt) {
             if (LevelSystem::handle_transitions(registry, _player_id, _level, _current_level_path, _level_transition_delay, dt)) {
                 _level_transition_pending = true;
             }
@@ -324,7 +296,7 @@ namespace mario {
 
         // Build render callbacks: these are executed each frame with the current camera context.
         _render_systems.clear();
-        _render_systems.push_back([this](EntityManager& registry, Renderer& renderer, AssetManager& assets, const Camera& camera){
+        _render_systems.emplace_back([this](EntityManager& registry, Renderer& renderer, AssetManager& assets, const Camera& camera){
             // Render background layers sorted by parallax to create depth.
             static thread_local std::vector<EntityID> bg_entities;
             registry.get_entities_with<BackgroundComponent>(bg_entities);
@@ -363,13 +335,16 @@ namespace mario {
         // Compute camera pointer: if the level supplies a camera, use it; otherwise use a dummy camera.
         auto camera_ptr = _level.camera();
         Camera dummy;
-        Camera *cam = camera_ptr ? camera_ptr.get() : &dummy;
-        if (camera_ptr) {
-            _game.renderer().set_camera(cam->x(), cam->y());
-        }
+        // Create a local camera view (copy) to pass into render systems. This avoids pointer dereferencing warnings.
+        Camera camera_view = camera_ptr ? *camera_ptr : dummy;
+        // Apply the current camera position to the renderer before rendering (dummy view is safe).
+        // Copy camera coordinates to local variables to avoid analyzer warnings on complex expressions.
+        const float cam_x = camera_view.x();
+        const float cam_y = camera_view.y();
+        _game.renderer().set_camera(cam_x, cam_y);
 
         // Execute render pipeline with camera context.
-        run_render_systems(_game.entity_manager(), *cam);
+        run_render_systems(_game.entity_manager(), camera_view);
 
         // Present the rendered frame to the display.
         _game.renderer().end_frame();
