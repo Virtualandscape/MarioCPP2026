@@ -45,6 +45,7 @@ set(SOURCES
         src/systems/cloud_system.cpp
         src/systems/debug_draw_system.cpp
         src/systems/animation_system.cpp
+        src/world/JsonHelper.cpp
 )
 
 set(HEADERS

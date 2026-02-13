@@ -40,9 +40,10 @@ namespace mario {
     EntityID Spawner::spawn_player(EntityManager &registry, const EntitySpawn &spawn, AssetManager& assets) {
         using namespace mario::constants;
 
-        assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
-        assets.load_texture(PLAYER_RUN_ID, "assets/Sprites/Player64/Run.png");
-        assets.load_texture(PLAYER_JUMP_ID, "assets/Sprites/Player64/Jump.png");
+        // Do not load textures here during spawn; assume assets are preloaded by the caller.
+        // assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
+        // assets.load_texture(PLAYER_RUN_ID, "assets/Sprites/Player64/Run.png");
+        // assets.load_texture(PLAYER_JUMP_ID, "assets/Sprites/Player64/Jump.png");
 
         EntityID id = registry.create_entity();
 
@@ -89,9 +90,10 @@ namespace mario {
     EntityID Spawner::spawn_player_default(EntityManager &registry, AssetManager& assets) {
         using namespace mario::constants;
 
-        assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
-        assets.load_texture(PLAYER_RUN_ID, "assets/Sprites/Player64/Run.png");
-        assets.load_texture(PLAYER_JUMP_ID, "assets/Sprites/Player64/Jump.png");
+        // Do not load textures here during spawn; assume assets are preloaded by the caller.
+        // assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
+        // assets.load_texture(PLAYER_RUN_ID, "assets/Sprites/Player64/Run.png");
+        // assets.load_texture(PLAYER_JUMP_ID, "assets/Sprites/Player64/Jump.png");
 
         EntityID id = registry.create_entity();
 
@@ -168,9 +170,9 @@ namespace mario {
         using namespace mario::constants;
 
         // Load cloud textures into asset manager
-        assets.load_texture(CLOUD_BIG_ID, "assets/environment/background/cloud_big.png");
-        assets.load_texture(CLOUD_MEDIUM_ID, "assets/environment/background/cloud_medium.png");
-        assets.load_texture(CLOUD_SMALL_ID, "assets/environment/background/cloud_small.png");
+        // assets.load_texture(CLOUD_BIG_ID, "assets/environment/background/cloud_big.png");
+        // assets.load_texture(CLOUD_MEDIUM_ID, "assets/environment/background/cloud_medium.png");
+        // assets.load_texture(CLOUD_SMALL_ID, "assets/environment/background/cloud_small.png");
 
         // Set up random distribution for cloud Y positions
         std::random_device rd;

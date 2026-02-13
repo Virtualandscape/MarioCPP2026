@@ -14,6 +14,12 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <chrono>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <future>
+#include <thread>
 
 namespace mario {
 
@@ -29,38 +35,123 @@ namespace mario {
 
     // Called when entering the play state. Loads level assets, spawns entities and builds system pipelines.
     void PlayState::on_enter() {
+        using clock = std::chrono::steady_clock;
+        const auto t_start = clock::now();
+
         // Load the level data from the configured path into the Level object.
+        const auto t0 = clock::now();
         _level.load(_current_level_path);
+        const auto t1 = clock::now();
+        std::cerr << "PlayState::on_enter: level.load took " << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() << "ms\n";
+
         auto& registry = _game.entity_manager();
+
+        // Background path is used for preloading; fetch it before starting preload.
+        const std::string &level_bg_path = _level.background_path();
+
+        // Preload common textures (player, clouds, background layers) to avoid IO during spawn and to measure timings.
+        {
+            using clock = std::chrono::steady_clock;
+            std::ofstream ofs("startup_asset_log.txt", std::ios::app);
+            auto log_line = [&](const std::string &s){
+                std::cerr << s << std::endl;
+                if (ofs) ofs << s << std::endl;
+            };
+
+            // Light assets to load synchronously (fast, small files)
+            std::vector<std::pair<int,std::string>> light_list;
+            light_list.emplace_back(mario::constants::PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
+            light_list.emplace_back(mario::constants::PLAYER_RUN_ID, "assets/Sprites/Player64/Run.png");
+            light_list.emplace_back(mario::constants::PLAYER_JUMP_ID, "assets/Sprites/Player64/Jump.png");
+            light_list.emplace_back(mario::constants::CLOUD_MEDIUM_ID, "assets/environment/background/cloud_medium.png");
+            light_list.emplace_back(mario::constants::CLOUD_SMALL_ID, "assets/environment/background/cloud_small.png");
+            light_list.emplace_back(mario::constants::BACKGROUND_TEXTURE_ID, "assets/environment/background/sky.png");
+
+            // Heavy assets to load asynchronously (large, slower to decode)
+            std::vector<std::pair<int,std::string>> heavy_list;
+            heavy_list.emplace_back(mario::constants::CLOUD_BIG_ID, "assets/environment/background/cloud_big.png");
+            // If the level defines specific layers, mark them heavy (mountains example)
+            if (!level_bg_path.empty()) {
+                heavy_list.emplace_back(mario::constants::BACKGROUND_TEXTURE_ID + 1, std::string(_level.background_path()));
+                for (const auto &layer: _level.background_layers()) {
+                    heavy_list.emplace_back(mario::constants::BACKGROUND_TEXTURE_ID + 1, layer.path);
+                }
+            } else {
+                // Default mountains layer used by levels
+                heavy_list.emplace_back(mario::constants::BACKGROUND_TEXTURE_ID + 1, "assets/environment/background/mountains.png");
+            }
+
+            // Load light assets synchronously and log timings.
+            for (const auto &p : light_list) {
+                const auto t0 = clock::now();
+                bool ok = _game.assets().load_texture(p.first, p.second);
+                const auto t1 = clock::now();
+                auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+                std::stringstream ss;
+                ss << "PlayState::preload texture '" << p.second << "' id=" << p.first << " ok=" << ok << " took=" << ms << "ms";
+                log_line(ss.str());
+            }
+
+            // Launch async task to load heavy assets while we render frames to avoid a single-frame hitch.
+            auto heavy_task = std::async(std::launch::async, [&, heavy_list]() {
+                using clock_inner = std::chrono::steady_clock;
+                std::ofstream ofs_inner("startup_asset_log.txt", std::ios::app);
+                for (const auto &p : heavy_list) {
+                    const auto t0 = clock_inner::now();
+                    bool ok = _game.assets().load_texture(p.first, p.second);
+                    const auto t1 = clock_inner::now();
+                    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+                    if (ofs_inner) ofs_inner << "Async preload '" << p.second << "' id=" << p.first << " ok=" << ok << " took=" << ms << "ms\n";
+                }
+            });
+
+            // While heavy assets load, pump events and render simple frames to keep the window responsive and avoid a single long frame.
+            while (heavy_task.wait_for(std::chrono::milliseconds(0)) != std::future_status::ready) {
+                _game.input().poll();
+                // Render an empty frame (could draw a loading spinner here if desired)
+                _game.renderer().begin_frame();
+                _game.renderer().end_frame();
+                std::this_thread::sleep_for(std::chrono::milliseconds(8));
+            }
+        }
 
         // Background loading (level dependent)
         // If the level defines a background image path, load it and create background entities.
-        const std::string &level_bg_path = _level.background_path();
         if (!level_bg_path.empty()) {
+            const auto t_bg0 = clock::now();
             if (_game.assets().load_texture(mario::constants::BACKGROUND_TEXTURE_ID, level_bg_path)) {
                 // Create the main background entity. BackgroundSystem will attach a BackgroundComponent
                 // configured with scale, parallax and tiling parameters.
                 _background_system.create_background_entity(registry, mario::constants::BACKGROUND_TEXTURE_ID, true, BackgroundComponent::ScaleMode::Fill,
                                          _level.background_scale(), 0.0f, false, false, 0.0f, 0.0f);
             }
+            const auto t_bg1 = clock::now();
+            std::cerr << "PlayState::on_enter: background main load took " << std::chrono::duration_cast<std::chrono::milliseconds>(t_bg1 - t_bg0).count() << "ms\n";
 
             // Load additional background layers defined in the level file.
             int texture_id = mario::constants::BACKGROUND_TEXTURE_ID + 1;
             for (const auto &layer: _level.background_layers()) {
+                const auto t_layer0 = clock::now();
                 if (_game.assets().load_texture(texture_id, layer.path)) {
                     // Create a background entity for this layer; parallax and repeating handled by BackgroundSystem.
                     _background_system.create_background_entity(registry, texture_id, true, BackgroundComponent::ScaleMode::Fit, layer.scale,
                                              layer.parallax, layer.repeat, layer.repeat_x, 0.0f, 0.0f);
                 }
+                const auto t_layer1 = clock::now();
+                std::cerr << "PlayState::on_enter: background layer " << texture_id << " load took " << std::chrono::duration_cast<std::chrono::milliseconds>(t_layer1 - t_layer0).count() << "ms\n";
                 ++texture_id;
             }
         }
 
+        const auto t_clouds0 = clock::now();
         // Initialize clouds if the level enables them. CloudSystem will create cloud entities/components.
         if (_level.clouds_enabled()) {
             _cloud_system.initialize(_game.assets(), registry);
         }
+        const auto t_clouds1 = clock::now();
+        std::cerr << "PlayState::on_enter: cloud init took " << std::chrono::duration_cast<std::chrono::milliseconds>(t_clouds1 - t_clouds0).count() << "ms\n";
 
+        const auto t_spawn0 = clock::now();
         // Spawn entities declared in the level (player and enemies).
         bool player_spawned = false;
         if (const auto tile_map = _level.tile_map()) {
@@ -83,18 +174,26 @@ namespace mario {
             // Fallback: spawn a default player if no player spawn was found in the level.
             _player_id = Spawner::spawn_player_default(registry, _game.assets());
         }
+        const auto t_spawn1 = clock::now();
+        std::cerr << "PlayState::on_enter: spawning entities took " << std::chrono::duration_cast<std::chrono::milliseconds>(t_spawn1 - t_spawn0).count() << "ms\n";
 
+        const auto t_cam0 = clock::now();
         // Initialize camera via CameraSystem. This sets the viewport and optionally centers on the player.
         if (auto camera = _level.camera()) {
             const auto viewport = _game.renderer().viewport_size();
             // Apply an initial horizontal offset to make enter-damping visible to the player.
             _camera_system.initialize(registry, *camera, viewport.x, viewport.y, _player_id, -100.0f, 0.0f);
         }
+        const auto t_cam1 = clock::now();
+        std::cerr << "PlayState::on_enter: camera init took " << std::chrono::duration_cast<std::chrono::milliseconds>(t_cam1 - t_cam0).count() << "ms\n";
 
         // Mark state as running and prepare the per-frame system pipelines.
         _running = true;
         _level_transition_delay = 0.5f; // LevelTransitionCooldown
         setup_systems();
+
+        const auto t_end = clock::now();
+        std::cerr << "PlayState::on_enter: total on_enter took " << std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count() << "ms\n";
     }
 
     // Called when exiting the play state. Clears ECS registry and unloads level resources.

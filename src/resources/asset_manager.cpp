@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <iostream>
 #include <optional>
+#include <chrono>
+#include <fstream>
 
 namespace mario {
 
@@ -35,17 +37,43 @@ namespace mario {
         if (path.empty()) return false;
         if (has_texture(id)) return true;
 
+        // Time the asset path resolution and file load separately to detect which step is slow.
+        const auto t0 = std::chrono::steady_clock::now();
         const auto resolved_path = resolve_asset_path(path);
+        const auto t1 = std::chrono::steady_clock::now();
+
         if (!resolved_path) {
             std::cerr << "AssetManager: failed to find texture file '" << std::string(path) << "'\n";
             return false;
         }
 
+        // Allocate texture and time the SFML loadFromFile call which may be expensive (IO + decode).
         auto tex = std::make_shared<sf::Texture>();
+        const auto t2 = std::chrono::steady_clock::now();
         if (!tex->loadFromFile(resolved_path->string())) {
             std::cerr << "AssetManager: failed to load texture '" << std::string(path)
                       << "' from '" << resolved_path->string() << "'\n";
             return false;
+        }
+        const auto t3 = std::chrono::steady_clock::now();
+
+        // Log timings: resolution, allocation, load (in milliseconds). This helps find which load causes hitches.
+        const auto resolve_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+        const auto alloc_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+        const auto load_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count();
+
+        std::cerr << "AssetManager::load_texture timings for '" << std::string(path) << "' -> resolve="
+                  << resolve_ms << "ms alloc=" << alloc_ms << "ms load=" << load_ms << "ms\n";
+
+        // Also append timings to a startup log file to capture logs when running as a GUI app.
+        try {
+            std::ofstream ofs("startup_asset_log.txt", std::ios::app);
+            if (ofs) {
+                ofs << "AssetManager::load_texture timings for '" << std::string(path) << "' -> resolve="
+                    << resolve_ms << "ms alloc=" << alloc_ms << "ms load=" << load_ms << "ms\n";
+            }
+        } catch (...) {
+            // Ignore filesystem/logging errors to avoid impacting game behavior.
         }
 
         tex->setSmooth(true);
