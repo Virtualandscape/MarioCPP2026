@@ -11,6 +11,10 @@
 #include "mario/world/TileMap.hpp"
 #include "mario/helpers/quadtree.h"
 #include "mario/helpers/tileSweep.hpp"
+// Include components we may remove when an enemy is stomped
+#include "mario/ecs/components/EnemyComponent.hpp"
+#include "mario/ecs/components/SpriteComponent.hpp"
+#include "mario/ecs/components/AnimationComponent.hpp"
 
 // collision_system.cpp
 //
@@ -39,6 +43,7 @@ namespace mario {
 
         // View struct to group all components needed for collision.
         struct CollidableView {
+            EntityID id; // Unique entity identifier for later resolution/actions
             std::reference_wrapper<PositionComponent> pos;
             std::reference_wrapper<SizeComponent> size;
             std::reference_wrapper<CollisionInfoComponent> coll;
@@ -86,7 +91,8 @@ namespace mario {
 
         // Performs narrowphase collision test and response between two entities.
         // Sets collision flags and applies player-specific resolution if needed.
-        inline void handle_entity_collision(CollidableView& a, CollidableView& b) {
+        // Collects (player, enemy) stomps into the 'stomped' output vector so callers can remove enemies safely after iteration.
+        inline void handle_entity_collision(CollidableView& a, CollidableView& b, std::vector<std::pair<EntityID, EntityID>>& stomped, float dt) {
             // Early-out if AABBs do not overlap
             if (!rects_intersect(a.pos.get().x, a.pos.get().y, a.size.get().width, a.size.get().height,
                                  b.pos.get().x, b.pos.get().y, b.size.get().width, b.size.get().height)) {
@@ -99,13 +105,41 @@ namespace mario {
             b.coll.get().collided = true;
             b.coll.get().other_type = a.type.get().type;
 
+            // Helper lambda to test for enemy types
+            auto is_enemy_type = [](EntityTypeComponent t) {
+                return t == EntityTypeComponent::Goomba || t == EntityTypeComponent::Koopa;
+            };
+
             // If either entity is a player, resolve overlap with velocity response
             if (a.type.get().type == EntityTypeComponent::Player) {
                 if (a.vel.has_value()) {
+                    // Detect stomp: player was falling and was above the other entity in the previous frame
+                    if (is_enemy_type(b.type.get().type)) {
+                        const auto& vel = a.vel->get();
+                        // Compute previous bottom using simple backward integration
+                        const float prev_bottom = (a.pos.get().y - vel.vy * dt) + a.size.get().height;
+                        const float other_top = b.pos.get().y;
+                        constexpr float EPS = 0.5f; // small tolerance
+                        if (vel.vy > 0.0f && prev_bottom <= other_top + EPS) {
+                            // Record stomp: player (a.id) stomped enemy (b.id)
+                            stomped.emplace_back(a.id, b.id);
+                        }
+                    }
+
                     resolve_player_collision(a.pos.get(), a.vel->get(), a.size.get(), b.pos.get(), b.size.get());
                 }
             } else if (b.type.get().type == EntityTypeComponent::Player) {
                 if (b.vel.has_value()) {
+                    if (is_enemy_type(a.type.get().type)) {
+                        const auto& vel = b.vel->get();
+                        const float prev_bottom = (b.pos.get().y - vel.vy * dt) + b.size.get().height;
+                        const float other_top = a.pos.get().y;
+                        constexpr float EPS = 0.5f;
+                        if (vel.vy > 0.0f && prev_bottom <= other_top + EPS) {
+                            stomped.emplace_back(b.id, a.id);
+                        }
+                    }
+
                     resolve_player_collision(b.pos.get(), b.vel->get(), b.size.get(), a.pos.get(), a.size.get());
                 }
             }
@@ -179,9 +213,9 @@ namespace mario {
             auto type_opt = registry.get_component<TypeComponent>(entity);
             if (!pos_opt || !size_opt || !coll_opt || !type_opt) continue;
             auto vel_opt = registry.get_component<VelocityComponent>(entity);
-            CollidableView view{std::ref(pos_opt->get()), std::ref(size_opt->get()), std::ref(coll_opt->get()), std::ref(type_opt->get()), std::nullopt};
+            CollidableView view{entity, std::ref(pos_opt->get()), std::ref(size_opt->get()), std::ref(coll_opt->get()), std::ref(type_opt->get()), std::nullopt};
             if (vel_opt) view.vel = std::optional<std::reference_wrapper<VelocityComponent>>(std::ref(vel_opt->get()));
-            collidables.push_back(std::move(view));
+            collidables.push_back(view);
          }
 
          if (map.tile_size() <= 0 || collidables.empty()) {
@@ -198,6 +232,9 @@ namespace mario {
              quadtree.insert(QuadTile(to_rect(collidables[i]), static_cast<std::uint32_t>(i)));
          }
 
+         // Collect stomps (player, enemy) to process after the collision pass
+         std::vector<std::pair<EntityID, EntityID>> stomped;
+
          static thread_local std::vector<QuadTile> candidates;
          for (std::size_t i = 0; i < collidables.size(); ++i) {
              const auto& c = collidables[i];
@@ -209,8 +246,69 @@ namespace mario {
                  const auto other_index = static_cast<std::size_t>(tile.id);
                  if (other_index <= i || other_index >= collidables.size()) continue;
                  // Narrowphase: AABB + gameplay-specific response.
-                 handle_entity_collision(collidables[i], collidables[other_index]);
+                 handle_entity_collision(collidables[i], collidables[other_index], stomped, dt);
              }
+         }
+
+         // Process stomps after we finished the collision iteration to avoid invalidating data
+         for (const auto &pr : stomped) {
+             const EntityID player_id = pr.first;
+             const EntityID enemy_id = pr.second;
+
+             // Validate components exist
+             auto enemy_pos_opt = registry.get_component<PositionComponent>(enemy_id);
+             auto enemy_size_opt = registry.get_component<SizeComponent>(enemy_id);
+             auto player_pos_opt = registry.get_component<PositionComponent>(player_id);
+             auto player_size_opt = registry.get_component<SizeComponent>(player_id);
+             auto player_vel_opt = registry.get_component<VelocityComponent>(player_id);
+             auto player_ctrl_opt = registry.get_component<PlayerControllerComponent>(player_id);
+
+             if (!enemy_pos_opt || !enemy_size_opt || !player_pos_opt || !player_size_opt) continue;
+
+             const auto &enemy_pos = enemy_pos_opt->get();
+             const auto &enemy_size = enemy_size_opt->get();
+             auto &player_pos = player_pos_opt->get();
+             auto &player_size = player_size_opt->get();
+
+             // Attempt to find a solid tile directly below the enemy's feet and place the player on it
+             const int tile_size = map.tile_size();
+             if (tile_size > 0) {
+                 const float feet_x = enemy_pos.x + enemy_size.width * 0.5f;
+                 const float feet_y = enemy_pos.y + enemy_size.height; // enemy bottom
+
+                 const int tile_x = static_cast<int>(std::floor(feet_x / static_cast<float>(tile_size)));
+                 const int tile_y = static_cast<int>(std::floor((feet_y + 1.0f) / static_cast<float>(tile_size)));
+
+                 if (map.is_solid(tile_x, tile_y)) {
+                     // Place player on top of this tile
+                     player_pos.y = static_cast<float>(tile_y * tile_size) - player_size.height;
+                 } else {
+                     // Fallback: place player where the enemy was (just above enemy)
+                     player_pos.y = enemy_pos.y - player_size.height;
+                 }
+             } else {
+                 player_pos.y = enemy_pos.y - player_size.height;
+             }
+
+             // Reset player's vertical velocity and ground state
+             if (player_vel_opt) {
+                 player_vel_opt->get().vy = 0.0f;
+             }
+             if (player_ctrl_opt) {
+                 auto &ctrl = player_ctrl_opt->get();
+                 ctrl.jump_count = 0;
+                 ctrl.on_ground = true;
+             }
+
+             // Remove enemy components so it will no longer be processed by systems
+             registry.remove_component<PositionComponent>(enemy_id);
+             registry.remove_component<SizeComponent>(enemy_id);
+             registry.remove_component<VelocityComponent>(enemy_id);
+             registry.remove_component<CollisionInfoComponent>(enemy_id);
+             registry.remove_component<TypeComponent>(enemy_id);
+             registry.remove_component<EnemyComponent>(enemy_id);
+             registry.remove_component<SpriteComponent>(enemy_id);
+             registry.remove_component<AnimationComponent>(enemy_id);
          }
     }
 }
