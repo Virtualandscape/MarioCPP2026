@@ -16,6 +16,6 @@ namespace mario {
         float frame_duration = 0.1f;
         int frame_count = 1;
         bool flip_x = true;
-        bool is_dirty = true; // To force initial rect update
+        bool needs_rect_update = true; // To force initial rect update
     };
 } // namespace mario

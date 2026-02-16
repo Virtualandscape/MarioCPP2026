@@ -19,7 +19,7 @@ void AnimationSystem::update(EntityManager& registry, float dt) const {
         auto vel_opt = registry.get_component<VelocityComponent>(entity);
         auto ctrl_opt = registry.get_component<PlayerControllerComponent>(entity);
 
-        // If mandatory components are missing, skip entity.
+        // If mandatory components are missing, skip the entity.
         if (!anim_opt || !sprite_opt) continue;
 
         // Extract references from optionals for convenient access.
@@ -33,10 +33,10 @@ void AnimationSystem::update(EntityManager& registry, float dt) const {
             PlayerControllerComponent& ctrl = ctrl_opt->get();
             next_state = ctrl.requested_state;
 
-            // Update flip from controller facing direction
+            // Update flip from a controller facing a direction
             bool old_flip = anim.flip_x;
             anim.flip_x = ctrl.facing_right;
-            if (old_flip != anim.flip_x) anim.is_dirty = true;
+            if (old_flip != anim.flip_x) anim.needs_rect_update = true;
         }
         // Fallback: derive state from velocity if no controller present
         else if (vel_opt) {
@@ -52,7 +52,7 @@ void AnimationSystem::update(EntityManager& registry, float dt) const {
             if (vel.vx > 0.1f) anim.flip_x = true;
             else if (vel.vx < -0.1f) anim.flip_x = false;
             else anim.flip_x = true; // default
-            if (old_flip != anim.flip_x) anim.is_dirty = true;
+            if (old_flip != anim.flip_x) anim.needs_rect_update = true;
         }
 
         // State transition logic
@@ -60,9 +60,9 @@ void AnimationSystem::update(EntityManager& registry, float dt) const {
             anim.current_state = next_state;
             anim.current_frame = 0;
             anim.frame_timer = 0.0f;
-            anim.is_dirty = true;
+            anim.needs_rect_update = true;
 
-            // Set state specific values
+            // Set state-specific values
             switch (anim.current_state) {
                 case AnimationComponent::State::Idle:
                     sprite.texture_id = constants::PLAYER_IDLE_ID;
@@ -87,18 +87,17 @@ void AnimationSystem::update(EntityManager& registry, float dt) const {
         if (anim.frame_timer >= anim.frame_duration) {
             anim.frame_timer -= anim.frame_duration;
             anim.current_frame = (anim.current_frame + 1) % anim.frame_count;
-            anim.is_dirty = true;
+            anim.needs_rect_update = true;
         }
 
-        // Update texture rect if dirty
-        if (anim.is_dirty) {
+        // Update the sprite's texture_rect based on the current frame and flip state.
+        if (anim.needs_rect_update) {
             int left = anim.current_frame * constants::PLAYER_FRAME_WIDTH;
             int top = 0;
             int width = constants::PLAYER_FRAME_WIDTH;
             int height = constants::PLAYER_FRAME_HEIGHT;
 
-            // In SFML 3, sf::IntRect uses {position, size}
-            // We use the absolute frame size in texture_rect, and let the Renderer handle flipping.
+            // We use the absolute frame size in texture_rect and let the Renderer handle flipping.
             sprite.texture_rect = sf::IntRect({left, top}, {width, height});
 
             // To signal flipping to the renderer, we could use negative width in texture_rect
@@ -108,7 +107,7 @@ void AnimationSystem::update(EntityManager& registry, float dt) const {
                 sprite.texture_rect.size.x = -width;
             }
 
-            anim.is_dirty = false;
+            anim.needs_rect_update = false;
         }
     }
 }
