@@ -101,7 +101,7 @@ namespace mario {
                 (void)_game.assets().load_texture(p.first, p.second);
             }
 
-            // Launch async task to load heavy assets without blocking; update() will finalize textures progressively.
+            // Launch an async task to load heavy assets without blocking; update() will finalize textures progressively.
             // The async worker decodes images into sf::Image and pushes them to the AssetManager for main-thread finalization.
             _assets_loading = true;
             _asset_loading_future = std::async(std::launch::async, [this, heavy_list, resolve_asset_path_local]() {
@@ -341,7 +341,7 @@ namespace mario {
         // Prepare the renderer for a new frame (clears screen and polls OS events).
         _game.renderer().begin_frame();
 
-        // Compute camera pointer: if the level supplies a camera, use it; otherwise use a dummy camera.
+        // Compute a camera pointer: if the level supplies a camera, use it; otherwise use a dummy camera.
         auto camera_ptr = _level.camera();
         Camera dummy;
         // Create a local camera view (copy) to pass into render systems. This avoids pointer dereferencing warnings.
@@ -352,7 +352,7 @@ namespace mario {
         const float cam_y = camera_view.y();
         _game.renderer().set_camera(cam_x, cam_y);
 
-        // Execute render pipeline with camera context.
+        // Execute the render pipeline with camera context.
         run_render_systems(_game.entity_manager(), camera_view);
 
         // Present the rendered frame to the display.

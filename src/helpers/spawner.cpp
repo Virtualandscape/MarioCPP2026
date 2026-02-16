@@ -90,7 +90,7 @@ namespace mario {
     EntityID Spawner::spawn_player_default(EntityManager &registry, AssetManager& assets) {
         using namespace mario::constants;
 
-        // Do not load textures here during spawn; assume assets are preloaded by the caller.
+        // Do not load textures here during spawn; assume the caller preloads assets.
         // assets.load_texture(PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
         // assets.load_texture(PLAYER_RUN_ID, "assets/Sprites/Player64/Run.png");
         // assets.load_texture(PLAYER_JUMP_ID, "assets/Sprites/Player64/Jump.png");
@@ -98,7 +98,7 @@ namespace mario {
         EntityID id = registry.create_entity();
 
         // Spatial component: default position
-        // For default spawn, keep previous default X/Y but adjust so feet align when using project tile size.
+        // For default spawn, keep the previous default X / Y but adjust so feet align when using project tile size.
         const auto tile_size = static_cast<float>(TILE_SIZE);
         registry.add_component<PositionComponent>(id, {PLAYER_DEFAULT_X, PLAYER_DEFAULT_Y - (PLAYER_HEIGHT - tile_size)});
 
@@ -181,7 +181,7 @@ namespace mario {
         std::uniform_real_distribution<float> med_y_dist(CLOUD_MEDIUM_Y_MIN, CLOUD_MEDIUM_Y_MAX);
         std::uniform_real_distribution<float> small_y_dist(CLOUD_SMALL_Y_MIN, CLOUD_SMALL_Y_MAX);
 
-        // Create Big clouds layer
+        // Create a Big clouds layer
         for (int i = 0; i < NUM_BIG_CLOUDS; ++i) {
             auto id = registry.create_entity();
             CloudComponent cc;
@@ -207,7 +207,7 @@ namespace mario {
             registry.add_component(id, cc);
         }
 
-        // Create Small clouds layer
+        // Create a Small clouds layer
         for (int i = 0; i < NUM_SMALL_CLOUDS; ++i) {
             auto id = registry.create_entity();
             CloudComponent cc;

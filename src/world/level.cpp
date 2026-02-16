@@ -1,6 +1,6 @@
-// Used by: play_state (loads level file, background), tile_map (helper variant), tests
+// Used by: play_Scene (loads level file, background), tile_map (helper variant), tests
 // Implements the Level class, which manages loading, unloading, updating, and rendering a game level.
-// Handles reading level data from files, extracting metadata, and managing camera and tile map state.
+// Handles reading level data from files, extracting metadata, and managing camera and tile map Scene.
 
 #include "mario/world/Level.hpp"
 #include "mario/world/Camera.hpp"
@@ -18,7 +18,7 @@
 namespace mario {
     // Removed anonymous namespace helpers; they are now in mario::JsonHelper
 
-    // Used by: PlayState::on_enter, PlayState (loads level and sets camera bounds), tests
+    // Used by: PlayScene::on_enter, PlayScene (loads level and sets camera bounds), tests
     // Loads a level from a JSON file, initializes the tile map, entity spawns, background, and camera bounds.
     void Level::load(std::string_view level_id) {
         _tile_map = std::make_shared<TileMap>();
@@ -84,7 +84,7 @@ namespace mario {
         _camera->set_bounds(0.0f, 0.0f, map_width, map_height);
     }
 
-    // Used by: PlayState::on_exit, LevelSystem (cleanup), tests
+    // Used by: PlayScene::on_exit, LevelSystem (cleanup), tests
     // Unloads the level, releasing tile map and camera resources, and clearing entity spawns and background info.
     void Level::unload() {
         if (_tile_map) _tile_map->unload();
@@ -95,13 +95,13 @@ namespace mario {
         _background_layers.clear();
     }
 
-    // Used by: PlayState::update (per-frame), Game loop
-    // Updates the camera and any level state that depends on time.
+    // Used by: PlayScene::update (per-frame), Game loop
+    // Updates the camera and any level Scene that depends on time.
     void Level::update(float dt) {
         if (_camera) _camera->update(dt);
     }
 
-    // Used by: PlayState::render, TileMap::render (delegation), tests
+    // Used by: PlayScene::render, TileMap::render (delegation), tests
     // Renders the visible solid tiles of the level within the camera's viewport.
     void Level::render(Renderer &renderer) {
         if (!_tile_map || !_camera) return;
@@ -135,13 +135,13 @@ namespace mario {
         }
     }
 
-    // Used by: LevelSystem, PlayState
+    // Used by: LevelSystem, PlayScene
     // Returns a shared pointer to the tile map for this level.
     std::shared_ptr<TileMap> Level::tile_map() const { return _tile_map; }
-    // Used by: PlayState, systems that need camera reference
+    // Used by: PlayScene, systems that need camera reference
     // Returns a shared pointer to the camera for this level.
     std::shared_ptr<Camera> Level::camera() const { return _camera; }
-    // Used by: PlayState (spawning entities), LevelSystem
+    // Used by: PlayScene (spawning entities), LevelSystem
     // Returns a const reference to the vector of entity spawn points for this level.
     const std::vector<EntitySpawn> &Level::entity_spawns() const { return _entity_spawns; }
 } // namespace mario

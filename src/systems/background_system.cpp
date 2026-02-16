@@ -13,7 +13,7 @@ namespace mario {
         // Get viewport dimensions
         const auto viewport = renderer.viewport_size();
         // Retrieve the texture for the background (returns shared_ptr)
-        auto tex = assets.get_mutable_texture(bg.texture_id);
+        const auto tex = assets.get_mutable_texture(bg.texture_id);
         if (!tex) {
             return; // nothing to draw
         }
@@ -61,7 +61,7 @@ namespace mario {
         const float offset_x = -cam_x * bg.parallax;
         const float offset_y = -cam_y * bg.parallax;
 
-        // Switch to default view for viewport-relative drawing
+        // Switch to the default view for viewport-relative drawing
         sf::RenderWindow& window = renderer.window();
         const sf::View old_view = window.getView();
         window.setView(window.getDefaultView());
@@ -84,7 +84,7 @@ namespace mario {
 
             sprite.setScale({scaleX, scaleY});
             sprite.setTextureRect(sf::IntRect({0, 0}, {static_cast<int>(tw), static_cast<int>(th)}));
-            // Draw tiles across the viewport width, with one-tile margin on each side to avoid gaps at edges
+            // Draw tiles across the viewport width, with a one-tile margin on each side to avoid gaps at edges
             for (float x = start_x - dst_w; x < vw + dst_w; x += dst_w) {
                 sprite.setPosition({x, y});
                 window.draw(sprite);
