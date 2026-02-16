@@ -3,10 +3,10 @@
 ```mermaid
 classDiagram
     class Game
-    class GameState
-    class PlayState
-    class MenuState
-    class PauseState
+    class Scene
+    class PlayScene
+    class MenuScene
+    class PauseScene
 
     class Level
     class TileMap
@@ -42,12 +42,12 @@ classDiagram
     class Timer
     class EventBus
 
-    Game "1" --> "1" GameState : owns
-    GameState <|-- PlayState
-    GameState <|-- MenuState
-    GameState <|-- PauseState
+    Game "1" --> "1" Scene : owns
+    Scene <|-- PlayScene
+    Scene <|-- MenuScene
+    Scene <|-- PauseScene
 
-    PlayState "1" --> "1" Level : uses
+    PlayScene "1" --> "1" Level : uses
     Level "1" --> "1" TileMap : owns
     Level "1" --> "1" Camera : owns
 
@@ -66,10 +66,10 @@ classDiagram
     Renderer --> Sprite : draws
     Sprite --> Animation : animates
 
-    PlayState --> AudioManager : plays
-    PlayState --> AssetManager : loads
+    PlayScene --> AudioManager : plays
+    PlayScene --> AssetManager : loads
 
-    PlayState --> HUD : displays
+    PlayScene --> HUD : displays
     HUD --> Text : draws
 
     Player --> PowerUp : receives

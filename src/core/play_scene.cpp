@@ -38,7 +38,7 @@ namespace mario {
                                                                _current_level_path(std::move(level_path)),
                                                                _hud(game.renderer()) {}
 
-    // Used by: Game::push_scene / state manager when entering this scene
+    // Used by: Game::push_scene / scene manager when entering this scene
     // Called when entering the play scene. Loads level assets, spawns entities and builds system pipelines.
     void PlayScene::on_enter() {
         // Load the level data from the configured path into the Level object.
@@ -188,7 +188,7 @@ namespace mario {
         setup_systems();
     }
 
-    // Used by: Game::pop_scene / state manager when exiting this scene
+    // Used by: Game::pop_scene / scene manager when exiting this scene
     // Called when exiting the play scene. Clears ECS registry and unloads level resources.
     void PlayScene::on_exit() {
         // Remove all entities/components related to this level.
@@ -236,7 +236,7 @@ namespace mario {
     }
 
 
-    // Used by: LevelSystem and internal state transition logic
+    // Used by: LevelSystem and internal scene transition logic
     // Check and apply pending level transitions (reload/unload/load next level).
     void PlayScene::handle_level_transitions() {
         if (_level_transition_pending) {

@@ -25,9 +25,9 @@ namespace mario {
     }
 
     // Used by: Game::run(), main.cpp (explicit shutdown)
-    // Shutdown the game, releasing or clearing owned resources and states.
+    // Shutdown the game, releasing or clearing owned resources and scenes.
     void Game::shutdown() {
-        // Clear active states to trigger their destructors and on_exit semantics.
+        // Clear active scenes to trigger their destructors and on_exit semantics.
         _scenes.clear();
         // Unload loaded assets (textures/sounds) from the asset manager.
         _assets.unload_all();
@@ -42,7 +42,7 @@ namespace mario {
     void Game::run() {
         // Prepare runtime
         initialize();
-        // Allow derived classes to set up an initial state (push the menu/state).
+        // Allow derived classes to set up an initial scene(push the menu/scene).
         before_loop();
         // Enter the fixed-timestep main loop which runs until _running is false.
         main_loop();
@@ -50,7 +50,7 @@ namespace mario {
         shutdown();
     }
 
-    // Used by: MenuState (push PlayState), Game::before_loop()
+    // Used by: Menuscene(push Playscene), Game::before_loop()
     // Push a new scene onto the stack and call lifecycle hooks.
     void Game::push_scene(std::shared_ptr<Scene> scene) {
         if (!scene) {
@@ -65,23 +65,23 @@ namespace mario {
         _scenes.back()->on_enter();
     }
 
-    // Used by: PlayState (to exit the current state)
-    // Pop the current state and stop the game if no more states remain.
+    // Used by: Playscene(to exit the current scene)
+    // Pop the current scene and stop the game if no more scenes remain.
     void Game::pop_scene() {
         if (_scenes.empty()) {
             return;
         }
-        // Notify the top state it is exiting, then remove it.
+        // Notify the top scene it is exiting, then remove it.
         _scenes.back()->on_exit();
         _scenes.pop_back();
-        // If no states remain, the game loop should terminate.
+        // If no scenes remain, the game loop should terminate.
         if (_scenes.empty()) {
             _running = false;
         }
     }
 
     // Used by: Game::push_scene(), Game::before_loop(), Game::main_loop()
-    // Return the currently active state (or nullptr when none).
+    // Return the currently active scene (or nullptr when none).
     std::shared_ptr<Scene> Game::current_scene() {
         if (_scenes.empty()) {
             return nullptr;
@@ -89,42 +89,42 @@ namespace mario {
         return _scenes.back();
     }
 
-    // Used by: PlayState, MenuState, rendering systems and HUD
+    // Used by: Playscene, Menuscene, rendering systems and HUD
     // Accessor for the renderer owned by Game.
     Renderer &Game::renderer() {
         return _renderer;
     }
 
-    // Used by: PlayState::update(), MenuState::update()
+    // Used by: Playscene::update(), Menuscene::update()
     // Accessor for the input manager owned by Game.
     InputManager &Game::input() {
         return _input;
     }
 
-    // Used by: PlayState::on_enter() (loads textures), render systems
+    // Used by: Playscene::on_enter() (loads textures), render systems
     // Accessor for the asset manager owned by Game.
     AssetManager &Game::assets() {
         return _assets;
     }
 
-    // Used by: PlayState (update/render systems)
+    // Used by: Playscene(update/render systems)
     // Accessor for the entity manager (ECS registry) owned by Game.
     EntityManager &Game::entity_manager() {
         return _entities;
     }
 
-    // Used by: Game::run(); can be overridden by derived classes to push an initial state
-    // Hook called before entering the main loop: ensure an initial state exists.
+    // Used by: Game::run(); can be overridden by derived classes to push an initial scene
+    // Hook called before entering the main loop: ensure an initial scene exists.
     void Game::before_loop() {
-        // If no state is present, push the menu state as initial.
+        // If no scene is present, push the menu scene as initial.
         if (!current_scene()) {
             push_scene(std::make_shared<MenuScene>(*this));
         }
     }
 
     // Used by: Game::run()
-    // The main fixed-timestep loop: updates and renders the current state.
-    // Cache the current state per-frame and use clock.restart() for clearer dt.
+    // The main fixed-timestep loop: updates and renders the current scene.
+    // Cache the current scene per-frame and use clock.restart() for clearer dt.
     void Game::main_loop() {
         sf::Clock clock;
         constexpr sf::Time target_frame_time = sf::seconds(1.0f / 60.0f);
@@ -133,7 +133,7 @@ namespace mario {
             const auto scene = current_scene();
             if (!scene) break;
 
-            // Compute delta time in seconds since last frame.
+            // Compute delta time in seconds since the last frame.
             const float dt = clock.restart().asSeconds();
 
             scene->update(dt);
