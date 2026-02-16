@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mario/core/GameState.hpp"
+#include "mario/core/Scene.hpp"
 #include "mario/ecs/EntityManager.hpp"
 #include "mario/input/InputManager.hpp"
 #include "mario/render/Renderer.hpp"
@@ -27,14 +27,14 @@ namespace mario {
         // Drives the main loop until no active states remain.
         void run();
 
-        // Pushes a new state onto the stack and triggers its lifecycle hooks.
-        void push_state(std::shared_ptr<GameState> state);
+        // Pushes a new scene onto the stack and triggers its lifecycle hooks.
+        void push_scene(std::shared_ptr<Scene> scene);
 
         // Pops the current state and stops the loop if no states remain.
-        void pop_state();
+        void pop_scene();
 
         // Returns the currently active state or nullptr when empty.
-        std::shared_ptr<GameState> current_state();
+        std::shared_ptr<Scene> current_scene();
 
         Renderer &renderer();
         InputManager &input();
@@ -54,6 +54,6 @@ namespace mario {
         InputManager _input;
         AssetManager _assets;
         EntityManager _entities;
-        std::vector<std::shared_ptr<GameState>> _states;
+        std::vector<std::shared_ptr<Scene>> _scenes;
     };
 } // namespace mario

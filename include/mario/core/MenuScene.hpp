@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mario/core/GameState.hpp"
+#include "mario/core/Scene.hpp"
 #include "mario/ui/HUD.hpp"
 #include <string>
 #include <vector>
@@ -8,9 +8,10 @@
 namespace mario {
     class Game;
 
-    class MenuState : public GameState {
+    // Scene representing the main menu and level selection.
+    class MenuScene : public Scene {
     public:
-        MenuState(Game& game);
+        MenuScene(Game& game);
 
         void on_enter() override;
         void on_exit() override;
@@ -29,3 +30,4 @@ namespace mario {
         bool _enter_pressed = false;
     };
 } // namespace mario
+

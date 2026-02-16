@@ -2,9 +2,9 @@
 
 namespace mario {
     // Interface that every game state must implement to integrate with the main loop.
-    class GameState {
+    class Scene {
     public:
-        virtual ~GameState() = default;
+        virtual ~Scene() = default;
 
         // Called whenever the state becomes the active state.
         virtual void on_enter() = 0;

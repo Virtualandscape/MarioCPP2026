@@ -1,9 +1,10 @@
 #pragma once
 
-#include "mario/core/GameState.hpp"
+#include "mario/core/Scene.hpp"
 
 namespace mario {
-    class PauseState : public GameState {
+    // Scene representing a paused game; no-op implementations by default.
+    class PauseScene : public Scene {
     public:
         void on_enter() override;
         void on_exit() override;
@@ -11,3 +12,4 @@ namespace mario {
         void render() override;
     };
 } // namespace mario
+

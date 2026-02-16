@@ -1,7 +1,7 @@
-// Implements the PlayState class, which manages the main gameplay state, including level loading, player spawning, and HUD updates.
-// Handles entering and exiting the play state, updating game logic, and rendering the game world and HUD.
+// Implements the PlayScene class, which manages the main gameplay scene, including level loading, player spawning, and HUD updates.
+// Handles entering and exiting the play scene, updating game logic, and rendering the game world and HUD.
 
-#include "mario/core/PlayState.hpp"
+#include "mario/core/PlayScene.hpp"
 #include "mario/core/Game.hpp"
 #include "mario/world/Camera.hpp"
 #include "mario/ecs/components/BackgroundComponent.hpp"
@@ -27,20 +27,20 @@
 namespace mario {
 
     // Used by: Game state manager / state stack
-    // Constructor initializes the PlayState with a reference to the game and optional level path.
+    // Constructor initializes the PlayScene with a reference to the game and optional level path.
     // Stores a reference to the Game instance and prepares the HUD with the renderer.
-    PlayState::PlayState(Game &game) : _game(game), _player_id(0), _hud(game.renderer()) {
+    PlayScene::PlayScene(Game &game) : _game(game), _player_id(0), _hud(game.renderer()) {
     }
 
     // Used by: Game state manager / state stack
-    // Alternate constructor that pre-selects a level to load when entering the state.
-    PlayState::PlayState(Game &game, std::string level_path) : _game(game), _player_id(0),
+    // Alternate constructor that pre-selects a level to load when entering the scene.
+    PlayScene::PlayScene(Game &game, std::string level_path) : _game(game), _player_id(0),
                                                                _current_level_path(std::move(level_path)),
                                                                _hud(game.renderer()) {}
 
-    // Used by: Game::push_state / state manager when entering this state
-    // Called when entering the play state. Loads level assets, spawns entities and builds system pipelines.
-    void PlayState::on_enter() {
+    // Used by: Game::push_scene / state manager when entering this scene
+    // Called when entering the play scene. Loads level assets, spawns entities and builds system pipelines.
+    void PlayScene::on_enter() {
         // Load the level data from the configured path into the Level object.
         _level.load(_current_level_path);
 
@@ -70,7 +70,7 @@ namespace mario {
         // Preload common textures (player, clouds, background layers) to avoid IO during spawn.
         {
             // Logging removed per request; preserve no-op logger for possible future use.
-            auto log_line = [&](const std::string &/*s*/){};
+            auto log_line = [&](const std::string &/*s*/){ };
 
             // Light assets to load synchronously (fast, small files)
             std::vector<std::pair<int,std::string>> light_list;
@@ -182,15 +182,15 @@ namespace mario {
             _camera_system.initialize(registry, *camera, viewport.x, viewport.y, _player_id, -100.0f, 0.0f);
         }
 
-        // Mark state as running and prepare the per-frame system pipelines.
+        // Mark scene as running and prepare the per-frame system pipelines.
         _running = true;
         _level_transition_delay = 0.5f; // LevelTransitionCooldown
         setup_systems();
     }
 
-    // Used by: Game::pop_state / state manager when exiting this state
-    // Called when exiting the play state. Clears ECS registry and unloads level resources.
-    void PlayState::on_exit() {
+    // Used by: Game::pop_scene / state manager when exiting this scene
+    // Called when exiting the play scene. Clears ECS registry and unloads level resources.
+    void PlayScene::on_exit() {
         // Remove all entities/components related to this level.
         auto& registry = _game.entity_manager();
         registry.clear();
@@ -200,7 +200,7 @@ namespace mario {
 
     // Used by: Game main loop (per-frame update)
     // Updates the game logic, including input handling, ECS systems and level logic.
-    void PlayState::update(float dt) {
+    void PlayScene::update(float dt) {
         // Poll input and handle user-driven actions (escape, debug toggle, etc.).
         handle_input();
         auto& registry = _game.entity_manager();
@@ -238,7 +238,7 @@ namespace mario {
 
     // Used by: LevelSystem and internal state transition logic
     // Check and apply pending level transitions (reload/unload/load next level).
-    void PlayState::handle_level_transitions() {
+    void PlayScene::handle_level_transitions() {
         if (_level_transition_pending) {
             _level_transition_pending = false;
             on_exit();
@@ -247,11 +247,11 @@ namespace mario {
     }
 
     // Used by: Game main loop to process input events
-    // Process input events and global actions like exiting the state or toggling debug drawing.
-    void PlayState::handle_input() {
+    // Process input events and global actions like exiting the scene or toggling debug drawing.
+    void PlayScene::handle_input() {
         _game.input().poll();
         if (_game.input().is_pressed(InputManager::Action::Escape)) {
-            _game.pop_state();
+            _game.pop_scene();
         }
 
         // Toggle debug bounding boxes on rising edge of the ToggleDebug action.
@@ -264,7 +264,7 @@ namespace mario {
 
     // Used by: on_enter to build per-frame pipelines
     // Build the ordered per-frame system pipelines as lambda callbacks.
-    void PlayState::setup_systems() {
+    void PlayScene::setup_systems() {
         // Clear any previous pipeline entries.
         _update_systems.clear();
         // Player input and movement controller must run early so later systems see an updated control state.
@@ -337,7 +337,7 @@ namespace mario {
 
     // Used by: Game main loop to draw a frame
     // Renders the game world and HUD.
-    void PlayState::render() {
+    void PlayScene::render() {
         // Prepare the renderer for a new frame (clears screen and polls OS events).
         _game.renderer().begin_frame();
 
@@ -361,7 +361,7 @@ namespace mario {
 
     // Used by: update (executes update pipeline)
     // Execute the stored update callbacks in order.
-    void PlayState::run_update_systems(EntityManager &registry, float dt) {
+    void PlayScene::run_update_systems(EntityManager &registry, float dt) {
         for (auto &sys : _update_systems) {
             sys(registry, dt);
         }
@@ -369,14 +369,15 @@ namespace mario {
 
     // Used by: render (executes render pipeline)
     // Execute the stored render callbacks in order. Each callback receives the renderer and assets.
-    void PlayState::run_render_systems(EntityManager &registry, const Camera &camera) {
+    void PlayScene::run_render_systems(EntityManager &registry, const Camera &camera) {
         for (auto &sys : _render_systems) {
             sys(registry, _game.renderer(), _game.assets(), camera);
         }
     }
 
-    // Used by: Game main loop to check whether this state remains active
-    // Query whether the state should keep running. This checks both the internal running flag
+    // Used by: Game main loop to check whether this scene remains active
+    // Query whether the scene should keep running. This checks both the internal running flag
     // and whether the renderer window is still open.
-    bool PlayState::is_running() const { return _running && _game.renderer().is_open(); }
+    bool PlayScene::is_running() const { return _running && _game.renderer().is_open(); }
 } // namespace mario
+

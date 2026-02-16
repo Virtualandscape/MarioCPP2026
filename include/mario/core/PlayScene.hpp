@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mario/core/GameState.hpp"
+#include "mario/core/Scene.hpp"
 #include "mario/systems/PhysicsSystem.hpp"
 #include "mario/systems/PlayerControllerSystem.hpp"
 #include "mario/systems/EnemySystem.hpp"
@@ -24,11 +24,12 @@
 namespace mario {
     class Game;
 
-    class PlayState : public GameState {
+    // Scene managing active gameplay: loads levels, spawns entities and runs ECS systems.
+    class PlayScene : public Scene {
     public:
-        PlayState(Game &game);
+        PlayScene(Game &game);
 
-        PlayState(Game &game, std::string level_path);
+        PlayScene(Game &game, std::string level_path);
 
         void on_enter() override;
 
@@ -84,3 +85,4 @@ namespace mario {
         bool _assets_loading = false;
     };
 } // namespace mario
+

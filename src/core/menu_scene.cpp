@@ -1,16 +1,16 @@
-// Implements the MenuState class, which manages the main menu, level selection, and input handling for menu navigation.
-// Handles rendering menu options and transitioning to the PlayState when a level is selected.
+// Implements the MenuScene class, which manages the main menu, level selection, and input handling for menu navigation.
+// Handles rendering menu options and transitioning to the PlayScene when a level is selected.
 
-#include "mario/core/MenuState.hpp"
+#include "mario/core/MenuScene.hpp"
 #include "mario/core/Game.hpp"
-#include "mario/core/PlayState.hpp"
+#include "mario/core/PlayScene.hpp"
 #include "mario/helpers/Constants.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 
 namespace mario {
     // Constructor initializes the menu with available levels and prepares text objects for rendering.
-    MenuState::MenuState(Game& game) : _game(game) {
+    MenuScene::MenuScene(Game& game) : _game(game) {
         _levels.assign(mario::constants::LEVEL_PATHS.begin(), mario::constants::LEVEL_PATHS.end());
         for (size_t i = 0; i < _levels.size(); ++i) {
             _level_texts.emplace_back(_game.renderer());
@@ -19,17 +19,17 @@ namespace mario {
         }
     }
 
-    // Called when entering the menu state.
-    void MenuState::on_enter() {
+    // Called when entering the menu scene.
+    void MenuScene::on_enter() {
         _running = true;
     }
 
-    // Called when exiting the menu state.
-    void MenuState::on_exit() {
+    // Called when exiting the menu scene.
+    void MenuScene::on_exit() {
     }
 
     // Handles input for navigating the menu and selecting a level.
-    void MenuState::update(float dt) {
+    void MenuScene::update(float dt) {
         (void)dt;
         _game.input().poll();
 
@@ -44,8 +44,8 @@ namespace mario {
             _selected_index = (_selected_index + 1) % static_cast<int>(_levels.size());
         }
         if (enter && !_enter_pressed) {
-            // Start the selected level by pushing a new PlayState.
-            _game.push_state(std::make_shared<PlayState>(_game, _levels[_selected_index]));
+            // Start the selected level by pushing a new PlayScene.
+            _game.push_scene(std::make_shared<PlayScene>(_game, _levels[_selected_index]));
             return;
         }
 
@@ -66,7 +66,7 @@ namespace mario {
             if (mx >= x && mx <= x + w && my >= y && my <= y + h) {
                 _selected_index = static_cast<int>(i);
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-                    _game.push_state(std::make_shared<PlayState>(_game, _levels[_selected_index]));
+                    _game.push_scene(std::make_shared<PlayScene>(_game, _levels[_selected_index]));
                     return;
                 }
             }
@@ -78,7 +78,7 @@ namespace mario {
     }
 
     // Renders the menu, highlighting the selected level.
-    void MenuState::render() {
+    void MenuScene::render() {
         _game.renderer().begin_frame();
 
         // Draw background
@@ -90,7 +90,7 @@ namespace mario {
             float x = 300;
             float y = 150 + static_cast<float>(i) * 100;
             _game.renderer().draw_rect(x, y, 200, 50, rect_color);
-            
+
             auto& text = _level_texts[i];
             text.set_position(x + 50, y + 10);
             text.set_color(sf::Color::White);
@@ -105,5 +105,6 @@ namespace mario {
         _game.renderer().end_frame();
     }
 
-    bool MenuState::is_running() const { return _running && _game.renderer().is_open(); }
+    bool MenuScene::is_running() const { return _running && _game.renderer().is_open(); }
 } // namespace mario
+

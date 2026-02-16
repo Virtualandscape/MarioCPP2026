@@ -1,7 +1,7 @@
 // Connects the platformer Game implementation to the reusable engine infrastructure.
 
 #include "mario/core/Game.hpp"
-#include "mario/core/MenuState.hpp"
+#include "mario/core/MenuScene.hpp"
 
 #include <SFML/System/Clock.hpp>
 #include <SFML/System/Sleep.hpp>
@@ -28,7 +28,7 @@ namespace mario {
     // Shutdown the game, releasing or clearing owned resources and states.
     void Game::shutdown() {
         // Clear active states to trigger their destructors and on_exit semantics.
-        _states.clear();
+        _scenes.clear();
         // Unload loaded assets (textures/sounds) from the asset manager.
         _assets.unload_all();
         // Clear the entity manager's storage (ECS reset).
@@ -51,42 +51,42 @@ namespace mario {
     }
 
     // Used by: MenuState (push PlayState), Game::before_loop()
-    // Push a new state onto the stack and call lifecycle hooks.
-    void Game::push_state(std::shared_ptr<GameState> state) {
-        if (!state) {
+    // Push a new scene onto the stack and call lifecycle hooks.
+    void Game::push_scene(std::shared_ptr<Scene> scene) {
+        if (!scene) {
             return;
         }
-        // If a state is currently active, notify it that it loses focus.
-        if (const auto current = current_state()) {
+        // If a scene is currently active, notify it that it loses focus.
+        if (const auto current = current_scene()) {
             current->on_exit();
         }
-        // Store the new state (shared ownership) and notify it that it becomes active.
-        _states.push_back(std::move(state));
-        _states.back()->on_enter();
+        // Store the new scene (shared ownership) and notify it that it becomes active.
+        _scenes.push_back(std::move(scene));
+        _scenes.back()->on_enter();
     }
 
     // Used by: PlayState (to exit the current state)
     // Pop the current state and stop the game if no more states remain.
-    void Game::pop_state() {
-        if (_states.empty()) {
+    void Game::pop_scene() {
+        if (_scenes.empty()) {
             return;
         }
         // Notify the top state it is exiting, then remove it.
-        _states.back()->on_exit();
-        _states.pop_back();
+        _scenes.back()->on_exit();
+        _scenes.pop_back();
         // If no states remain, the game loop should terminate.
-        if (_states.empty()) {
+        if (_scenes.empty()) {
             _running = false;
         }
     }
 
-    // Used by: Game::push_state(), Game::before_loop(), Game::main_loop()
+    // Used by: Game::push_scene(), Game::before_loop(), Game::main_loop()
     // Return the currently active state (or nullptr when none).
-    std::shared_ptr<GameState> Game::current_state() {
-        if (_states.empty()) {
+    std::shared_ptr<Scene> Game::current_scene() {
+        if (_scenes.empty()) {
             return nullptr;
         }
-        return _states.back();
+        return _scenes.back();
     }
 
     // Used by: PlayState, MenuState, rendering systems and HUD
@@ -117,8 +117,8 @@ namespace mario {
     // Hook called before entering the main loop: ensure an initial state exists.
     void Game::before_loop() {
         // If no state is present, push the menu state as initial.
-        if (!current_state()) {
-            push_state(std::make_shared<MenuState>(*this));
+        if (!current_scene()) {
+            push_scene(std::make_shared<MenuScene>(*this));
         }
     }
 
@@ -130,14 +130,14 @@ namespace mario {
         constexpr sf::Time target_frame_time = sf::seconds(1.0f / 60.0f);
 
         while (_running) {
-            const auto state = current_state();
-            if (!state) break;
+            const auto scene = current_scene();
+            if (!scene) break;
 
             // Compute delta time in seconds since last frame.
             const float dt = clock.restart().asSeconds();
 
-            state->update(dt);
-            state->render();
+            scene->update(dt);
+            scene->render();
 
             const sf::Time elapsed = clock.getElapsedTime();
             if (elapsed < target_frame_time) {

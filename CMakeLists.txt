@@ -19,9 +19,9 @@ set(SOURCES
         main.cpp
         src/audio/audio_manager.cpp
         src/core/game.cpp
-        src/core/menu_state.cpp
-        src/core/pause_state.cpp
-        src/core/play_state.cpp
+        src/core/menu_scene.cpp
+        src/core/pause_scene.cpp
+        src/core/play_scene.cpp
         src/input/input_manager.cpp
         src/render/renderer.cpp
         src/resources/asset_manager.cpp

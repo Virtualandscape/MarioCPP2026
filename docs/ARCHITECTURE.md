@@ -76,14 +76,14 @@ Le projet suit une **architecture ECS (Entity Component System)** combinée avec
 ---
 
 ### 2. **GameState** (Pattern d'État)
-- **Fichier** : `include/mario/core/GameState.hpp`
+- **Fichier** : `include/mario/core/Scene.hpp`
 - **Responsabilités** :
   - Interface abstraite pour tous les états du jeu
   - Définit le cycle de vie : `on_enter()`, `on_exit()`, `update(dt)`, `render()`
   
 - **Implémentations** :
-  - `PlayState` / `WorldState` : Gère la gameplay active
-  - `MenuState` : Menu principal
+  - `PlayScene` / `WorldScene` : Gère la gameplay active
+  - `MenuScene` : Menu principal
   - etc.
 
 ---
