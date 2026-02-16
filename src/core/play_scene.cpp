@@ -10,6 +10,7 @@
 #include "mario/helpers/Constants.hpp"
 #include "mario/resources/AssetManager.hpp"
 #include "mario/systems/CollisionSystem.hpp"
+#include "mario/systems/InspectorSystem.hpp"
 
 #include <algorithm>
 #include <string>
@@ -182,6 +183,9 @@ namespace mario {
             _camera_system.initialize(registry, *camera, viewport.x, viewport.y, _player_id, -100.0f, 0.0f);
         }
 
+        // Initialize inspector system (font via AssetManager)
+        _inspector_system.initialize(_game.assets());
+
         // Mark scene as running and prepare the per-frame system pipelines.
         _running = true;
         _level_transition_delay = 0.5f; // LevelTransitionCooldown
@@ -254,10 +258,12 @@ namespace mario {
             _game.pop_scene();
         }
 
-        // Toggle debug bounding boxes on rising edge of the ToggleDebug action.
+        // Toggle debug bounding boxes and inspector overlay on rising edge of the ToggleDebug action.
         bool current = _game.input().is_pressed(InputManager::Action::ToggleDebug);
-        if (current && !_debug_toggle_last_state) {
+        bool rising = (current && !_debug_toggle_last_state);
+        if (rising) {
             _game.renderer().toggle_debug_bboxes();
+            _inspector_system.toggle_enabled();
         }
         _debug_toggle_last_state = current;
     }
@@ -332,6 +338,11 @@ namespace mario {
             }
             _hud.set_level_name(level_name);
             _hud.render();
+        });
+
+        // Inspector overlay should render after everything else so it's on top
+        _render_systems.emplace_back([this](EntityManager& registry, Renderer& renderer, AssetManager& assets, const Camera& camera){
+            _inspector_system.render(renderer, camera, registry, assets);
         });
     }
 

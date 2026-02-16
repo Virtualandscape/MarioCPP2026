@@ -1,7 +1,7 @@
 // Connects the platformer Game implementation to the reusable engine infrastructure.
 
 #include "mario/core/Game.hpp"
-#include "mario/core/MenuScene.hpp"
+#include "mario/core/Menuscene.hpp"
 
 #include <SFML/System/Clock.hpp>
 #include <SFML/System/Sleep.hpp>
@@ -42,7 +42,7 @@ namespace mario {
     void Game::run() {
         // Prepare runtime
         initialize();
-        // Allow derived classes to set up an initial scene(push the menu/scene).
+        // Allow derived classes to set up an initial scene (push the menu/scene).
         before_loop();
         // Enter the fixed-timestep main loop which runs until _running is false.
         main_loop();
@@ -50,7 +50,7 @@ namespace mario {
         shutdown();
     }
 
-    // Used by: Menuscene(push Playscene), Game::before_loop()
+    // Used by: menu_scene(push play_scene), Game::before_loop()
     // Push a new scene onto the stack and call lifecycle hooks.
     void Game::push_scene(std::shared_ptr<Scene> scene) {
         if (!scene) {
@@ -65,7 +65,7 @@ namespace mario {
         _scenes.back()->on_enter();
     }
 
-    // Used by: Playscene(to exit the current scene)
+    // Used by: play_scene(to exit the current scene)
     // Pop the current scene and stop the game if no more scenes remain.
     void Game::pop_scene() {
         if (_scenes.empty()) {
@@ -89,25 +89,25 @@ namespace mario {
         return _scenes.back();
     }
 
-    // Used by: Playscene, Menuscene, rendering systems and HUD
+    // Used by: play_scene, menu_scene, rendering systems and HUD
     // Accessor for the renderer owned by Game.
     Renderer &Game::renderer() {
         return _renderer;
     }
 
-    // Used by: Playscene::update(), Menuscene::update()
+    // Used by: play_scene::update(), menu_scene::update()
     // Accessor for the input manager owned by Game.
     InputManager &Game::input() {
         return _input;
     }
 
-    // Used by: Playscene::on_enter() (loads textures), render systems
+    // Used by: play_scene::on_enter() (loads textures), render systems
     // Accessor for the asset manager owned by Game.
     AssetManager &Game::assets() {
         return _assets;
     }
 
-    // Used by: Playscene(update/render systems)
+    // Used by: play_scene(update/render systems)
     // Accessor for the entity manager (ECS registry) owned by Game.
     EntityManager &Game::entity_manager() {
         return _entities;

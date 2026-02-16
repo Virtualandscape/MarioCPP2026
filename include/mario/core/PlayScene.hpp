@@ -11,6 +11,7 @@
 #include "mario/systems/SpriteRenderSystem.hpp"
 #include "mario/systems/CameraSystem.hpp"
 #include "mario/systems/DebugDrawSystem.hpp"
+#include "mario/systems/InspectorSystem.hpp"
 #include "mario/world/Level.hpp"
 #include "mario/ui/HUD.hpp"
 #include "mario/ecs/EntityManager.hpp"
@@ -63,6 +64,7 @@ namespace mario {
         SpriteRenderSystem _sprite_render_system;
         CameraSystem _camera_system;
         DebugDrawSystem _debug_draw_system;
+        InspectorSystem _inspector_system;
         Level _level;
         HUD _hud;
         bool _running = true;
