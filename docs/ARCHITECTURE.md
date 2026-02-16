@@ -14,7 +14,7 @@ Le projet suit une **architecture ECS (Entity Component System)** combinée avec
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Game (Core Application)                     │
 │  • Owns: Renderer, InputManager, AssetManager, EntityManager    │
-│  • Manages: State Stack (push/pop states)                       │
+│  • Manages: Scene Stack (push/pop scenes)                       │
 │  • Fixed timestep loop, frame throttling                        │
 └─────────────────────────────┬───────────────────────────────────┘
                               │
@@ -40,7 +40,7 @@ Le projet suit une **architecture ECS (Entity Component System)** combinée avec
           │                   │                   │
           ▼                   ▼                   ▼
     ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
-    │GameState     │   │GameState     │   │GameState     │
+    │Scene         │   │        Scene |   │   Scene      │
     │(Abstract)    │   │(Impl 1)      │   │(Impl 2)      │
     │ on_enter()   │   └──────────────┘   └──────────────┘
     │ on_exit()    │
@@ -50,7 +50,7 @@ Le projet suit une **architecture ECS (Entity Component System)** combinée avec
           │
           ▼
     ┌──────────────────────────────────────┐
-    │ WorldState (or PlayState)            │
+    │ PlayScene                            │
     │ • Owns: Level, Systems (Physics,     │
     │   Collision, etc.)                   │
     │ • Updates/Renders active level       │
@@ -67,18 +67,18 @@ Le projet suit une **architecture ECS (Entity Component System)** combinée avec
   - Initialise et gère la boucle principale (fixed timestep)
   - Détient les gestionnaires globaux (Renderer, InputManager, AssetManager, EntityManager)
   - Gère une pile d'états (State Stack pattern)
-  - Appelle `update()` et `render()` sur l'état actif
+  - Appelle `update()` et `render()` sur la scène active
   
 - **Relations** :
   - Possède (owns) : `Renderer`, `InputManager`, `AssetManager`, `EntityManager`
-  - Gère : Stack de `GameState`
+  - Gère : Stack de `Scene`
 
 ---
 
-### 2. **GameState** (Pattern d'État)
+### 2. **Scene** (Pattern d'État)
 - **Fichier** : `include/mario/core/Scene.hpp`
 - **Responsabilités** :
-  - Interface abstraite pour tous les états du jeu
+  - Interface abstraite pour toutes les scènes du jeu
   - Définit le cycle de vie : `on_enter()`, `on_exit()`, `update(dt)`, `render()`
   
 - **Implémentations** :
@@ -260,13 +260,13 @@ Chaque système opère sur des entités avec des composants spécifiques :
 ```
 1. Initialisation
    ├─ Game::initialize()
-   ├─ Current GameState::on_enter()
+   ├─ Current Scene::on_enter()
    └─ AssetManager charge les assets
 
 2. Boucle Principale (Fixed Timestep)
    ├─ InputManager::poll()     [Lit clavier]
    │
-   ├─ GameState::update(dt)    [Met à jour logic]
+   ├─ Scene::update(dt)    [Met à jour logic]
    │  ├─ PhysicsSystem::update()
    │  ├─ CollisionSystem::update()
    │  ├─ PlayerControllerSystem::update()
@@ -284,7 +284,7 @@ Chaque système opère sur des entités avec des composants spécifiques :
       └─ Renderer::end_frame()
 
 3. Fin
-   ├─ Current GameState::on_exit()
+   ├─ Current Scene::on_exit()
    └─ Shutdown resources
 ```
 
@@ -293,7 +293,7 @@ Chaque système opère sur des entités avec des composants spécifiques :
 ## Exemple: Cycle d'une Entité Joueur
 
 ```cpp
-// 1. Création (dans PlayState)
+// 1. Création (dans PlayScene)
 EntityID player = entity_manager.create_entity();
 entity_manager.add_component<Transform>(player, {x: 5, y: 10, ...});
 entity_manager.add_component<Sprite>(player, {texture_id: PLAYER_SPRITE, ...});
@@ -345,7 +345,7 @@ renderer.draw_sprite(sprite->texture_id, transform->x, transform->y);
 |---------|------|
 | `main.cpp` | Entrée du programme |
 | `Game::run()` | Boucle principale |
-| `GameState::update()` | Logic par frame |
+| `Scene::update()` | Logic par frame |
 | `EntityManager` | Accès aux entités |
 | `Renderer::end_frame()` | Rendu final SFML |
 
