@@ -55,12 +55,21 @@ void AnimationSystem::update(zia::engine::IEntityManager& registry, float dt) co
             if (old_flip != anim.flip_x) anim.needs_rect_update = true;
         }
 
+        // If currently playing a one-shot celebrate animation, preserve it until it finishes
+        if (anim.is_one_shot) {
+            // Do not override next_state from controller/velocity while celebrating
+            next_state = anim.current_state;
+        }
+
         // State transition logic
         if (next_state != anim.current_state) {
             anim.current_state = next_state;
             anim.current_frame = 0;
             anim.frame_timer = 0.0f;
             anim.needs_rect_update = true;
+
+            // Clear any previous one-shot flag when a new explicit state is requested
+            anim.is_one_shot = false;
 
             // Set state-specific values
             switch (anim.current_state) {
@@ -79,6 +88,14 @@ void AnimationSystem::update(zia::engine::IEntityManager& registry, float dt) co
                     anim.frame_count = constants::PLAYER_JUMP_FRAMES;
                     anim.frame_duration = constants::PLAYER_FRAME_DURATION;
                     break;
+                case AnimationComponent::State::Celebrate:
+                    // Celebrate is a one-shot animation: use dedicated texture and frame count.
+                    sprite.texture_id = constants::PLAYER_CELEBRATE_ID;
+                    anim.frame_count = constants::PLAYER_CELEBRATE_FRAMES;
+                    anim.frame_duration = constants::PLAYER_FRAME_DURATION;
+                    // Ensure the engine knows this is a one-shot unless already set by caller
+                    anim.is_one_shot = true;
+                    break;
             }
         }
 
@@ -86,8 +103,27 @@ void AnimationSystem::update(zia::engine::IEntityManager& registry, float dt) co
         anim.frame_timer += dt;
         if (anim.frame_timer >= anim.frame_duration) {
             anim.frame_timer -= anim.frame_duration;
-            anim.current_frame = (anim.current_frame + 1) % anim.frame_count;
-            anim.needs_rect_update = true;
+
+            // For one-shot animations, advance until the last frame then stop and restore Idle.
+            if (anim.is_one_shot) {
+                if (anim.current_frame + 1 < anim.frame_count) {
+                    anim.current_frame = anim.current_frame + 1;
+                    anim.needs_rect_update = true;
+                } else {
+                    // Reached the last frame of the one-shot. Finish the animation and restore Idle visuals.
+                    anim.is_one_shot = false;
+                    anim.current_frame = 0;
+                    anim.needs_rect_update = true;
+                    anim.current_state = AnimationComponent::State::Idle;
+                    sprite.texture_id = constants::PLAYER_IDLE_ID;
+                    anim.frame_count = 1;
+                    anim.frame_duration = 1.0f;
+                }
+            } else {
+                // Normal looping animations use modulo to wrap frames.
+                anim.current_frame = (anim.current_frame + 1) % anim.frame_count;
+                anim.needs_rect_update = true;
+            }
         }
 
         // Update the sprite's texture_rect based on the current frame and flip state.

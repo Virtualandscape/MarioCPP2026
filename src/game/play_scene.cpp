@@ -45,6 +45,10 @@ namespace zia {
         // Ensure any previous async asset task is finished before reusing this scene.
         wait_for_asset_loading();
 
+        // Mark background cache dirty for this level load.
+        _background_cache_dirty = true;
+        _sorted_backgrounds.clear();
+
         // Load the level data from the configured path into the Level object.
         _level.load(_current_level_path);
 
@@ -81,6 +85,8 @@ namespace zia {
             light_list.emplace_back(zia::constants::PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
             light_list.emplace_back(zia::constants::PLAYER_RUN_ID, "assets/Sprites/Player64/Run.png");
             light_list.emplace_back(zia::constants::PLAYER_JUMP_ID, "assets/Sprites/Player64/Jump.png");
+            // Preload Celebrate animation texture so it's available immediately after stomping an enemy
+            light_list.emplace_back(zia::constants::PLAYER_CELEBRATE_ID, "assets/Sprites/Player64/Celebrate.png");
             light_list.emplace_back(zia::constants::CLOUD_MEDIUM_ID, "assets/environment/background/cloud_medium.png");
             light_list.emplace_back(zia::constants::CLOUD_SMALL_ID, "assets/environment/background/cloud_small.png");
             light_list.emplace_back(zia::constants::BACKGROUND_TEXTURE_ID, "assets/environment/background/sky.png");
@@ -199,6 +205,10 @@ namespace zia {
         // Ensure async asset decoding is completed before clearing level data.
         wait_for_asset_loading();
 
+        // Clear cached background data as entities are about to be destroyed.
+        _sorted_backgrounds.clear();
+        _background_cache_dirty = true;
+
         // Remove all entities/components related to this level.
         auto& registry = _game.entity_manager();
         registry.clear();
@@ -315,16 +325,28 @@ namespace zia {
         // Build render callbacks: these are executed each frame with the current camera context.
         _render_systems.clear();
         _render_systems.emplace_back([this](zia::engine::IEntityManager& registry, zia::engine::IRenderer& renderer, zia::engine::IAssetManager& assets, const Camera& camera){
-            // Render background layers sorted by parallax to create depth.
-            static thread_local std::vector<EntityID> bg_entities;
-            registry.get_entities_with<BackgroundComponent>(bg_entities);
-            std::sort(bg_entities.begin(), bg_entities.end(), [&](EntityID a, EntityID b) {
-                auto a_opt = registry.get_component<BackgroundComponent>(a);
-                auto b_opt = registry.get_component<BackgroundComponent>(b);
-                if (!a_opt || !b_opt) return false;
-                return (a_opt->get().parallax < b_opt->get().parallax);
-            });
-            for (auto entity: bg_entities) {
+            // Cache and sort background layers by parallax only when needed.
+            if (_background_cache_dirty) {
+                // Rebuild the cached entity list from the registry.
+                _sorted_backgrounds.clear();
+                registry.get_entities_with<BackgroundComponent>(_sorted_backgrounds);
+                std::sort(_sorted_backgrounds.begin(), _sorted_backgrounds.end(), [&](EntityID a, EntityID b) {
+                    auto a_opt = registry.get_component<BackgroundComponent>(a);
+                    auto b_opt = registry.get_component<BackgroundComponent>(b);
+                    if (!a_opt || !b_opt) return false;
+                    return (a_opt->get().parallax < b_opt->get().parallax);
+                });
+                _background_cache_dirty = false;
+            } else {
+                // Detect changes in background entity count and refresh the cache if needed.
+                static thread_local std::vector<EntityID> bg_entities;
+                registry.get_entities_with<BackgroundComponent>(bg_entities);
+                if (bg_entities.size() != _sorted_backgrounds.size()) {
+                    _background_cache_dirty = true;
+                }
+            }
+
+            for (auto entity: _sorted_backgrounds) {
                 if (auto bg_opt = registry.get_component<BackgroundComponent>(entity)) {
                     _background_system.render(renderer, camera, assets, bg_opt->get());
                 }

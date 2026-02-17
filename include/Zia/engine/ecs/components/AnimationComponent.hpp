@@ -7,7 +7,8 @@ namespace zia {
         enum class State {
             Idle,
             Run,
-            Jump
+            Jump,
+            Celebrate
         };
 
         State current_state = State::Idle;
@@ -17,5 +18,7 @@ namespace zia {
         int frame_count = 1;
         bool flip_x = true;
         bool needs_rect_update = true; // To force initial rect update
+        // If true, this animation will play once and then the system will clear the flag
+        bool is_one_shot = false;
     };
 } // namespace Zia

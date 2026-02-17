@@ -85,6 +85,11 @@ namespace zia {
         // Render callbacks that rely on the camera context provided each frame.
         std::vector<std::function<void(zia::engine::IEntityManager&, zia::engine::IRenderer&, zia::engine::IAssetManager&, const Camera&)>> _render_systems;
 
+        // Cached list of background entities sorted by parallax.
+        std::vector<EntityID> _sorted_backgrounds;
+        // Dirty flag to rebuild the background cache when entities change.
+        bool _background_cache_dirty = true;
+
         // Async asset loading future and flag. When true, background decode is running and update() will finalize textures each frame.
         std::future<void> _asset_loading_future;
         bool _assets_loading = false;

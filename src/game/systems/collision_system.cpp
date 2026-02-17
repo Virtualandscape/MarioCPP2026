@@ -12,6 +12,8 @@
 #include "Zia/game/world/TileMap.hpp"
 #include "Zia/game/helpers/quadtree.h"
 #include "Zia/game/helpers/tileSweep.hpp"
+// Access to player animation/texture constants
+#include "Zia/game/helpers/Constants.hpp"
 // Include components we may remove when an enemy is stomped
 #include "Zia/engine/ecs/components/EnemyComponent.hpp"
 #include "Zia/engine/ecs/components/SpriteComponent.hpp"
@@ -205,7 +207,9 @@ namespace zia {
         // Then, handle entity vs entity collisions (broadphase via quadtree)
         static thread_local std::vector<EntityID> collidable_entities;
         registry.get_entities_with<PositionComponent>(collidable_entities);
-        std::vector<CollidableView> collidables;
+        // Reuse collidable views to avoid per-frame allocations.
+        static thread_local std::vector<CollidableView> collidables;
+        collidables.clear();
         collidables.reserve(collidable_entities.size());
         for (auto entity : collidable_entities) {
             auto pos_opt = registry.get_component<PositionComponent>(entity);
@@ -234,7 +238,9 @@ namespace zia {
          }
 
          // Collect stomps (player, enemy) to process after the collision pass
-         std::vector<std::pair<EntityID, EntityID>> stomped;
+         static thread_local std::vector<std::pair<EntityID, EntityID>> stomped;
+         stomped.clear();
+         stomped.reserve(collidables.size());
 
          static thread_local std::vector<QuadTile> candidates;
          for (std::size_t i = 0; i < collidables.size(); ++i) {
@@ -299,6 +305,23 @@ namespace zia {
                  auto &ctrl = player_ctrl_opt->get();
                  ctrl.jump_count = 0;
                  ctrl.on_ground = true;
+             }
+
+             // Trigger celebration animation on the player (one-shot)
+             if (auto anim_opt = registry.get_component<AnimationComponent>(player_id)) {
+                 if (auto sprite_opt = registry.get_component<SpriteComponent>(player_id)) {
+                     auto &anim = anim_opt->get();
+                     auto &sprite = sprite_opt->get();
+                     // Set celebrate state and initialize animation playback
+                     anim.current_state = AnimationComponent::State::Celebrate;
+                     anim.current_frame = 0;
+                     anim.frame_timer = 0.0f;
+                     anim.frame_count = constants::PLAYER_CELEBRATE_FRAMES;
+                     anim.frame_duration = constants::PLAYER_FRAME_DURATION;
+                     anim.needs_rect_update = true;
+                     anim.is_one_shot = true;
+                     sprite.texture_id = constants::PLAYER_CELEBRATE_ID;
+                 }
              }
 
              // Remove enemy components so it will no longer be processed by systems
