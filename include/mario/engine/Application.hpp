@@ -9,7 +9,7 @@
 #include "mario/input/InputManager.hpp"
 #include "mario/render/Renderer.hpp"
 #include "mario/resources/AssetManager.hpp"
-#include "mario/core/UIManager.hpp"
+#include "mario/engine/UIManager.hpp"
 #include "mario/engine/IRenderer.hpp"
 #include "mario/engine/IInput.hpp"
 #include "mario/engine/IAssetManager.hpp"
@@ -19,8 +19,6 @@
 #include <vector>
 
 #include <SFML/System/Clock.hpp>
-
-#include "EntityManagerFacade.hpp"
 
 namespace mario::engine {
     // A small reusable application class that owns global managers and the main loop.
@@ -57,9 +55,12 @@ namespace mario::engine {
         IRenderer &renderer();
         IInput &input();
         IAssetManager &assets();
-        EntityManagerFacade &entity_manager();
+        IEntityManager &entity_manager();
         // Return the underlying concrete EntityManager for code that depends on concrete APIs.
         mario::EntityManager &underlying_entity_manager();
+
+        // Access to the UI manager.
+        UIManager& ui();
 
     protected:
         // Hook for derived classes to prepare an initial scene before the loop begins.
@@ -71,21 +72,6 @@ namespace mario::engine {
 
         // Running flag for the main loop.
         bool _running = false;
-
-        // Owned concrete subsystems (created when no adapter is provided).
-        std::shared_ptr<mario::Renderer> _renderer;
-        std::shared_ptr<mario::InputManager> _input;
-        std::shared_ptr<mario::AssetManager> _assets;
-        std::shared_ptr<mario::EntityManager> _entities;
-        // Facade that forwards to the concrete EntityManager implementation.
-        std::unique_ptr<EntityManagerFacade> _entities_facade;
-
-        // Optional adapters provided by the caller. When set, their underlying concrete
-        // implementations will be used by the engine.
-        std::shared_ptr<IRenderer> _renderer_adapter;
-        std::shared_ptr<IInput> _input_adapter;
-        std::shared_ptr<IAssetManager> _assets_adapter;
-        std::shared_ptr<IEntityManager> _entities_adapter;
 
         // Runtime interface pointers (point to either adapter or default wrapper) used by engine loops.
         std::shared_ptr<IRenderer> _renderer_iface;
@@ -100,7 +86,7 @@ namespace mario::engine {
         sf::Clock _imgui_clock;
 
         // Centralized UI manager that wraps ImGui-SFML usage.
-        mario::UIManager _ui;
+        std::unique_ptr<UIManager> _ui;
     };
 } // namespace mario::engine
 

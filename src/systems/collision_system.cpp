@@ -150,7 +150,7 @@ namespace mario {
     // 1. Resolves tile collisions for all entities with position, velocity, and size.
     // 2. Builds a list of collidable entities and inserts them into a quadtree for broadphase queries.
     // 3. For each entity, retrieves nearby candidates and performs narrowphase collision checks and responses.
-    void CollisionSystem::update(mario::engine::EntityManagerFacade& registry, const TileMap& map, float dt) {
+    void CollisionSystem::update(mario::engine::IEntityManager& registry, const TileMap& map, float dt) {
         // First, handle tile collisions for entities with Position, Velocity, Size
         static thread_local std::vector<EntityID> entities;
         registry.get_entities_with<PositionComponent>(entities);

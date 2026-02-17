@@ -16,67 +16,17 @@
 
 namespace mario {
 
-InspectorSystem::InspectorSystem()
-    : _fallback_font(), _text(_fallback_font) {
+InspectorSystem::InspectorSystem() {
     _enabled = true;
     _max_entries = 32;
 }
 
-void InspectorSystem::initialize(mario::engine::IAssetManager& assets) {
-    // Prefer AssetManager-managed font
-    const int font_id = constants::FONT_MONTSERRAT_BLACK_ID;
-    bool loaded = false;
-
-    if (assets.has_font(font_id)) {
-        _font_ptr = assets.get_font(font_id);
-        if (_font_ptr) {
-            loaded = true;
-        }
-    } else {
-        if (assets.load_font(font_id, "assets/fonts/Montserrat-Black.ttf")) {
-            _font_ptr = assets.get_font(font_id);
-            if (_font_ptr) {
-                loaded = true;
-            }
-        }
-    }
-
-    if (!loaded) {
-        // Fallback to direct file loading using local resolution (try several relative paths)
-        const std::vector<std::string> tries = {
-            "assets/fonts/Montserrat-Black.ttf",
-            "../assets/fonts/Montserrat-Black.ttf",
-            "../../assets/fonts/Montserrat-Black.ttf",
-        };
-        for (const auto &p : tries) {
-            try {
-                if (std::filesystem::exists(p)) {
-                    if (_fallback_font.openFromFile(p)) { loaded = true; break; }
-                }
-            } catch (const std::filesystem::filesystem_error&) {
-                // ignore path errors and continue
-            }
-        }
-        if (loaded) {
-            // make fallback font visible via _text
-            _text.setFont(_fallback_font);
-        }
-    } else {
-        // Use the shared font from AssetManager without copying
-        if (_font_ptr) _text.setFont(*_font_ptr);
-    }
-
-    // common text settings
-    _text.setCharacterSize(14);
-    _text.setFillColor(sf::Color::White);
-}
-
-void InspectorSystem::update(mario::engine::EntityManagerFacade& /*registry*/, float /*dt*/) {
+void InspectorSystem::update(mario::engine::IEntityManager& /*registry*/, float /*dt*/) {
     // No internal state for now.
 }
 
 // Helper: build a list of human-readable lines for the provided entities
-void InspectorSystem::build_lines(const std::vector<EntityID>& entities, mario::engine::EntityManagerFacade& registry, std::vector<std::string>& out_lines, mario::engine::IAssetManager& /*assets*/) const {
+void InspectorSystem::build_lines(const std::vector<EntityID>& entities, mario::engine::IEntityManager& registry, std::vector<std::string>& out_lines, mario::engine::IAssetManager& /*assets*/) const {
     // registry, entities and out_lines are used below
 
     out_lines.clear();
@@ -141,7 +91,7 @@ void InspectorSystem::build_lines(const std::vector<EntityID>& entities, mario::
     }
 }
 
-void InspectorSystem::render(mario::engine::IRenderer& renderer, const Camera& /*camera*/, mario::engine::EntityManagerFacade& registry, mario::engine::IAssetManager& assets) {
+void InspectorSystem::render_ui(mario::engine::IEntityManager& registry, mario::engine::IAssetManager& assets) {
     if (!_enabled) return;
 
     // Collect candidate entities: entities with TypeComponent and EnemyComponent.
@@ -168,24 +118,14 @@ void InspectorSystem::render(mario::engine::IRenderer& renderer, const Camera& /
     std::vector<std::string> lines;
     build_lines(entities, registry, lines, assets);
 
-    // Draw lines in UI space; prefer using Renderer::draw_text which uses renderer's font.
-    float y = 8.0f;
-    const float x = 8.0f;
-    const unsigned int size = 14;
-
-    // Draw using the configured font (AssetManager font or fallback)
-    sf::RenderWindow &window = renderer.window();
-    auto old_view = window.getView();
-    window.setView(window.getDefaultView());
-
-    for (const auto &line: lines) {
-        _text.setString(line);
-        _text.setPosition({x, y});
-        window.draw(_text);
-        y += static_cast<float>(size) + 2.0f;
+    ImGui::SetNextWindowPos(ImVec2(8.0f, 8.0f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(300.0f, 200.0f), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Inspector", &_enabled)) {
+        for (const auto &line : lines) {
+            ImGui::TextUnformatted(line.c_str());
+        }
     }
-
-    window.setView(old_view);
+    ImGui::End();
 }
 
 } // namespace mario

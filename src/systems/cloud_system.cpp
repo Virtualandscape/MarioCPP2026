@@ -12,13 +12,13 @@
 
 namespace mario {
     // Initializes cloud entities by spawning them via Spawner utility.
-    void CloudSystem::initialize(mario::engine::IAssetManager &assets, mario::engine::EntityManagerFacade &registry) {
-        // Spawner now expects EntityManagerFacade + IAssetManager; forward registry and assets
+    void CloudSystem::initialize(mario::engine::IAssetManager &assets, mario::engine::IEntityManager &registry) {
+        // Spawner now expects IEntityManager + IAssetManager; forward registry and assets
         Spawner::spawn_clouds(registry, assets);
     }
 
     // Updates cloud positions: moves them horizontally and resets off-screen clouds.
-    void CloudSystem::update(mario::engine::EntityManagerFacade &registry, float dt) {
+    void CloudSystem::update(mario::engine::IEntityManager &registry, float dt) {
         using namespace mario::constants;
         static thread_local std::vector<EntityID> entities;
         registry.get_entities_with<CloudComponent>(entities);
@@ -39,7 +39,7 @@ namespace mario {
     }
 
     // Renders all cloud entities with proper layering and parallax offset.
-    void CloudSystem::render(mario::engine::IRenderer &renderer, const Camera &camera, mario::engine::IAssetManager &assets, mario::engine::EntityManagerFacade &registry) {
+    void CloudSystem::render(mario::engine::IRenderer &renderer, const Camera &camera, mario::engine::IAssetManager &assets, mario::engine::IEntityManager &registry) {
          using namespace mario::constants;
          static thread_local std::vector<EntityID> entities;
          registry.get_entities_with<CloudComponent>(entities);

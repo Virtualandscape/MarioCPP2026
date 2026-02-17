@@ -1,10 +1,10 @@
-#include "mario/core/UIManager.hpp"
+#include "mario/engine/UIManager.hpp"
 
 #include <imgui.h>
 #include <imgui-SFML.h>
 #include <iostream>
 
-namespace mario {
+namespace mario::engine {
 
     bool UIManager::init(sf::RenderWindow& window) {
         if (!ImGui::SFML::Init(window)) {
@@ -26,13 +26,6 @@ namespace mario {
         ImGui::SFML::Update(window, clock.restart());
     }
 
-    // Construct ImGui widgets for the current frame. Keep UI building centralized here.
-    void UIManager::build() {
-        ImGui::Begin("ImGui working!");
-        ImGui::Text("Hello, SFML 3 + ImGui!");
-        ImGui::End();
-    }
-
     void UIManager::render(sf::RenderWindow& window) {
         // Ensure UI is rendered in screen-space: use the default view temporarily.
         auto old_view = window.getView();
@@ -41,5 +34,5 @@ namespace mario {
         window.setView(old_view);
     }
 
-} // namespace mario
+} // namespace mario::engine
 

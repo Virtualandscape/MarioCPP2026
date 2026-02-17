@@ -14,7 +14,7 @@
 #include "mario/systems/InspectorSystem.hpp"
 #include "mario/world/Level.hpp"
 #include "mario/ui/HUD.hpp"
-#include "mario/engine/EntityManagerFacade.hpp"
+#include "mario/engine/IEntityManager.hpp"
 #include "mario/helpers/Constants.hpp"
 
 #include <string>
@@ -49,9 +49,9 @@ namespace mario {
 
         void setup_systems();
 
-        void run_update_systems(mario::engine::EntityManagerFacade &registry, float dt);
+        void run_update_systems(mario::engine::IEntityManager &registry, float dt);
 
-        void run_render_systems(mario::engine::EntityManagerFacade &registry, const Camera &camera);
+        void run_render_systems(mario::engine::IEntityManager &registry, const Camera &camera);
 
         Game &_game;
         EntityID _player_id;
@@ -78,9 +78,9 @@ namespace mario {
         bool _debug_toggle_last_state = false;
 
         // Ordered update callbacks to keep the ECS steps deterministic.
-        std::vector<std::function<void(mario::engine::EntityManagerFacade&, float)>> _update_systems;
+        std::vector<std::function<void(mario::engine::IEntityManager&, float)>> _update_systems;
         // Render callbacks that rely on the camera context provided each frame.
-        std::vector<std::function<void(mario::engine::EntityManagerFacade&, mario::engine::IRenderer&, mario::engine::IAssetManager&, const Camera&)>> _render_systems;
+        std::vector<std::function<void(mario::engine::IEntityManager&, mario::engine::IRenderer&, mario::engine::IAssetManager&, const Camera&)>> _render_systems;
 
         // Async asset loading future and flag. When true, background decode is running and update() will finalize textures each frame.
         std::future<void> _asset_loading_future;

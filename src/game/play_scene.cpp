@@ -183,8 +183,6 @@ namespace mario {
             _camera_system.initialize(registry, *camera, viewport.x, viewport.y, _player_id, -100.0f, 0.0f);
         }
 
-        // Initialize inspector system (font via AssetManager)
-        _inspector_system.initialize(_game.assets());
 
         // Mark scene as running and prepare the per-frame system pipelines.
         _running = true;
@@ -274,35 +272,35 @@ namespace mario {
         // Clear any previous pipeline entries.
         _update_systems.clear();
         // Player input and movement controller must run early so later systems see an updated control state.
-        _update_systems.emplace_back([this](mario::engine::EntityManagerFacade& registry, float dt) {
+        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
              _player_controller.update(registry, _game.input(), dt);
          });
         // Update animations after player and AI logic so they reflect the current state.
-        _update_systems.emplace_back([this](mario::engine::EntityManagerFacade& registry, float dt) {
+        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
              _animation_system.update(registry, dt);
          });
         // Run enemy AI and movement which may depend on the current tilemap.
-        _update_systems.emplace_back([this](mario::engine::EntityManagerFacade& registry, float dt) {
+        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
              if (const auto tile_map = _level.tile_map()) {
                  _enemy_system.update(registry, *tile_map, dt);
              }
          });
         // Physics simulation (collisions, velocity integration) runs after motion inputs.
-        _update_systems.emplace_back([this](mario::engine::EntityManagerFacade& registry, float dt) {
+        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
              _physics.update(registry, dt);
          });
         // Cloud system updates visual cloud entities (non-critical gameplay elements).
-        _update_systems.emplace_back([this](mario::engine::EntityManagerFacade& registry, float dt) {
+        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
              _cloud_system.update(registry, dt);
          });
         // Tile/level collision detection and resolution.
-        _update_systems.emplace_back([this](mario::engine::EntityManagerFacade& registry, float dt) {
+        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
              if (const auto tile_map = _level.tile_map()) {
                  CollisionSystem::update(registry, *tile_map, dt);
              }
          });
         // Level transitions check should run after all simulation so it can act on final state.
-        _update_systems.emplace_back([this](mario::engine::EntityManagerFacade& registry, float dt) {
+        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
             if (LevelSystem::handle_transitions(registry, _player_id, _level, _current_level_path, _level_transition_delay, dt)) {
                  _level_transition_pending = true;
              }
@@ -310,7 +308,7 @@ namespace mario {
 
         // Build render callbacks: these are executed each frame with the current camera context.
         _render_systems.clear();
-        _render_systems.emplace_back([this](mario::engine::EntityManagerFacade& registry, mario::engine::IRenderer& renderer, mario::engine::IAssetManager& assets, const Camera& camera){
+        _render_systems.emplace_back([this](mario::engine::IEntityManager& registry, mario::engine::IRenderer& renderer, mario::engine::IAssetManager& assets, const Camera& camera){
             // Render background layers sorted by parallax to create depth.
             static thread_local std::vector<EntityID> bg_entities;
             registry.get_entities_with<BackgroundComponent>(bg_entities);
@@ -339,11 +337,6 @@ namespace mario {
             _hud.set_level_name(level_name);
             _hud.render();
         });
-
-        // Inspector overlay should render after everything else so it's on top
-        _render_systems.emplace_back([this](mario::engine::EntityManagerFacade& registry, mario::engine::IRenderer& renderer, mario::engine::IAssetManager& assets, const Camera& camera){
-            _inspector_system.render(renderer, camera, registry, assets);
-        });
     }
 
     // Used by: Game main loop to draw a frame
@@ -364,11 +357,14 @@ namespace mario {
 
         // Execute the render pipeline with camera context.
         run_render_systems(_game.entity_manager(), camera_view);
+
+        // Render game-specific UI via the UIManager
+        _inspector_system.render_ui(_game.entity_manager(), _game.assets());
     }
 
     // Used by: update (executes update pipeline)
     // Execute the stored update callbacks in order.
-    void PlayScene::run_update_systems(mario::engine::EntityManagerFacade &registry, float dt) {
+    void PlayScene::run_update_systems(mario::engine::IEntityManager &registry, float dt) {
         for (auto &sys : _update_systems) {
             sys(registry, dt);
         }
@@ -376,7 +372,7 @@ namespace mario {
 
     // Used by: render (executes render pipeline)
     // Execute the stored render callbacks in order. Each callback receives the renderer and assets.
-    void PlayScene::run_render_systems(mario::engine::EntityManagerFacade &registry, const Camera &camera) {
+    void PlayScene::run_render_systems(mario::engine::IEntityManager &registry, const Camera &camera) {
         for (auto &sys : _render_systems) {
             sys(registry, _game.renderer(), _game.assets(), camera);
         }

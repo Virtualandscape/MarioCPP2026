@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mario/engine/EntityManagerFacade.hpp"
+#include "mario/engine/IEntityManager.hpp"
 #include "mario/engine/IRenderer.hpp"
 
 namespace mario {
@@ -12,6 +12,6 @@ namespace mario {
         DebugDrawSystem() = default;
 
         // Draw bounding boxes for entities that have Position and Size components.
-        void render(mario::engine::IRenderer& renderer, const Camera& camera, mario::engine::EntityManagerFacade& registry);
+        void render(mario::engine::IRenderer& renderer, const Camera& camera, mario::engine::IEntityManager& registry);
     };
 }

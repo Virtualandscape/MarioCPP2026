@@ -15,81 +15,49 @@
 #include <SFML/System/Clock.hpp>
 #include <SFML/System/Sleep.hpp>
 
-#include "mario/engine/EntityManagerFacade.hpp"
-
 namespace mario::engine {
-    Application::Application(std::string_view title)
-        : _renderer_adapter(nullptr), _input_adapter(nullptr), _assets_adapter(nullptr), _entities_adapter(nullptr) {
-        // Create owned subsystems. Renderer constructed with default constructor.
-        _renderer = std::make_shared<mario::Renderer>();
+    Application::Application(std::string_view title) {
+        // Create owned concrete subsystems.
+        auto renderer = std::make_shared<mario::Renderer>();
         // If a title was provided, update the renderer window title.
         if (!title.empty()) {
-            _renderer->window().setTitle(sf::String(std::string(title)));
+            renderer->window().setTitle(sf::String(std::string(title)));
         }
-        _input = std::make_shared<mario::InputManager>();
-        _assets = std::make_shared<mario::AssetManager>();
-        _entities = std::make_shared<mario::EntityManager>();
-        // Default iface wrappers
-        _renderer_iface = std::make_shared<engine::adapters::RendererAdapter>(_renderer);
-        _input_iface = std::make_shared<engine::adapters::InputAdapter>(_input);
-        _assets_iface = std::make_shared<engine::adapters::AssetManagerAdapter>(_assets);
-        _entities_iface = std::make_shared<engine::adapters::EntityManagerAdapter>(_entities);
-        if (!_entities_facade) _entities_facade = std::make_unique<EntityManagerFacade>(*_entities);
+        auto input = std::make_shared<mario::InputManager>();
+        auto assets = std::make_shared<mario::AssetManager>();
+        auto entities = std::make_shared<mario::EntityManager>();
+
+        // Initialize interface adapters.
+        _renderer_iface = std::make_shared<engine::adapters::RendererAdapter>(renderer);
+        _input_iface = std::make_shared<engine::adapters::InputAdapter>(input);
+        _assets_iface = std::make_shared<engine::adapters::AssetManagerAdapter>(assets);
+        _entities_iface = std::make_shared<engine::adapters::EntityManagerAdapter>(entities);
+
+        // Initialize UI manager with default implementation.
+        _ui = std::make_unique<UIManager>();
     }
 
     Application::Application(std::shared_ptr<IRenderer> renderer,
                              std::shared_ptr<IInput> input,
                              std::shared_ptr<IAssetManager> assets,
                              std::shared_ptr<IEntityManager> entities)
-        : _renderer_adapter(std::move(renderer)), _input_adapter(std::move(input)),
-          _assets_adapter(std::move(assets)), _entities_adapter(std::move(entities)) {
-        // If adapters expose underlying concrete objects via their adapter classes, prefer them.
-        // Otherwise, fall back to creating concrete subsystem instances.
-        if (_renderer_adapter) {
-            if (auto ra = std::dynamic_pointer_cast<engine::adapters::RendererAdapter>(_renderer_adapter)) {
-                _renderer = ra->underlying();
-                _renderer_iface = _renderer_adapter;
-            }
-        }
-        if (!_renderer) {
-            _renderer = std::make_shared<mario::Renderer>();
-            _renderer_iface = std::make_shared<engine::adapters::RendererAdapter>(_renderer);
-        }
+        : _renderer_iface(std::move(renderer)), _input_iface(std::move(input)),
+          _assets_iface(std::move(assets)), _entities_iface(std::move(entities)),
+          _ui(std::make_unique<UIManager>()) {
 
-        if (_input_adapter) {
-            if (auto ia = std::dynamic_pointer_cast<engine::adapters::InputAdapter>(_input_adapter)) {
-                _input = ia->underlying();
-                _input_iface = _input_adapter;
-            }
+        // Ensure we have a valid interface for each subsystem.
+        if (!_renderer_iface) {
+            _renderer_iface = std::make_shared<engine::adapters::RendererAdapter>(std::make_shared<mario::Renderer>());
         }
-        if (!_input) {
-            _input = std::make_shared<mario::InputManager>();
-            _input_iface = std::make_shared<engine::adapters::InputAdapter>(_input);
+        if (!_input_iface) {
+            _input_iface = std::make_shared<engine::adapters::InputAdapter>(std::make_shared<mario::InputManager>());
         }
-
-        if (_assets_adapter) {
-            if (auto aa = std::dynamic_pointer_cast<engine::adapters::AssetManagerAdapter>(_assets_adapter)) {
-                _assets = aa->underlying();
-                _assets_iface = _assets_adapter;
-            }
+        if (!_assets_iface) {
+            _assets_iface = std::make_shared<engine::adapters::AssetManagerAdapter>(std::make_shared<mario::AssetManager>());
         }
-        if (!_assets) {
-            _assets = std::make_shared<mario::AssetManager>();
-            _assets_iface = std::make_shared<engine::adapters::AssetManagerAdapter>(_assets);
+        if (!_entities_iface) {
+            _entities_iface = std::make_shared<engine::adapters::EntityManagerAdapter>(std::make_shared<mario::EntityManager>());
         }
-
-        if (_entities_adapter) {
-            if (auto ea = std::dynamic_pointer_cast<engine::adapters::EntityManagerAdapter>(_entities_adapter)) {
-                _entities = ea->underlying();
-                _entities_iface = _entities_adapter;
-            }
-        }
-        if (!_entities) {
-            _entities = std::make_shared<mario::EntityManager>();
-            _entities_iface = std::make_shared<engine::adapters::EntityManagerAdapter>(_entities);
-        }
-        // Create facade around the concrete entity manager
-        if (!_entities_facade) _entities_facade = std::make_unique<EntityManagerFacade>(*_entities);
     }
 
     Application::~Application() = default;
@@ -97,16 +65,16 @@ namespace mario::engine {
     void Application::initialize() {
         _running = true;
         // Initialize UI manager with the renderer's window. If it fails, log a warning but continue.
-        if (!_ui.init(_renderer_iface->window())) {
+        if (_ui && !_ui->init(_renderer_iface->window())) {
             std::cerr << "Warning: UI Manager failed to initialize. ImGui features will be unavailable." << std::endl;
         }
     }
 
     void Application::shutdown() {
-        _ui.shutdown();
+        if (_ui) _ui->shutdown();
         _scenes.clear();
-        _assets->unload_all();
-        _entities->clear();
+        _assets_iface->unload_all();
+        _entities_iface->clear();
         _running = false;
     }
 
@@ -146,9 +114,11 @@ namespace mario::engine {
 
     IAssetManager &Application::assets() { return *_assets_iface; }
 
-    EntityManagerFacade &Application::entity_manager() { return *_entities_facade; }
+    IEntityManager &Application::entity_manager() { return *_entities_iface; }
 
-    mario::EntityManager &Application::underlying_entity_manager() { return *_entities; }
+    mario::EntityManager &Application::underlying_entity_manager() { return _entities_iface->underlying(); }
+
+    UIManager &Application::ui() { return *_ui; }
 
     void Application::before_loop() {
         // Default: engine does not assume any game-specific initial scene. Games should override
@@ -166,7 +136,7 @@ namespace mario::engine {
             // ImGui process events
             sf::RenderWindow &window = _renderer_iface->window();
             while (const auto event = window.pollEvent()) {
-                _ui.process_event(window, *event);
+                if (_ui) _ui->process_event(window, *event);
                 if (event->is<sf::Event::Closed>()) {
                     window.close();
                 }
@@ -176,12 +146,14 @@ namespace mario::engine {
 
             scene->update(dt);
 
-            _ui.update(window, _imgui_clock);
-            _ui.build();
+            if (_ui) {
+                _ui->update(window, _imgui_clock);
+                _ui->build();
+            }
 
             _renderer_iface->begin_frame();
             scene->render();
-            _ui.render(window);
+            if (_ui) _ui->render(window);
             _renderer_iface->end_frame();
 
             const sf::Time elapsed = clock.getElapsedTime();

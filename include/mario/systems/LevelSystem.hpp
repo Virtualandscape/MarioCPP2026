@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mario/engine/EntityManagerFacade.hpp"
+#include "mario/engine/IEntityManager.hpp"
 #include <string>
 
 namespace mario {
@@ -9,6 +9,6 @@ namespace mario {
 
     class LevelSystem {
     public:
-        static bool handle_transitions(mario::engine::EntityManagerFacade& registry, EntityID player_id, Level& level, std::string& current_level_path, float& transition_delay, float dt);
+        static bool handle_transitions(mario::engine::IEntityManager& registry, EntityID player_id, Level& level, std::string& current_level_path, float& transition_delay, float dt);
     };
 } // namespace mario

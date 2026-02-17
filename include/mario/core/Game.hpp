@@ -5,13 +5,13 @@
 #include "mario/input/InputManager.hpp"
 #include "mario/render/Renderer.hpp"
 #include "mario/resources/AssetManager.hpp"
-#include "mario/core/UIManager.hpp"
+#include "mario/engine/UIManager.hpp"
 #include "mario/engine/Application.hpp" // Use the engine-level application as backend
 
 #include "mario/engine/IRenderer.hpp"
 #include "mario/engine/IInput.hpp"
 #include "mario/engine/IAssetManager.hpp"
-#include "mario/engine/EntityManagerFacade.hpp"
+#include "mario/engine/IEntityManager.hpp"
 
 #include <memory>
 #include <vector>
@@ -50,7 +50,7 @@ namespace mario {
         mario::engine::IRenderer &renderer();
         mario::engine::IInput &input();
         mario::engine::IAssetManager &assets();
-        mario::engine::EntityManagerFacade &entity_manager();
+        mario::engine::IEntityManager &entity_manager();
         // Access to the underlying concrete entity manager if needed by legacy code.
         mario::EntityManager &underlying_entity_manager();
 

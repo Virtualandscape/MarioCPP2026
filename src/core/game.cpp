@@ -67,7 +67,7 @@ namespace mario {
     }
 
     // Provide both facade and, for compatibility, access to the underlying concrete EntityManager.
-    mario::engine::EntityManagerFacade &Game::entity_manager() {
+    mario::engine::IEntityManager &Game::entity_manager() {
         return _app->entity_manager();
     }
 

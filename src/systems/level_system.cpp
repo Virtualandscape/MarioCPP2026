@@ -14,7 +14,7 @@
 #include <cmath>
 
 namespace mario {
-    bool LevelSystem::handle_transitions(mario::engine::EntityManagerFacade &registry, EntityID player_id, Level &level,
+    bool LevelSystem::handle_transitions(mario::engine::IEntityManager &registry, EntityID player_id, Level &level,
                                          std::string &current_level_path, float &transition_delay, float dt) {
         auto tile_map = level.tile_map();
         if (!tile_map) return false;

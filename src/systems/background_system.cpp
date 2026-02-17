@@ -112,7 +112,7 @@ namespace mario {
     }
 
     // Create a background entity and attach a BackgroundComponent (moved from PlayState)
-    void BackgroundSystem::create_background_entity(mario::engine::EntityManagerFacade& registry, int texture_id, bool preserve_aspect,
+    void BackgroundSystem::create_background_entity(mario::engine::IEntityManager& registry, int texture_id, bool preserve_aspect,
                                                      BackgroundComponent::ScaleMode scale_mode, float scale_multiplier, float parallax,
                                                      bool repeat, bool repeat_x, float offset_x, float offset_y) {
          auto id = registry.create_entity();

@@ -9,7 +9,7 @@
 
 namespace mario {
 
-void PlayerControllerSystem::update(mario::engine::EntityManagerFacade& registry, const mario::engine::IInput& input, float /*dt*/) const {
+void PlayerControllerSystem::update(mario::engine::IEntityManager& registry, const mario::engine::IInput& input, float /*dt*/) const {
     static thread_local std::vector<EntityID> entities;
     registry.get_entities_with_all<PlayerControllerComponent, VelocityComponent>(entities);
 
