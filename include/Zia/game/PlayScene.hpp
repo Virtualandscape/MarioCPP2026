@@ -53,6 +53,9 @@ namespace zia {
 
         void run_render_systems(zia::engine::IEntityManager &registry, const Camera &camera);
 
+        // Waits for any async asset decoding task to complete before teardown/reload.
+        void wait_for_asset_loading();
+
         Game &_game;
         EntityID _player_id;
         PhysicsSystem _physics;

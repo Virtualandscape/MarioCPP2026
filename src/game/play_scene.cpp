@@ -42,6 +42,9 @@ namespace zia {
     // Used by: Game::push_scene / scene manager when entering this scene
     // Called when entering the play scene. Loads level assets, spawns entities and builds system pipelines.
     void PlayScene::on_enter() {
+        // Ensure any previous async asset task is finished before reusing this scene.
+        wait_for_asset_loading();
+
         // Load the level data from the configured path into the Level object.
         _level.load(_current_level_path);
 
@@ -193,6 +196,9 @@ namespace zia {
     // Used by: Game::pop_scene / scene manager when exiting this scene
     // Called when exiting the play scene. Clears ECS registry and unloads level resources.
     void PlayScene::on_exit() {
+        // Ensure async asset decoding is completed before clearing level data.
+        wait_for_asset_loading();
+
         // Remove all entities/components related to this level.
         auto& registry = _game.entity_manager();
         registry.clear();
@@ -382,6 +388,16 @@ namespace zia {
     // Query whether the scene should keep running. This checks both the internal running flag
     // and whether the renderer window is still open.
     bool PlayScene::is_running() const { return _running && _game.renderer().is_open(); }
+
+    // Wait for async asset decoding to complete and release the future.
+    void PlayScene::wait_for_asset_loading() {
+        if (_asset_loading_future.valid()) {
+            // Block to keep asset manager access safe during scene teardown.
+            _asset_loading_future.wait();
+        }
+        _assets_loading = false;
+        _asset_loading_future = std::future<void>();
+    }
 } // namespace Zia
 
 // file end - cleaned and newline ensured
