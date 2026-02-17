@@ -1,5 +1,6 @@
 #include "Zia/engine/spatial/Quadtree.hpp"
 #include <iostream>
+#include <utility>
 
 namespace zia::engine::spatial {
 
@@ -78,7 +79,9 @@ void Quadtree::insert(const QuadTile& tile)
             if (index != -1)
             {
                 _nodes[index].insert(_quadTiles[i]);
-                _quadTiles.erase(_quadTiles.begin() + i);
+                // Swap-and-pop to avoid O(n) erase in a tight loop.
+                std::swap(_quadTiles[i], _quadTiles.back());
+                _quadTiles.pop_back();
             }
             else
             {
