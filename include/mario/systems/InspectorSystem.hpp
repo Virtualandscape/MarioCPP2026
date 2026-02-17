@@ -8,6 +8,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace mario {
     class AssetManager; // forward declare to avoid including heavy header in this small system header
@@ -36,9 +37,10 @@ namespace mario {
         bool _enabled = true;
         size_t _max_entries = 32;
 
-        // SFML text objects for drawing overlay (kept local in case of future per-system font usage)
-        sf::Font _font;
+        // Fallback font used to construct sf::Text; prefer AssetManager-provided fonts via _font_ptr.
+        sf::Font _fallback_font;
         sf::Text _text;
+        std::shared_ptr<const sf::Font> _font_ptr;
 
         // Helper to build the overlay lines
         void build_lines(const std::vector<EntityID>& entities, EntityManager& registry, std::vector<std::string>& out_lines, AssetManager& assets) const;

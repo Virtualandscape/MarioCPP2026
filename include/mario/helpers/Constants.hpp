@@ -101,5 +101,8 @@
         inline constexpr int PLAYER_FRAME_HEIGHT = 64;
         inline constexpr float PLAYER_FRAME_DURATION = 0.1f;
 
+        // Font IDs
+        inline constexpr int FONT_MONTSERRAT_BLACK_ID = 4000;
+
     } // namespace mario::constants
 

@@ -6,8 +6,8 @@
 #include <filesystem>
 #include <iostream>
 #include <optional>
-#include <chrono>
 #include <SFML/Graphics/Image.hpp>
+#include <SFML/Graphics/Font.hpp>
 
 namespace mario {
 
@@ -30,11 +30,6 @@ namespace mario {
         }
 
         return std::nullopt;
-    }
-
-    static bool load_image_from_file(sf::Image &image, const std::filesystem::path &path) {
-        // Decode image into CPU memory. This is safe to call on background threads.
-        return image.loadFromFile(path.string());
     }
 
     // Loads a texture from disk and stores it with the given ID. Returns true on success.
@@ -84,13 +79,13 @@ namespace mario {
     // Return a shared ownership pointer to the texture so callers don't hold raw pointers.
     std::shared_ptr<sf::Texture> AssetManager::get_mutable_texture(int id) {
         auto it = _textures.find(id);
-        if (it == _textures.end()) return std::shared_ptr<sf::Texture>();
+        if (it == _textures.end()) return {};
         return it->second;
     }
 
     std::shared_ptr<const sf::Texture> AssetManager::get_texture(int id) const {
         auto it = _textures.find(id);
-        if (it == _textures.end()) return std::shared_ptr<const sf::Texture>();
+        if (it == _textures.end()) return {};
         return std::static_pointer_cast<const sf::Texture>(it->second);
     }
 
@@ -98,13 +93,32 @@ namespace mario {
         return _textures.find(id) != _textures.end();
     }
 
-    void AssetManager::load_sound(int id, std::string_view path) {
-        (void)id;
-        (void)path;
+    bool AssetManager::load_font(int id, std::string_view path) {
+        if (path.empty()) return false;
+        if (has_font(id)) return true;
+
+        const auto resolved_path = resolve_asset_path(path);
+        if (!resolved_path) return false;
+
+        auto f = std::make_shared<sf::Font>();
+        if (!f->openFromFile(resolved_path->string())) return false;
+        _fonts[id] = f;
+        return true;
+    }
+
+    std::shared_ptr<const sf::Font> AssetManager::get_font(int id) const {
+        auto it = _fonts.find(id);
+        if (it == _fonts.end()) return {};
+        return std::static_pointer_cast<const sf::Font>(it->second);
+    }
+
+    bool AssetManager::has_font(int id) const {
+        return _fonts.find(id) != _fonts.end();
     }
 
     void AssetManager::unload_all() {
         _textures.clear();
+        _fonts.clear();
     }
 
 } // namespace mario

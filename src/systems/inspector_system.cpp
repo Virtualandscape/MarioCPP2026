@@ -7,6 +7,7 @@
 #include "mario/ecs/components/EnemyComponent.hpp"
 #include "mario/ecs/components/SizeComponent.hpp"
 #include "mario/resources/AssetManager.hpp"
+#include "mario/helpers/Constants.hpp"
 
 #include <sstream>
 #include <iomanip>
@@ -15,66 +16,60 @@
 
 namespace mario {
 
-static std::optional<std::filesystem::path> resolve_asset_path_local(std::string_view path) {
-    std::filesystem::path base(path);
-    const std::filesystem::path cwd = std::filesystem::current_path();
-    const std::filesystem::path tries[] = {
-        base,
-        cwd / base,
-        cwd / ".." / base,
-        cwd / ".." / ".." / base,
-        cwd / ".." / ".." / ".." / base,
-    };
-    for (const auto &candidate : tries) {
-        if (std::filesystem::exists(candidate)) return candidate;
-    }
-    return std::nullopt;
-}
-
 InspectorSystem::InspectorSystem()
-    : _font(), _text(_font) {
+    : _fallback_font(), _text(_fallback_font) {
     _enabled = true;
     _max_entries = 32;
 }
 
 void InspectorSystem::initialize(AssetManager& assets) {
-    // Try to use AssetManager's font API if present (not implemented in this project), otherwise load directly.
-    // Prefer assets/fonts/Montserrat-Black.ttf as requested by user.
-    const std::string preferred = "assets/fonts/Montserrat-Black.ttf";
+    // Prefer AssetManager-managed font
+    const int font_id = constants::FONT_MONTSERRAT_BLACK_ID;
     bool loaded = false;
 
-    // If AssetManager had a get_font API we would prefer it; check by ADL via has_font/get_font - but since header doesn't
-    // expose such we fall back to attempting to load via filesystem.
-    auto resolved = resolve_asset_path_local(preferred);
-    if (resolved) {
-        loaded = _font.openFromFile(resolved->string());
+    if (assets.has_font(font_id)) {
+        _font_ptr = assets.get_font(font_id);
+        if (_font_ptr) {
+            loaded = true;
+        }
+    } else {
+        // Try to instruct AssetManager to load the font for reuse across the project
+        if (assets.load_font(font_id, "assets/fonts/Montserrat-Black.ttf")) {
+            _font_ptr = assets.get_font(font_id);
+            if (_font_ptr) {
+                loaded = true;
+            }
+        }
     }
 
     if (!loaded) {
-        // Fallback: try some common relative paths
+        // Fallback to direct file loading using local resolution (try several relative paths)
         const std::vector<std::string> tries = {
             "assets/fonts/Montserrat-Black.ttf",
             "../assets/fonts/Montserrat-Black.ttf",
             "../../assets/fonts/Montserrat-Black.ttf",
         };
         for (const auto &p : tries) {
-            resolved = resolve_asset_path_local(p);
-            if (resolved) {
-                if (_font.openFromFile(resolved->string())) { loaded = true; break; }
+            try {
+                if (std::filesystem::exists(p)) {
+                    if (_fallback_font.openFromFile(p)) { loaded = true; break; }
+                }
+            } catch (const std::filesystem::filesystem_error&) {
+                // ignore path errors and continue
             }
         }
+        if (loaded) {
+            // make fallback font visible via _text
+            _text.setFont(_fallback_font);
+        }
+    } else {
+        // Use the shared font from AssetManager without copying
+        if (_font_ptr) _text.setFont(*_font_ptr);
     }
 
-    if (!loaded) {
-        // As a last resort keep renderer's default font by leaving _font empty; Renderer::draw_text uses its own font.
-        // We still prepare _text in case a font is available later.
-        // No error thrown: inspector remains functional using renderer font.
-    } else {
-        // Prepare SFML text object to use our font when drawing; Renderer::draw_text uses its own font so we'll draw directly to window if needed.
-        _text.setFont(_font);
-        _text.setCharacterSize(14);
-        _text.setFillColor(sf::Color::White);
-    }
+    // common text settings
+    _text.setCharacterSize(14);
+    _text.setFillColor(sf::Color::White);
 }
 
 void InspectorSystem::update(EntityManager& /*registry*/, float /*dt*/) {
@@ -83,6 +78,8 @@ void InspectorSystem::update(EntityManager& /*registry*/, float /*dt*/) {
 
 // Helper: build a list of human-readable lines for the provided entities
 void InspectorSystem::build_lines(const std::vector<EntityID>& entities, EntityManager& registry, std::vector<std::string>& out_lines, AssetManager& /*assets*/) const {
+    // registry, entities and out_lines are used below
+
     out_lines.clear();
     std::ostringstream header;
     header << "Inspector - entities: " << entities.size();
@@ -177,32 +174,19 @@ void InspectorSystem::render(Renderer& renderer, const Camera& /*camera*/, Entit
     const float x = 8.0f;
     const unsigned int size = 14;
 
-    // If we loaded Montserrat into _font, draw using SFML text directly to ensure font usage, otherwise use renderer.
-    if (!_font.getInfo().family.empty()) {
-        // Draw directly using the font. Must switch to default view like renderer.draw_text does.
-        sf::RenderWindow &window = renderer.window();
-        auto old_view = window.getView();
-        window.setView(window.getDefaultView());
+    // Draw using the configured font (AssetManager font or fallback)
+    sf::RenderWindow &window = renderer.window();
+    auto old_view = window.getView();
+    window.setView(window.getDefaultView());
 
-        _text.setFont(_font);
-        _text.setCharacterSize(size);
-        _text.setFillColor(sf::Color::White);
-
-        for (const auto &line : lines) {
-            _text.setString(line);
-            _text.setPosition({x, y});
-            window.draw(_text);
-            y += static_cast<float>(size) + 2.0f;
-        }
-
-        window.setView(old_view);
-    } else {
-        for (const auto &line : lines) {
-            renderer.draw_text(line, x, y, size, sf::Color::White);
-            y += static_cast<float>(size) + 2.0f;
-        }
+    for (const auto &line: lines) {
+        _text.setString(line);
+        _text.setPosition({x, y});
+        window.draw(_text);
+        y += static_cast<float>(size) + 2.0f;
     }
+
+    window.setView(old_view);
 }
 
 } // namespace mario
-
