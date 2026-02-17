@@ -1,15 +1,15 @@
-#include "mario/game/systems/BackgroundSystem.hpp"
-#include "mario/engine/resources/AssetManager.hpp"
-#include "mario/engine/ecs/components/BackgroundComponent.hpp"
+#include "Zia/game/systems/BackgroundSystem.hpp"
+#include "Zia/engine/resources/AssetManager.hpp"
+#include "Zia/engine/ecs/components/BackgroundComponent.hpp"
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <algorithm>
 #include <cmath>
 
-namespace mario {
+namespace zia {
 
     // Renders the background based on the BackgroundComponent settings, handling parallax, scaling, and tiling.
-    void BackgroundSystem::render(mario::engine::IRenderer& renderer, const Camera& camera, mario::engine::IAssetManager& assets, const BackgroundComponent& bg) {
+    void BackgroundSystem::render(zia::engine::IRenderer& renderer, const Camera& camera, zia::engine::IAssetManager& assets, const BackgroundComponent& bg) {
         // Get viewport dimensions
         const auto viewport = renderer.viewport_size();
         // Retrieve the texture for the background (returns shared_ptr)
@@ -112,7 +112,7 @@ namespace mario {
     }
 
     // Create a background entity and attach a BackgroundComponent (moved from PlayState)
-    void BackgroundSystem::create_background_entity(mario::engine::IEntityManager& registry, int texture_id, bool preserve_aspect,
+    void BackgroundSystem::create_background_entity(zia::engine::IEntityManager& registry, int texture_id, bool preserve_aspect,
                                                      BackgroundComponent::ScaleMode scale_mode, float scale_multiplier, float parallax,
                                                      bool repeat, bool repeat_x, float offset_x, float offset_y) {
          auto id = registry.create_entity();
@@ -129,4 +129,4 @@ namespace mario {
          registry.add_component(id, bc);
      }
 
-} // namespace mario
+} // namespace Zia

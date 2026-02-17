@@ -1,20 +1,20 @@
 // Implements the LevelSystem, which checks and updates the ground status for entities (e.g., for jumping logic).
 // Determines if entities are on the ground by checking for solid tiles beneath them.
 
-#include "mario/game/systems/LevelSystem.hpp"
-#include "mario/game/world/Level.hpp"
-#include "mario/game/world/TileMap.hpp"
-#include "mario/engine/ecs/components/PositionComponent.hpp"
-#include "mario/engine/ecs/components/SizeComponent.hpp"
-#include "mario/engine/ecs/components/PlayerControllerComponent.hpp"
-#include "mario/game/helpers/Constants.hpp"
+#include "Zia/game/systems/LevelSystem.hpp"
+#include "Zia/game/world/Level.hpp"
+#include "Zia/game/world/TileMap.hpp"
+#include "Zia/engine/ecs/components/PositionComponent.hpp"
+#include "Zia/engine/ecs/components/SizeComponent.hpp"
+#include "Zia/engine/ecs/components/PlayerControllerComponent.hpp"
+#include "Zia/game/helpers/Constants.hpp"
 
 #include <algorithm>
 #include <string>
 #include <cmath>
 
-namespace mario {
-    bool LevelSystem::handle_transitions(mario::engine::IEntityManager &registry, EntityID player_id, Level &level,
+namespace zia {
+    bool LevelSystem::handle_transitions(zia::engine::IEntityManager &registry, EntityID player_id, Level &level,
                                          std::string &current_level_path, float &transition_delay, float dt) {
         auto tile_map = level.tile_map();
         if (!tile_map) return false;
@@ -38,14 +38,14 @@ namespace mario {
         if (transition_delay <= 0.0f) {
             const int map_right_px = tile_map->width() * tile_map->tile_size();
             if (pos.x + size.width > static_cast<float>(map_right_px)) {
-                if (current_level_path == mario::constants::LEVEL1_PATH) {
-                    current_level_path = mario::constants::LEVEL2_PATH;
+                if (current_level_path == zia::constants::LEVEL1_PATH) {
+                    current_level_path = zia::constants::LEVEL2_PATH;
                 } else {
-                    current_level_path = mario::constants::LEVEL1_PATH;
+                    current_level_path = zia::constants::LEVEL1_PATH;
                 }
                 return true;
             }
         }
         return false;
     }
-} // namespace mario
+} // namespace Zia

@@ -1,32 +1,32 @@
-#include "mario/game/systems/InspectorSystem.hpp"
-#include "mario/engine/ecs/components/PositionComponent.hpp"
-#include "mario/engine/ecs/components/VelocityComponent.hpp"
-#include "mario/engine/ecs/components/SpriteComponent.hpp"
-#include "mario/engine/ecs/components/TypeComponent.hpp"
-#include "mario/engine/ecs/components/AnimationComponent.hpp"
-#include "mario/engine/ecs/components/EnemyComponent.hpp"
-#include "mario/engine/ecs/components/SizeComponent.hpp"
-#include "mario/engine/resources/AssetManager.hpp"
-#include "mario/game/helpers/Constants.hpp"
+#include "Zia/game/systems/InspectorSystem.hpp"
+#include "Zia/engine/ecs/components/PositionComponent.hpp"
+#include "Zia/engine/ecs/components/VelocityComponent.hpp"
+#include "Zia/engine/ecs/components/SpriteComponent.hpp"
+#include "Zia/engine/ecs/components/TypeComponent.hpp"
+#include "Zia/engine/ecs/components/AnimationComponent.hpp"
+#include "Zia/engine/ecs/components/EnemyComponent.hpp"
+#include "Zia/engine/ecs/components/SizeComponent.hpp"
+#include "Zia/engine/resources/AssetManager.hpp"
+#include "Zia/game/helpers/Constants.hpp"
 
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
 #include <filesystem>
 
-namespace mario {
+namespace zia {
 
 InspectorSystem::InspectorSystem() {
     _enabled = true;
     _max_entries = 32;
 }
 
-void InspectorSystem::update(mario::engine::IEntityManager& /*registry*/, float /*dt*/) {
+void InspectorSystem::update(zia::engine::IEntityManager& /*registry*/, float /*dt*/) {
     // No internal state for now.
 }
 
 // Helper: build a list of human-readable lines for the provided entities
-void InspectorSystem::build_lines(const std::vector<EntityID>& entities, mario::engine::IEntityManager& registry, std::vector<std::string>& out_lines, mario::engine::IAssetManager& /*assets*/) const {
+void InspectorSystem::build_lines(const std::vector<EntityID>& entities, zia::engine::IEntityManager& registry, std::vector<std::string>& out_lines, zia::engine::IAssetManager& /*assets*/) const {
     // registry, entities and out_lines are used below
 
     out_lines.clear();
@@ -91,7 +91,7 @@ void InspectorSystem::build_lines(const std::vector<EntityID>& entities, mario::
     }
 }
 
-void InspectorSystem::render_ui(mario::engine::IEntityManager& registry, mario::engine::IAssetManager& assets) {
+void InspectorSystem::render_ui(zia::engine::IEntityManager& registry, zia::engine::IAssetManager& assets) {
     if (!_enabled) return;
 
     // Collect candidate entities: entities with TypeComponent and EnemyComponent.
@@ -128,4 +128,4 @@ void InspectorSystem::render_ui(mario::engine::IEntityManager& registry, mario::
     ImGui::End();
 }
 
-} // namespace mario
+} // namespace Zia

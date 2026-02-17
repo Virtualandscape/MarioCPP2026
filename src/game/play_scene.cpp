@@ -1,16 +1,16 @@
 // Implements the PlayScene class, which manages the main gameplay scene, including level loading, player spawning, and HUD updates.
 // Handles entering and exiting the play scene, updating game logic, and rendering the game world and HUD.
 
-#include "mario/game/PlayScene.hpp"
-#include "mario/game/MarioGame.hpp"
-#include "mario/game/world/Camera.hpp"
-#include "mario/engine/ecs/components/BackgroundComponent.hpp"
-#include "mario/game/helpers/Spawner.hpp"
-#include "mario/game/world/TileMap.hpp"
-#include "mario/game/helpers/Constants.hpp"
-#include "mario/engine/resources/AssetManager.hpp"
-#include "mario/game/systems/CollisionSystem.hpp"
-#include "mario/game/systems/InspectorSystem.hpp"
+#include "Zia/game/PlayScene.hpp"
+#include "Zia/game/MarioGame.hpp"
+#include "Zia/game/world/Camera.hpp"
+#include "Zia/engine/ecs/components/BackgroundComponent.hpp"
+#include "Zia/game/helpers/Spawner.hpp"
+#include "Zia/game/world/TileMap.hpp"
+#include "Zia/game/helpers/Constants.hpp"
+#include "Zia/engine/resources/AssetManager.hpp"
+#include "Zia/game/systems/CollisionSystem.hpp"
+#include "Zia/game/systems/InspectorSystem.hpp"
 
 #include <algorithm>
 #include <string>
@@ -25,7 +25,7 @@
 #include <optional>
 #include <SFML/Graphics/Image.hpp>
 
-namespace mario {
+namespace zia {
 
     // Used by: Game state manager / state stack
     // Constructor initializes the PlayScene with a reference to the game and optional level path.
@@ -75,25 +75,25 @@ namespace mario {
 
             // Light assets to load synchronously (fast, small files)
             std::vector<std::pair<int,std::string>> light_list;
-            light_list.emplace_back(mario::constants::PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
-            light_list.emplace_back(mario::constants::PLAYER_RUN_ID, "assets/Sprites/Player64/Run.png");
-            light_list.emplace_back(mario::constants::PLAYER_JUMP_ID, "assets/Sprites/Player64/Jump.png");
-            light_list.emplace_back(mario::constants::CLOUD_MEDIUM_ID, "assets/environment/background/cloud_medium.png");
-            light_list.emplace_back(mario::constants::CLOUD_SMALL_ID, "assets/environment/background/cloud_small.png");
-            light_list.emplace_back(mario::constants::BACKGROUND_TEXTURE_ID, "assets/environment/background/sky.png");
+            light_list.emplace_back(zia::constants::PLAYER_IDLE_ID, "assets/Sprites/Player64/Idle.png");
+            light_list.emplace_back(zia::constants::PLAYER_RUN_ID, "assets/Sprites/Player64/Run.png");
+            light_list.emplace_back(zia::constants::PLAYER_JUMP_ID, "assets/Sprites/Player64/Jump.png");
+            light_list.emplace_back(zia::constants::CLOUD_MEDIUM_ID, "assets/environment/background/cloud_medium.png");
+            light_list.emplace_back(zia::constants::CLOUD_SMALL_ID, "assets/environment/background/cloud_small.png");
+            light_list.emplace_back(zia::constants::BACKGROUND_TEXTURE_ID, "assets/environment/background/sky.png");
 
             // Heavy assets to load asynchronously (large, slower to decode)
             std::vector<std::pair<int,std::string>> heavy_list;
-            heavy_list.emplace_back(mario::constants::CLOUD_BIG_ID, "assets/environment/background/cloud_big.png");
+            heavy_list.emplace_back(zia::constants::CLOUD_BIG_ID, "assets/environment/background/cloud_big.png");
             // If the level defines specific layers, mark them heavy (mountains example)
             if (!level_bg_path.empty()) {
-                heavy_list.emplace_back(mario::constants::BACKGROUND_TEXTURE_ID + 1, std::string(_level.background_path()));
+                heavy_list.emplace_back(zia::constants::BACKGROUND_TEXTURE_ID + 1, std::string(_level.background_path()));
                 for (const auto &layer: _level.background_layers()) {
-                    heavy_list.emplace_back(mario::constants::BACKGROUND_TEXTURE_ID + 1, layer.path);
+                    heavy_list.emplace_back(zia::constants::BACKGROUND_TEXTURE_ID + 1, layer.path);
                 }
             } else {
                 // Default mountains layer used by levels
-                heavy_list.emplace_back(mario::constants::BACKGROUND_TEXTURE_ID + 1, "assets/environment/background/mountains.png");
+                heavy_list.emplace_back(zia::constants::BACKGROUND_TEXTURE_ID + 1, "assets/environment/background/mountains.png");
             }
 
             // Load light assets synchronously.
@@ -128,15 +128,15 @@ namespace mario {
         // Background loading (level dependent)
         // If the level defines a background image path, load it and create background entities.
         if (!level_bg_path.empty()) {
-            if (_game.assets().load_texture(mario::constants::BACKGROUND_TEXTURE_ID, level_bg_path)) {
+            if (_game.assets().load_texture(zia::constants::BACKGROUND_TEXTURE_ID, level_bg_path)) {
                 // Create the main background entity. BackgroundSystem will attach a BackgroundComponent
                 // configured with scale, parallax and tiling parameters.
-                _background_system.create_background_entity(registry, mario::constants::BACKGROUND_TEXTURE_ID, true, BackgroundComponent::ScaleMode::Fill,
+                _background_system.create_background_entity(registry, zia::constants::BACKGROUND_TEXTURE_ID, true, BackgroundComponent::ScaleMode::Fill,
                                          _level.background_scale(), 0.0f, false, false, 0.0f, 0.0f);
             }
 
             // Load additional background layers defined in the level file.
-            int texture_id = mario::constants::BACKGROUND_TEXTURE_ID + 1;
+            int texture_id = zia::constants::BACKGROUND_TEXTURE_ID + 1;
             for (const auto &layer: _level.background_layers()) {
                 if (_game.assets().load_texture(texture_id, layer.path)) {
                     // Create a background entity for this layer; parallax and repeating handled by BackgroundSystem.
@@ -272,35 +272,35 @@ namespace mario {
         // Clear any previous pipeline entries.
         _update_systems.clear();
         // Player input and movement controller must run early so later systems see an updated control state.
-        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](zia::engine::IEntityManager& registry, float dt) {
              _player_controller.update(registry, _game.input(), dt);
          });
         // Update animations after player and AI logic so they reflect the current state.
-        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](zia::engine::IEntityManager& registry, float dt) {
              _animation_system.update(registry, dt);
          });
         // Run enemy AI and movement which may depend on the current tilemap.
-        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](zia::engine::IEntityManager& registry, float dt) {
              if (const auto tile_map = _level.tile_map()) {
                  _enemy_system.update(registry, *tile_map, dt);
              }
          });
         // Physics simulation (collisions, velocity integration) runs after motion inputs.
-        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](zia::engine::IEntityManager& registry, float dt) {
              _physics.update(registry, dt);
          });
         // Cloud system updates visual cloud entities (non-critical gameplay elements).
-        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](zia::engine::IEntityManager& registry, float dt) {
              _cloud_system.update(registry, dt);
          });
         // Tile/level collision detection and resolution.
-        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](zia::engine::IEntityManager& registry, float dt) {
              if (const auto tile_map = _level.tile_map()) {
                  CollisionSystem::update(registry, *tile_map, dt);
              }
          });
         // Level transitions check should run after all simulation so it can act on final state.
-        _update_systems.emplace_back([this](mario::engine::IEntityManager& registry, float dt) {
+        _update_systems.emplace_back([this](zia::engine::IEntityManager& registry, float dt) {
             if (LevelSystem::handle_transitions(registry, _player_id, _level, _current_level_path, _level_transition_delay, dt)) {
                  _level_transition_pending = true;
              }
@@ -308,7 +308,7 @@ namespace mario {
 
         // Build render callbacks: these are executed each frame with the current camera context.
         _render_systems.clear();
-        _render_systems.emplace_back([this](mario::engine::IEntityManager& registry, mario::engine::IRenderer& renderer, mario::engine::IAssetManager& assets, const Camera& camera){
+        _render_systems.emplace_back([this](zia::engine::IEntityManager& registry, zia::engine::IRenderer& renderer, zia::engine::IAssetManager& assets, const Camera& camera){
             // Render background layers sorted by parallax to create depth.
             static thread_local std::vector<EntityID> bg_entities;
             registry.get_entities_with<BackgroundComponent>(bg_entities);
@@ -331,7 +331,7 @@ namespace mario {
 
             // Update and draw HUD elements (level name, score, etc.).
             std::string level_name = "Level 1";
-            if (_current_level_path == mario::constants::LEVEL2_PATH) {
+            if (_current_level_path == zia::constants::LEVEL2_PATH) {
                 level_name = "Level 2";
             }
             _hud.set_level_name(level_name);
@@ -364,7 +364,7 @@ namespace mario {
 
     // Used by: update (executes update pipeline)
     // Execute the stored update callbacks in order.
-    void PlayScene::run_update_systems(mario::engine::IEntityManager &registry, float dt) {
+    void PlayScene::run_update_systems(zia::engine::IEntityManager &registry, float dt) {
         for (auto &sys : _update_systems) {
             sys(registry, dt);
         }
@@ -372,7 +372,7 @@ namespace mario {
 
     // Used by: render (executes render pipeline)
     // Execute the stored render callbacks in order. Each callback receives the renderer and assets.
-    void PlayScene::run_render_systems(mario::engine::IEntityManager &registry, const Camera &camera) {
+    void PlayScene::run_render_systems(zia::engine::IEntityManager &registry, const Camera &camera) {
         for (auto &sys : _render_systems) {
             sys(registry, _game.renderer(), _game.assets(), camera);
         }
@@ -382,7 +382,7 @@ namespace mario {
     // Query whether the scene should keep running. This checks both the internal running flag
     // and whether the renderer window is still open.
     bool PlayScene::is_running() const { return _running && _game.renderer().is_open(); }
-} // namespace mario
+} // namespace Zia
 
 // file end - cleaned and newline ensured
 

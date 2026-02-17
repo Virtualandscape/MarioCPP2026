@@ -1,0 +1,28 @@
+#pragma once
+
+#include <array>
+#include <cstddef>
+
+namespace zia {
+    // Key bindings, edge detection (pressed/released).
+    class InputManager {
+    public:
+        enum class Action {
+            MoveLeft,
+            MoveRight,
+            Jump,
+            Escape,
+            ToggleDebug, // toggle debug overlay (bounding boxes)
+            Count
+        };
+
+        void poll();
+
+        bool is_pressed(Action action) const;
+
+        void set_action_state(Action action, bool pressed);
+
+    private:
+        std::array<bool, static_cast<std::size_t>(Action::Count)> _pressed = {};
+    };
+} // namespace Zia

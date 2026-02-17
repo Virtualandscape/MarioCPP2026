@@ -1,10 +1,10 @@
-#include "mario/engine/UIManager.hpp"
+#include "Zia/engine/UIManager.hpp"
 
 #include <imgui.h>
 #include <imgui-SFML.h>
 #include <iostream>
 
-namespace mario::engine {
+namespace zia::engine {
 
     bool UIManager::init(sf::RenderWindow& window) {
         if (!ImGui::SFML::Init(window)) {
@@ -34,5 +34,5 @@ namespace mario::engine {
         window.setView(old_view);
     }
 
-} // namespace mario::engine
+} // namespace Zia::engine
 

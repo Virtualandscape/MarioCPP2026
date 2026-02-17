@@ -1,15 +1,15 @@
 // Implements the SpriteRenderSystem, which renders all sprite entities based on their Position, Size, and Sprite components.
 // Iterates over entities with sprite data and draws shapes (rectangles or ellipses) at world positions within the camera view.
 
-#include "mario/game/systems/SpriteRenderSystem.hpp"
-#include "mario/engine/ecs/components/SpriteComponent.hpp"
-#include "mario/engine/ecs/components/PositionComponent.hpp"
-#include "mario/engine/ecs/components/SizeComponent.hpp"
+#include "Zia/game/systems/SpriteRenderSystem.hpp"
+#include "Zia/engine/ecs/components/SpriteComponent.hpp"
+#include "Zia/engine/ecs/components/PositionComponent.hpp"
+#include "Zia/engine/ecs/components/SizeComponent.hpp"
 
-namespace mario {
+namespace zia {
     // Renders all sprites by querying entities with all sprite-related components (SpriteComponent, PositionComponent, SizeComponent).
     // This follows the ECS pattern: systems operate on entities with required component combinations.
-    void SpriteRenderSystem::render(mario::engine::IRenderer& renderer, const Camera& camera, mario::engine::IEntityManager& registry, mario::engine::IAssetManager& assets) {
+    void SpriteRenderSystem::render(zia::engine::IRenderer& renderer, const Camera& camera, zia::engine::IEntityManager& registry, zia::engine::IAssetManager& assets) {
         // Set camera for world-space rendering
         renderer.set_camera(camera.x(), camera.y());
 

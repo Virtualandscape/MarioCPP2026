@@ -3,18 +3,18 @@
 
 #include <cmath>
 #include <algorithm>
-#include "mario/game/systems/EnemySystem.hpp"
-#include "mario/engine/ecs/components/EnemyComponent.hpp"
-#include "mario/engine/ecs/components/VelocityComponent.hpp"
-#include "mario/engine/ecs/components/CollisionInfoComponent.hpp"
-#include "mario/engine/ecs/components/PositionComponent.hpp"
-#include "mario/engine/ecs/components/SizeComponent.hpp"
-#include "mario/game/world/TileMap.hpp"
+#include "Zia/game/systems/EnemySystem.hpp"
+#include "Zia/engine/ecs/components/EnemyComponent.hpp"
+#include "Zia/engine/ecs/components/VelocityComponent.hpp"
+#include "Zia/engine/ecs/components/CollisionInfoComponent.hpp"
+#include "Zia/engine/ecs/components/PositionComponent.hpp"
+#include "Zia/engine/ecs/components/SizeComponent.hpp"
+#include "Zia/game/world/TileMap.hpp"
 
-namespace mario {
+namespace zia {
     // Updates all enemy entities: reverses direction on collision and constrains movement to platform bounds.
     // Follows ECS principle: systems operate on components, not entity types (though we use EnemyComponent as a marker).
-    void EnemySystem::update(mario::engine::IEntityManager& registry, const TileMap& map, float dt) const {
+    void EnemySystem::update(zia::engine::IEntityManager& registry, const TileMap& map, float dt) const {
         static thread_local std::vector<EntityID> entities;
         // Query entities that have EnemyComponent (all required components should exist for valid enemies)
         registry.get_entities_with<EnemyComponent>(entities);
@@ -79,4 +79,4 @@ namespace mario {
             }
         }
     }
-} // namespace mario
+} // namespace Zia

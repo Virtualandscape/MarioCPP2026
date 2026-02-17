@@ -72,25 +72,25 @@ set(SOURCES
 )
 
 set(HEADERS
-        include/mario/engine/ecs/EntityTypeComponent.hpp
-        include/mario/engine/ecs/EntityManager.hpp
-        include/mario/engine/ecs/components/PositionComponent.hpp
-        include/mario/engine/ecs/components/VelocityComponent.hpp
-        include/mario/engine/ecs/components/SizeComponent.hpp
-        include/mario/engine/ecs/components/CollisionInfoComponent.hpp
-        include/mario/engine/ecs/components/PlayerControllerComponent.hpp
-        include/mario/engine/ecs/components/TypeComponent.hpp
-        include/mario/engine/ecs/components/SpriteComponent.hpp
-        include/mario/engine/ecs/components/AnimationComponent.hpp
-        include/mario/engine/ecs/components/EnemyComponent.hpp
-        include/mario/game/systems/PlayerControllerSystem.hpp
-        include/mario/game/systems/EnemySystem.hpp
-        include/mario/game/systems/LevelSystem.hpp
-        include/mario/game/systems/AnimationSystem.hpp
-        include/mario/game/helpers/Spawner.hpp
-        include/mario/engine/ecs/components/BackgroundComponent.hpp
-        include/mario/game/systems/BackgroundSystem.hpp
-        include/mario/game/helpers/quadtree.h
+        include/Zia/engine/ecs/EntityTypeComponent.hpp
+        include/Zia/engine/ecs/EntityManager.hpp
+        include/Zia/engine/ecs/components/PositionComponent.hpp
+        include/Zia/engine/ecs/components/VelocityComponent.hpp
+        include/Zia/engine/ecs/components/SizeComponent.hpp
+        include/Zia/engine/ecs/components/CollisionInfoComponent.hpp
+        include/Zia/engine/ecs/components/PlayerControllerComponent.hpp
+        include/Zia/engine/ecs/components/TypeComponent.hpp
+        include/Zia/engine/ecs/components/SpriteComponent.hpp
+        include/Zia/engine/ecs/components/AnimationComponent.hpp
+        include/Zia/engine/ecs/components/EnemyComponent.hpp
+        include/Zia/game/systems/PlayerControllerSystem.hpp
+        include/Zia/game/systems/EnemySystem.hpp
+        include/Zia/game/systems/LevelSystem.hpp
+        include/Zia/game/systems/AnimationSystem.hpp
+        include/Zia/game/helpers/Spawner.hpp
+        include/Zia/engine/ecs/components/BackgroundComponent.hpp
+        include/Zia/game/systems/BackgroundSystem.hpp
+        include/Zia/game/helpers/quadtree.h
 )
 
 add_executable(Mario ${SOURCES} ${HEADERS})

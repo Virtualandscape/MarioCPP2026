@@ -1,9 +1,9 @@
 // Implements the PauseScene class, which represents the paused scene of the game.
 // Provides empty hooks for entering, exiting, updating, and rendering the pause scene.
 
-#include "mario/game/PauseScene.hpp"
+#include "Zia/game/PauseScene.hpp"
 
-namespace mario {
+namespace zia {
     // Called when entering the pause scene.
     void PauseScene::on_enter() {
     }
@@ -20,5 +20,5 @@ namespace mario {
     // Renders the pause scene (no-op).
     void PauseScene::render() {
     }
-} // namespace mario
+} // namespace Zia
 

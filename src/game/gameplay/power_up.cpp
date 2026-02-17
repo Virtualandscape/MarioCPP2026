@@ -1,16 +1,16 @@
-#include "mario/game/gameplay/PowerUp.hpp"
+#include "Zia/game/gameplay/PowerUp.hpp"
 
-namespace mario {
+namespace zia {
     void PowerUp::update(float dt) { (void) dt; }
-    void PowerUp::render(mario::engine::IRenderer& /*renderer*/) {}
+    void PowerUp::render(zia::engine::IRenderer& /*renderer*/) {}
 
     void Item::update(float dt) { (void) dt; }
-    void Item::render(mario::engine::IRenderer& /*renderer*/) {}
+    void Item::render(zia::engine::IRenderer& /*renderer*/) {}
     void Item::collect() {
     }
 
     void Projectile::update(float dt) { (void) dt; }
 
-    void Projectile::render(mario::engine::IRenderer& /*renderer*/) {
+    void Projectile::render(zia::engine::IRenderer& /*renderer*/) {
     }
-} // namespace mario
+} // namespace Zia

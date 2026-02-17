@@ -1,17 +1,17 @@
 // Connects the platformer Game implementation to the reusable engine infrastructure.
 
-#include "mario/game/MarioGame.hpp"
-#include "mario/game/MenuScene.hpp"
-#include "mario/engine/adapters/SceneAdapter.hpp"
+#include "Zia/game/MarioGame.hpp"
+#include "Zia/game/MenuScene.hpp"
+#include "Zia/engine/adapters/SceneAdapter.hpp"
 
 
 #include <memory>
 
 // ImGui is accessed via UIManager to centralize lifecycle and rendering.
 
-namespace mario {
+namespace zia {
     // Construct: create the underlying engine application which owns subsystems.
-    Game::Game() : _app(std::make_unique<engine::Application>("Mario")) {}
+    Game::Game() : _app(std::make_unique<engine::Application>("Zia")) {}
 
     // Default destructor: unique_ptr will clean up the engine application.
     Game::~Game() = default;
@@ -46,32 +46,32 @@ namespace mario {
     std::shared_ptr<Scene> Game::current_scene() {
         auto iscene = _app->current_scene();
         if (!iscene) return nullptr;
-        // Try to cast to SceneAdapter to obtain the underlying concrete mario::Scene.
+        // Try to cast to SceneAdapter to obtain the underlying concrete Zia::Scene.
         if (auto adapter = std::dynamic_pointer_cast<engine::adapters::SceneAdapter>(iscene)) {
             return adapter->underlying();
         }
-        // Not an adapter-wrapped scene: cannot provide a concrete mario::Scene pointer.
+        // Not an adapter-wrapped scene: cannot provide a concrete Zia::Scene pointer.
         return nullptr;
     }
 
-    mario::engine::IRenderer &Game::renderer() {
+    zia::engine::IRenderer &Game::renderer() {
         return _app->renderer();
     }
 
-    mario::engine::IInput &Game::input() {
+    zia::engine::IInput &Game::input() {
         return _app->input();
     }
 
-    mario::engine::IAssetManager &Game::assets() {
+    zia::engine::IAssetManager &Game::assets() {
         return _app->assets();
     }
 
     // Provide both facade and, for compatibility, access to the underlying concrete EntityManager.
-    mario::engine::IEntityManager &Game::entity_manager() {
+    zia::engine::IEntityManager &Game::entity_manager() {
         return _app->entity_manager();
     }
 
-    mario::EntityManager &Game::underlying_entity_manager() {
+    zia::EntityManager &Game::underlying_entity_manager() {
         return _app->underlying_entity_manager();
     }
 
@@ -81,4 +81,4 @@ namespace mario {
             push_scene(std::make_shared<MenuScene>(*this));
         }
     }
-} // namespace mario
+} // namespace Zia

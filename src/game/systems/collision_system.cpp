@@ -1,21 +1,21 @@
 #include <algorithm>
 #include <cmath>
-#include "mario/game/systems/CollisionSystem.hpp"
-#include "mario/engine/ecs/components/PositionComponent.hpp"
-#include "mario/engine/ecs/components/VelocityComponent.hpp"
-#include "mario/engine/ecs/components/SizeComponent.hpp"
-#include "mario/engine/ecs/components/CollisionInfoComponent.hpp"
-#include "mario/engine/ecs/components/TypeComponent.hpp"
-#include "mario/engine/ecs/components/TypeComponent.hpp"
-#include "mario/engine/ecs/components/PlayerControllerComponent.hpp"
-#include "mario/engine/ecs/EntityTypeComponent.hpp"
-#include "mario/game/world/TileMap.hpp"
-#include "mario/game/helpers/quadtree.h"
-#include "mario/game/helpers/tileSweep.hpp"
+#include "Zia/game/systems/CollisionSystem.hpp"
+#include "Zia/engine/ecs/components/PositionComponent.hpp"
+#include "Zia/engine/ecs/components/VelocityComponent.hpp"
+#include "Zia/engine/ecs/components/SizeComponent.hpp"
+#include "Zia/engine/ecs/components/CollisionInfoComponent.hpp"
+#include "Zia/engine/ecs/components/TypeComponent.hpp"
+#include "Zia/engine/ecs/components/TypeComponent.hpp"
+#include "Zia/engine/ecs/components/PlayerControllerComponent.hpp"
+#include "Zia/engine/ecs/EntityTypeComponent.hpp"
+#include "Zia/game/world/TileMap.hpp"
+#include "Zia/game/helpers/quadtree.h"
+#include "Zia/game/helpers/tileSweep.hpp"
 // Include components we may remove when an enemy is stomped
-#include "mario/engine/ecs/components/EnemyComponent.hpp"
-#include "mario/engine/ecs/components/SpriteComponent.hpp"
-#include "mario/engine/ecs/components/AnimationComponent.hpp"
+#include "Zia/engine/ecs/components/EnemyComponent.hpp"
+#include "Zia/engine/ecs/components/SpriteComponent.hpp"
+#include "Zia/engine/ecs/components/AnimationComponent.hpp"
 
 // collision_system.cpp
 //
@@ -33,7 +33,7 @@
 // - handle_entity_collision: Handles collision response between two entities, including player-specific logic.
 // - CollisionSystem::update: Main update loop, processes all collisions for the current frame.
 
-namespace mario {
+namespace zia {
     namespace {
         // Rectangle helpers: work directly with x,y,width,height instead of AABB struct
         // Returns true if two rectangles overlap.
@@ -151,7 +151,7 @@ namespace mario {
     // 1. Resolves tile collisions for all entities with position, velocity, and size.
     // 2. Builds a list of collidable entities and inserts them into a quadtree for broadphase queries.
     // 3. For each entity, retrieves nearby candidates and performs narrowphase collision checks and responses.
-    void CollisionSystem::update(mario::engine::IEntityManager& registry, const TileMap& map, float dt) {
+    void CollisionSystem::update(zia::engine::IEntityManager& registry, const TileMap& map, float dt) {
         // First, handle tile collisions for entities with Position, Velocity, Size
         static thread_local std::vector<EntityID> entities;
         registry.get_entities_with<PositionComponent>(entities);

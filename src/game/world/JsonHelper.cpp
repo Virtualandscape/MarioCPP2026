@@ -1,4 +1,4 @@
-#include "mario/game/world/JsonHelper.hpp"
+#include "Zia/game/world/JsonHelper.hpp"
 
 #include <filesystem>
 #include <cctype>
@@ -7,7 +7,7 @@
 // Namespace containing small JSON-like helper utilities used by Level and related classes.
 // These helpers perform minimal, text-based extraction of simple fields (string/float/bool)
 // from a JSON-like file. They are intentionally lightweight to preserve original behavior.
-namespace mario::JsonHelper {
+namespace zia::JsonHelper {
     // Attempts to open a level file by trying a few relative paths.
     // Returns a valid ifstream if a file is found, otherwise returns an empty stream.
     std::ifstream open_level_file(std::string_view path) {
@@ -146,5 +146,5 @@ namespace mario::JsonHelper {
         return false;
     }
 
-} // namespace mario::JsonHelper
+} // namespace Zia::JsonHelper
 

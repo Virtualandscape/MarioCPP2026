@@ -1,4 +1,4 @@
-#include "mario/game/world/TileMap.hpp"
+#include "Zia/game/world/TileMap.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -8,9 +8,9 @@
 #include <iostream>
 #include <array>
 
-#include "mario/game/helpers/Spawner.hpp"
+#include "Zia/game/helpers/Spawner.hpp"
 
-namespace mario {
+namespace zia {
     namespace {
         // Fixed the tile size used project-wide (px). JSON "tileSize" is deprecated and ignored.
         constexpr int kFixedTileSize = 32;
@@ -356,4 +356,4 @@ namespace mario {
 
     // Used by: various callers that need clamped tile indices (helpers/tileSweep, systems). Provides safe clamping.
     int TileMap::clamp_tile_y(int ty) const { return std::clamp(ty, 0, std::max(0, _height - 1)); }
-} // namespace mario
+} // namespace Zia

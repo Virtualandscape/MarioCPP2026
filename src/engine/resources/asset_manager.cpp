@@ -1,7 +1,7 @@
 // Implements the AssetManager class, which loads and manages textures and other assets for the game.
 // Handles loading textures from disk, searching multiple locations, and reporting errors if assets are missing.
 
-#include "mario/engine/resources/AssetManager.hpp"
+#include "zia/engine/resources/AssetManager.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -9,7 +9,7 @@
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/Graphics/Font.hpp>
 
-namespace mario {
+namespace zia {
 
     static std::optional<std::filesystem::path> resolve_asset_path(std::string_view path) {
         std::filesystem::path base(path);
@@ -121,4 +121,4 @@ namespace mario {
         _fonts.clear();
     }
 
-} // namespace mario
+} // namespace zia

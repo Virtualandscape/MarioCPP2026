@@ -1,14 +1,14 @@
-#include "mario/game/systems/DebugDrawSystem.hpp"
-#include "mario/engine/ecs/components/PositionComponent.hpp"
-#include "mario/engine/ecs/components/SizeComponent.hpp"
-#include "mario/engine/ecs/components/TypeComponent.hpp"
-#include "mario/game/world/Camera.hpp"
+#include "Zia/game/systems/DebugDrawSystem.hpp"
+#include "Zia/engine/ecs/components/PositionComponent.hpp"
+#include "Zia/engine/ecs/components/SizeComponent.hpp"
+#include "Zia/engine/ecs/components/TypeComponent.hpp"
+#include "Zia/game/world/Camera.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <vector>
 
-namespace mario {
-    void DebugDrawSystem::render(mario::engine::IRenderer& renderer, const Camera& camera, mario::engine::IEntityManager& registry) {
+namespace zia {
+    void DebugDrawSystem::render(zia::engine::IRenderer& renderer, const Camera& camera, zia::engine::IEntityManager& registry) {
         // Only draw if debug bboxes enabled
         if (!renderer.is_debug_bboxes_enabled()) return;
 

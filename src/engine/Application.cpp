@@ -2,30 +2,30 @@
 // and adapts the main loop from the previous Game implementation. The goal is to remain
 // source-compatible with the rest of the project while introducing an engine abstraction.
 
-#include "mario/engine/Application.hpp"
-#include "mario/engine/adapters/SceneAdapter.hpp"
+#include "Zia/engine/Application.hpp"
+#include "Zia/engine/adapters/SceneAdapter.hpp"
 
-#include "mario/engine/adapters/RendererAdapter.hpp"
-#include "mario/engine/adapters/InputAdapter.hpp"
-#include "mario/engine/adapters/AssetManagerAdapter.hpp"
-#include "mario/engine/adapters/EntityManagerAdapter.hpp"
+#include "Zia/engine/adapters/RendererAdapter.hpp"
+#include "Zia/engine/adapters/InputAdapter.hpp"
+#include "Zia/engine/adapters/AssetManagerAdapter.hpp"
+#include "Zia/engine/adapters/EntityManagerAdapter.hpp"
 
 #include <iostream>
 
 #include <SFML/System/Clock.hpp>
 #include <SFML/System/Sleep.hpp>
 
-namespace mario::engine {
+namespace zia::engine {
     Application::Application(std::string_view title) {
         // Create owned concrete subsystems.
-        auto renderer = std::make_shared<mario::Renderer>();
+        auto renderer = std::make_shared<zia::Renderer>();
         // If a title was provided, update the renderer window title.
         if (!title.empty()) {
             renderer->window().setTitle(sf::String(std::string(title)));
         }
-        auto input = std::make_shared<mario::InputManager>();
-        auto assets = std::make_shared<mario::AssetManager>();
-        auto entities = std::make_shared<mario::EntityManager>();
+        auto input = std::make_shared<zia::InputManager>();
+        auto assets = std::make_shared<zia::AssetManager>();
+        auto entities = std::make_shared<zia::EntityManager>();
 
         // Initialize interface adapters.
         _renderer_iface = std::make_shared<engine::adapters::RendererAdapter>(renderer);
@@ -47,16 +47,16 @@ namespace mario::engine {
 
         // Ensure we have a valid interface for each subsystem.
         if (!_renderer_iface) {
-            _renderer_iface = std::make_shared<engine::adapters::RendererAdapter>(std::make_shared<mario::Renderer>());
+            _renderer_iface = std::make_shared<engine::adapters::RendererAdapter>(std::make_shared<zia::Renderer>());
         }
         if (!_input_iface) {
-            _input_iface = std::make_shared<engine::adapters::InputAdapter>(std::make_shared<mario::InputManager>());
+            _input_iface = std::make_shared<engine::adapters::InputAdapter>(std::make_shared<zia::InputManager>());
         }
         if (!_assets_iface) {
-            _assets_iface = std::make_shared<engine::adapters::AssetManagerAdapter>(std::make_shared<mario::AssetManager>());
+            _assets_iface = std::make_shared<engine::adapters::AssetManagerAdapter>(std::make_shared<zia::AssetManager>());
         }
         if (!_entities_iface) {
-            _entities_iface = std::make_shared<engine::adapters::EntityManagerAdapter>(std::make_shared<mario::EntityManager>());
+            _entities_iface = std::make_shared<engine::adapters::EntityManagerAdapter>(std::make_shared<zia::EntityManager>());
         }
     }
 
@@ -116,13 +116,13 @@ namespace mario::engine {
 
     IEntityManager &Application::entity_manager() { return *_entities_iface; }
 
-    mario::EntityManager &Application::underlying_entity_manager() { return _entities_iface->underlying(); }
+    zia::EntityManager &Application::underlying_entity_manager() { return _entities_iface->underlying(); }
 
     UIManager &Application::ui() { return *_ui; }
 
     void Application::before_loop() {
         // Default: engine does not assume any game-specific initial scene. Games should override
-        // or the game-level wrapper (`mario::Game`) should push an initial scene as needed.
+        // or the game-level wrapper (`Zia::Game`) should push an initial scene as needed.
     }
 
     void Application::main_loop() {
@@ -162,4 +162,4 @@ namespace mario::engine {
             }
         }
     }
-} // namespace mario::engine
+} // namespace Zia::engine

@@ -1,21 +1,21 @@
-#include "mario/game/systems/PlayerControllerSystem.hpp"
+#include "Zia/game/systems/PlayerControllerSystem.hpp"
 
 #include <cmath>
 
-#include "mario/engine/input/InputManager.hpp"
-#include "mario/engine/ecs/components/PlayerControllerComponent.hpp"
-#include "mario/engine/ecs/components/VelocityComponent.hpp"
-#include "mario/game/helpers/Constants.hpp"
+#include "Zia/engine/input/InputManager.hpp"
+#include "Zia/engine/ecs/components/PlayerControllerComponent.hpp"
+#include "Zia/engine/ecs/components/VelocityComponent.hpp"
+#include "Zia/game/helpers/Constants.hpp"
 
-namespace mario {
+namespace zia {
 
-void PlayerControllerSystem::update(mario::engine::IEntityManager& registry, const mario::engine::IInput& input, float /*dt*/) const {
+void PlayerControllerSystem::update(zia::engine::IEntityManager& registry, const zia::engine::IInput& input, float /*dt*/) const {
     static thread_local std::vector<EntityID> entities;
     registry.get_entities_with_all<PlayerControllerComponent, VelocityComponent>(entities);
 
-    const bool jump_pressed = input.is_pressed(mario::InputManager::Action::Jump);
-    const float move_axis = (input.is_pressed(mario::InputManager::Action::MoveRight) ? 1.0f : 0.0f) -
-                            (input.is_pressed(mario::InputManager::Action::MoveLeft) ? 1.0f : 0.0f);
+    const bool jump_pressed = input.is_pressed(zia::InputManager::Action::Jump);
+    const float move_axis = (input.is_pressed(zia::InputManager::Action::MoveRight) ? 1.0f : 0.0f) -
+                            (input.is_pressed(zia::InputManager::Action::MoveLeft) ? 1.0f : 0.0f);
 
     for (const auto entity : entities) {
         auto controller_opt = registry.get_component<PlayerControllerComponent>(entity);
@@ -58,5 +58,5 @@ void PlayerControllerSystem::update(mario::engine::IEntityManager& registry, con
     }
 }
 
-} // namespace mario
+} // namespace Zia
 

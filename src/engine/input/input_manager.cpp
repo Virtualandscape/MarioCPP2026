@@ -1,8 +1,8 @@
-#include "mario/engine/input/InputManager.hpp"
+#include "Zia/engine/input/InputManager.hpp"
 
 #include <SFML/Window/Keyboard.hpp>
 
-namespace mario {
+namespace zia {
     void InputManager::poll() {
         set_action_state(Action::MoveLeft,
                          sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || sf::Keyboard::isKeyPressed(
@@ -28,4 +28,4 @@ namespace mario {
     void InputManager::set_action_state(Action action, bool pressed) {
         _pressed[static_cast<std::size_t>(action)] = pressed;
     }
-} // namespace mario
+} // namespace Zia

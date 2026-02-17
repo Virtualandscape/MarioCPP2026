@@ -2,13 +2,13 @@
 // Implements the Level class, which manages loading, unloading, updating, and rendering a game level.
 // Handles reading level data from files, extracting metadata, and managing camera and tile map Scene.
 
-#include "mario/game/world/Level.hpp"
-#include "mario/game/world/Camera.hpp"
-#include "mario/game/world/TileMap.hpp"
-#include "mario/engine/render/Renderer.hpp"
-#include "mario/game/helpers/Constants.hpp"
+#include "Zia/game/world/Level.hpp"
+#include "Zia/game/world/Camera.hpp"
+#include "Zia/game/world/TileMap.hpp"
+#include "Zia/engine/render/Renderer.hpp"
+#include "Zia/game/helpers/Constants.hpp"
 
-#include "mario/game/world/JsonHelper.hpp"
+#include "Zia/game/world/JsonHelper.hpp"
 
 #include <algorithm>
 #include <utility>
@@ -16,8 +16,8 @@
 #include <fstream>
 #include <cmath>
 
-namespace mario {
-    // Removed anonymous namespace helpers; they are now in mario::JsonHelper
+namespace zia {
+    // Removed anonymous namespace helpers; they are now in Zia::JsonHelper
 
     // Used by: PlayScene::on_enter, PlayScene (loads level and sets camera bounds), tests
     // Loads a level from a JSON file, initializes the tile map, entity spawns, background, and camera bounds.
@@ -104,7 +104,7 @@ namespace mario {
 
     // Used by: PlayScene::render, TileMap::render (delegation), tests
     // Renders the visible solid tiles of the level within the camera's viewport.
-    void Level::render(mario::engine::IRenderer &renderer) {
+    void Level::render(zia::engine::IRenderer &renderer) {
         if (!_tile_map || !_camera) return;
 
         const int tile_size = _tile_map->tile_size();
@@ -131,7 +131,7 @@ namespace mario {
                         static_cast<float>(ty * tile_size),
                         static_cast<float>(tile_size),
                         static_cast<float>(tile_size),
-                        mario::constants::TILE_COLOR);
+                        zia::constants::TILE_COLOR);
                 }
             }
         }
@@ -146,4 +146,4 @@ namespace mario {
     // Used by: PlayScene (spawning entities), LevelSystem
     // Returns a const reference to the vector of entity spawn points for this level.
     const std::vector<EntitySpawn> &Level::entity_spawns() const { return _entity_spawns; }
-} // namespace mario
+} // namespace Zia

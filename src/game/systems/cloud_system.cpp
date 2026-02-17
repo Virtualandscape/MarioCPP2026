@@ -1,25 +1,25 @@
 // Implements the CloudSystem, which manages cloud entity positioning, rendering, and parallax effects.
 // Follows ECS pattern: queries cloud components and updates/renders them independently.
 
-#include "mario/game/systems/CloudSystem.hpp"
-#include "mario/engine/resources/AssetManager.hpp"
-#include "mario/engine/ecs/components/CloudComponent.hpp"
-#include "mario/game/helpers/Spawner.hpp"
-#include "mario/game/helpers/Constants.hpp"
+#include "Zia/game/systems/CloudSystem.hpp"
+#include "Zia/engine/resources/AssetManager.hpp"
+#include "Zia/engine/ecs/components/CloudComponent.hpp"
+#include "Zia/game/helpers/Spawner.hpp"
+#include "Zia/game/helpers/Constants.hpp"
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <algorithm>
 
-namespace mario {
+namespace zia {
     // Initializes cloud entities by spawning them via Spawner utility.
-    void CloudSystem::initialize(mario::engine::IAssetManager &assets, mario::engine::IEntityManager &registry) {
+    void CloudSystem::initialize(zia::engine::IAssetManager &assets, zia::engine::IEntityManager &registry) {
         // Spawner now expects IEntityManager + IAssetManager; forward registry and assets
         Spawner::spawn_clouds(registry, assets);
     }
 
     // Updates cloud positions: moves them horizontally and resets off-screen clouds.
-    void CloudSystem::update(mario::engine::IEntityManager &registry, float dt) {
-        using namespace mario::constants;
+    void CloudSystem::update(zia::engine::IEntityManager &registry, float dt) {
+        using namespace zia::constants;
         static thread_local std::vector<EntityID> entities;
         registry.get_entities_with<CloudComponent>(entities);
 
@@ -39,8 +39,8 @@ namespace mario {
     }
 
     // Renders all cloud entities with proper layering and parallax offset.
-    void CloudSystem::render(mario::engine::IRenderer &renderer, const Camera &camera, mario::engine::IAssetManager &assets, mario::engine::IEntityManager &registry) {
-         using namespace mario::constants;
+    void CloudSystem::render(zia::engine::IRenderer &renderer, const Camera &camera, zia::engine::IAssetManager &assets, zia::engine::IEntityManager &registry) {
+         using namespace zia::constants;
          static thread_local std::vector<EntityID> entities;
          registry.get_entities_with<CloudComponent>(entities);
 
@@ -77,4 +77,4 @@ namespace mario {
 
          window.setView(old_view);
      }
- } // namespace mario
+ } // namespace Zia

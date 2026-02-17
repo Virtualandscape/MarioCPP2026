@@ -1,12 +1,12 @@
 // cpp
-#include "mario/engine/render/Renderer.hpp"
-#include "mario/game/helpers/Constants.hpp"
+#include "Zia/engine/render/Renderer.hpp"
+#include "Zia/game/helpers/Constants.hpp"
 #include <iostream>
 
-namespace mario {
+namespace zia {
     Renderer::Renderer()
         : _window(sf::VideoMode({800u, 480u}), "Mario Prototype", sf::Style::Titlebar | sf::Style::Close),
-          _camera_scale(mario::constants::TILE_SCALE * mario::constants::CAMERA_SCALE)
+          _camera_scale(zia::constants::TILE_SCALE * zia::constants::CAMERA_SCALE)
     {
         _window.setVerticalSyncEnabled(true);
 
@@ -58,7 +58,7 @@ namespace mario {
             float world_h = 0.0f;
             if (_camera_tiles_w > 0.0f) {
                 // Fit _camera_tiles_w tiles across the viewport width
-                world_w = _camera_tiles_w * static_cast<float>(mario::constants::TILE_SIZE);
+                world_w = _camera_tiles_w * static_cast<float>(zia::constants::TILE_SIZE);
                 // Preserve aspect ratio: compute world_h from world_w based on window aspect
                 const float aspect = h > 0.0f ? (w / h) : 1.0f;
                 world_h = world_w / aspect;
@@ -185,7 +185,7 @@ namespace mario {
         const float w = static_cast<float>(size.x);
         const float h = static_cast<float>(size.y);
         if (_camera_tiles_w > 0.0f) {
-            const float world_w = _camera_tiles_w * static_cast<float>(mario::constants::TILE_SIZE);
+            const float world_w = _camera_tiles_w * static_cast<float>(zia::constants::TILE_SIZE);
             const float aspect = h > 0.0f ? (w / h) : 1.0f;
             const float world_h = world_w / aspect;
             return {world_w, world_h};
@@ -194,4 +194,4 @@ namespace mario {
         return {w * _camera_scale,
                 h * _camera_scale};
     }
-} // namespace mario
+} // namespace Zia

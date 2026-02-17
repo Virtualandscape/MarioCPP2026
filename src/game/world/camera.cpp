@@ -1,12 +1,12 @@
 // Implements the Camera class, which manages the viewport position and movement in the game world.
 // Provides methods to set camera targets, bounds, viewport size, and to smoothly follow a target position.
 
-#include "mario/game/world/Camera.hpp"
+#include "Zia/game/world/Camera.hpp"
 
 #include <algorithm>
 #include <cmath>
 
-namespace mario {
+namespace zia {
     // Sets the target position the camera should follow.
     void Camera::set_target(float x, float y) {
         _target_x = x;
@@ -78,4 +78,4 @@ namespace mario {
 
     // Returns the current y position of the camera.
     [[nodiscard]] float Camera::y() const noexcept { return _y; }
-} // namespace mario
+} // namespace Zia

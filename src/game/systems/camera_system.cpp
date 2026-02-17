@@ -2,15 +2,15 @@
 // Updates camera position to follow a target entity based on its Position and Size components (dependency injection).
 // Uses composition over inheritance: camera system delegates to Camera class for state management.
 
-#include "mario/game/systems/CameraSystem.hpp"
-#include "mario/game/world/Camera.hpp"
-#include "mario/engine/ecs/components/PositionComponent.hpp"
-#include "mario/engine/ecs/components/SizeComponent.hpp"
+#include "Zia/game/systems/CameraSystem.hpp"
+#include "Zia/game/world/Camera.hpp"
+#include "Zia/engine/ecs/components/PositionComponent.hpp"
+#include "Zia/engine/ecs/components/SizeComponent.hpp"
 
-namespace mario {
+namespace zia {
     // Updates camera viewport and positioning to follow the target entity.
     // Applies camera smoothing and keeps target visible within viewport.
-    void CameraSystem::update(mario::engine::IEntityManager& registry, Camera& camera, float dt, float viewport_w, float viewport_h, EntityID target) {
+    void CameraSystem::update(zia::engine::IEntityManager& registry, Camera& camera, float dt, float viewport_w, float viewport_h, EntityID target) {
         // Update viewport size and apply any camera animations (damping, smoothing)
         camera.set_viewport(viewport_w, viewport_h);
         camera.update(dt);
@@ -30,7 +30,7 @@ namespace mario {
 
     // Initializes camera viewport and target position with optional offset animation.
     // Used when entering a new level to position camera with entrance animation (offset damping).
-    void CameraSystem::initialize(mario::engine::IEntityManager& registry, Camera& camera, float viewport_w, float viewport_h, EntityID target,
+    void CameraSystem::initialize(zia::engine::IEntityManager& registry, Camera& camera, float viewport_w, float viewport_h, EntityID target,
                                   float initial_offset_x, float initial_offset_y) {
         // Set initial viewport size
         camera.set_viewport(viewport_w, viewport_h);
@@ -74,4 +74,4 @@ namespace mario {
         // Apply initial offset to preserve entering animation (offset will be damped out)
         camera.set_position(target_x + initial_offset_x, target_y + initial_offset_y);
     }
-} // namespace mario
+} // namespace Zia

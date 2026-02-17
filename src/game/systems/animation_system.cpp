@@ -1,14 +1,14 @@
-#include "mario/game/systems/AnimationSystem.hpp"
-#include "mario/engine/ecs/components/AnimationComponent.hpp"
-#include "mario/engine/ecs/components/SpriteComponent.hpp"
-#include "mario/engine/ecs/components/VelocityComponent.hpp"
-#include "mario/engine/ecs/components/PlayerControllerComponent.hpp"
-#include "mario/game/helpers/Constants.hpp"
+#include "Zia/game/systems/AnimationSystem.hpp"
+#include "Zia/engine/ecs/components/AnimationComponent.hpp"
+#include "Zia/engine/ecs/components/SpriteComponent.hpp"
+#include "Zia/engine/ecs/components/VelocityComponent.hpp"
+#include "Zia/engine/ecs/components/PlayerControllerComponent.hpp"
+#include "Zia/game/helpers/Constants.hpp"
 #include <cmath>
 
-namespace mario {
+namespace zia {
 
-void AnimationSystem::update(mario::engine::IEntityManager& registry, float dt) const {
+void AnimationSystem::update(zia::engine::IEntityManager& registry, float dt) const {
     static thread_local std::vector<EntityID> entities;
     registry.get_entities_with_all<AnimationComponent, SpriteComponent>(entities);
 
@@ -112,4 +112,4 @@ void AnimationSystem::update(mario::engine::IEntityManager& registry, float dt) 
     }
 }
 
-} // namespace mario
+} // namespace Zia

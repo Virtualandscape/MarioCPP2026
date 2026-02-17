@@ -1,17 +1,17 @@
 // Implements the MenuScene class, which manages the main menu, level selection, and input handling for menu navigation.
 // Handles rendering menu options and transitioning to the PlayScene when a level is selected.
 
-#include "mario/game/MenuScene.hpp"
-#include "mario/game/MarioGame.hpp"
-#include "mario/game/PlayScene.hpp"
-#include "mario/game/helpers/Constants.hpp"
+#include "Zia/game/MenuScene.hpp"
+#include "Zia/game/MarioGame.hpp"
+#include "Zia/game/PlayScene.hpp"
+#include "Zia/game/helpers/Constants.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 
-namespace mario {
+namespace zia {
     // Constructor initializes the menu with available levels and prepares text objects for rendering.
     MenuScene::MenuScene(Game& game) : _game(game) {
-        _levels.assign(mario::constants::LEVEL_PATHS.begin(), mario::constants::LEVEL_PATHS.end());
+        _levels.assign(zia::constants::LEVEL_PATHS.begin(), zia::constants::LEVEL_PATHS.end());
         for (size_t i = 0; i < _levels.size(); ++i) {
             _level_texts.emplace_back(_game.renderer());
             _level_texts.back().set_string("Level " + std::to_string(i + 1));
@@ -109,5 +109,5 @@ namespace mario {
      }
 
     bool MenuScene::is_running() const { return _running && _game.renderer().is_open(); }
-} // namespace mario
+} // namespace Zia
 

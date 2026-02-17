@@ -1,14 +1,14 @@
 // Implements the PhysicsSystem, which applies gravity and integrates velocity into position for all entities.
 // Handles basic physics integration for movement and gravitational acceleration.
 
-#include "mario/game/systems/PhysicsSystem.hpp"
+#include "Zia/game/systems/PhysicsSystem.hpp"
 
-#include "mario/engine/ecs/components/PositionComponent.hpp"
-#include "mario/engine/ecs/components/VelocityComponent.hpp"
+#include "Zia/engine/ecs/components/PositionComponent.hpp"
+#include "Zia/engine/ecs/components/VelocityComponent.hpp"
 
-namespace mario {
+namespace zia {
 
-void PhysicsSystem::update(mario::engine::IEntityManager& registry, float dt) const
+void PhysicsSystem::update(zia::engine::IEntityManager& registry, float dt) const
 {
     // Query entities that have both Position and Velocity components
     static thread_local std::vector<EntityID> entities;
@@ -28,4 +28,4 @@ void PhysicsSystem::update(mario::engine::IEntityManager& registry, float dt) co
 
 void PhysicsSystem::set_gravity(float g) { _gravity = g; }
 
-} // namespace mario
+} // namespace Zia

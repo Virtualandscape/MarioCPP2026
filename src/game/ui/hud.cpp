@@ -1,11 +1,11 @@
 // Implements the HUD (Heads-Up Display) and Text classes for rendering game information on the screen.
 // HUD displays lives, coins, score, timer, and level name. Text handles rendering individual text elements.
 
-#include "mario/game/ui/HUD.hpp"
+#include "Zia/game/ui/HUD.hpp"
 
-namespace mario {
+namespace zia {
     // HUD constructor initializes with a reference to the renderer.
-    HUD::HUD(mario::engine::IRenderer& renderer) : _renderer(renderer) {}
+    HUD::HUD(zia::engine::IRenderer& renderer) : _renderer(renderer) {}
 
     // Setters for HUD information.
     void HUD::set_lives(int lives) { _lives = lives; }
@@ -23,7 +23,7 @@ namespace mario {
     }
 
     // Text class constructor initializes with a reference to the renderer.
-    Text::Text(mario::engine::IRenderer& renderer) : _renderer(renderer) {}
+    Text::Text(zia::engine::IRenderer& renderer) : _renderer(renderer) {}
 
     // Setters for text properties.
     void Text::set_string(std::string_view text) { _text = text; }
@@ -35,4 +35,4 @@ namespace mario {
     void Text::render() {
         _renderer.draw_text(_text, _x, _y, _size, _color);
     }
-} // namespace mario
+} // namespace Zia
