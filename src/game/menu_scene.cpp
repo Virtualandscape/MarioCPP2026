@@ -3,7 +3,7 @@
 
 #include "mario/game/MenuScene.hpp"
 #include "mario/core/Game.hpp"
-#include "mario/core/PlayScene.hpp"
+#include "mario/game/PlayScene.hpp"
 #include "mario/helpers/Constants.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
