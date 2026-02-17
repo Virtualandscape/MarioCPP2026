@@ -7,6 +7,8 @@
 #include <SFML/System/Sleep.hpp>
 
 #include <memory>
+#include <imgui.h>
+#include <imgui-SFML.h>
 
 namespace mario {
     // Used by: main.cpp (instantiates mario::Game)
@@ -22,11 +24,15 @@ namespace mario {
     void Game::initialize() {
         // Mark the main loop as running; actual setup is minimal here.
         _running = true;
+        if (!ImGui::SFML::Init(_renderer.window())) {
+            // Handle error if needed
+        }
     }
 
     // Used by: Game::run(), main.cpp (explicit shutdown)
     // Shutdown the game, releasing or clearing owned resources and scenes.
     void Game::shutdown() {
+        ImGui::SFML::Shutdown();
         // Clear active scenes to trigger their destructors and on_exit semantics.
         _scenes.clear();
         // Unload loaded assets (textures/sounds) from the asset manager.
@@ -133,11 +139,32 @@ namespace mario {
             const auto scene = current_scene();
             if (!scene) break;
 
+            // ImGui process events
+            sf::RenderWindow& window = _renderer.window();
+            while (const auto event = window.pollEvent()) {
+                ImGui::SFML::ProcessEvent(window, *event);
+                if (event->is<sf::Event::Closed>()) {
+                    window.close();
+                }
+            }
+
             // Compute delta time in seconds since the last frame.
             const float dt = clock.restart().asSeconds();
 
+            // ImGui Update
+            ImGui::SFML::Update(window, _imgui_clock.restart());
+
+            // Simple demo window
+            ImGui::Begin("ImGui working!");
+            ImGui::Text("Hello, SFML 3 + ImGui!");
+            ImGui::End();
+
             scene->update(dt);
+
+            _renderer.begin_frame();
             scene->render();
+            ImGui::SFML::Render(window);
+            _renderer.end_frame();
 
             const sf::Time elapsed = clock.getElapsedTime();
             if (elapsed < target_frame_time) {

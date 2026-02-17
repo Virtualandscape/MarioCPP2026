@@ -34,12 +34,6 @@ namespace mario {
             return;
         }
 
-        while (const auto event = _window.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) {
-                _window.close();
-            }
-        }
-
         _window.clear(_clear_color);
     }
 

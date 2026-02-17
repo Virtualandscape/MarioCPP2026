@@ -347,10 +347,9 @@ namespace mario {
     }
 
     // Used by: Game main loop to draw a frame
-    // Renders the game world and HUD.
+    // Renders the game world and HUD. Note: begin_frame()/end_frame() are handled by Game::main_loop().
     void PlayScene::render() {
-        // Prepare the renderer for a new frame (clears screen and polls OS events).
-        _game.renderer().begin_frame();
+        // Render logic only — the Game loop is responsible for begin_frame()/end_frame().
 
         // Compute a camera pointer: if the level supplies a camera, use it; otherwise use a dummy camera.
         auto camera_ptr = _level.camera();
@@ -365,9 +364,6 @@ namespace mario {
 
         // Execute the render pipeline with camera context.
         run_render_systems(_game.entity_manager(), camera_view);
-
-        // Present the rendered frame to the display.
-        _game.renderer().end_frame();
     }
 
     // Used by: update (executes update pipeline)

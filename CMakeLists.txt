@@ -15,6 +15,25 @@ FetchContent_Declare(SFML
         SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
+FetchContent_Declare(imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG v1.91.1
+)
+
+FetchContent_GetProperties(imgui)
+if(NOT imgui_POPULATED)
+    FetchContent_Populate(imgui)
+endif()
+
+FetchContent_Declare(imgui-sfml
+    GIT_REPOSITORY https://github.com/SFML/imgui-sfml.git
+    GIT_TAG v3.0
+)
+
+set(IMGUI_DIR ${imgui_SOURCE_DIR} CACHE PATH "imgui top-level directory" FORCE)
+set(IMGUI_SFML_FIND_SFML OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(imgui-sfml)
+
 set(SOURCES
         main.cpp
         src/audio/audio_manager.cpp
@@ -73,7 +92,7 @@ set(HEADERS
 add_executable(Mario ${SOURCES} ${HEADERS})
 target_compile_features(Mario PRIVATE cxx_std_17)
 target_include_directories(Mario PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(Mario PRIVATE SFML::Graphics)
+target_link_libraries(Mario PRIVATE SFML::Graphics ImGui-SFML::ImGui-SFML)
 
 # Copy assets from source tree to build directory so runtime always uses up-to-date assets.
 add_custom_target(copy_assets

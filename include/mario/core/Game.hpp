@@ -9,6 +9,8 @@
 #include <memory>
 #include <vector>
 
+#include <SFML/System/Clock.hpp>
+
 namespace mario {
     // Core application harness that owns the loop, managers, and active scene stack.
     class Game {
@@ -55,5 +57,6 @@ namespace mario {
         AssetManager _assets;
         EntityManager _entities;
         std::vector<std::shared_ptr<Scene>> _scenes;
+        sf::Clock _imgui_clock;
     };
 } // namespace mario

@@ -79,31 +79,34 @@ namespace mario {
 
     // Renders the menu, highlighting the selected level.
     void MenuScene::render() {
-        _game.renderer().begin_frame();
+        // Render only: the Game loop handles frame begin/end.
 
         // Draw background
-        _game.renderer().draw_rect(0, 0, 800, 480, sf::Color(20, 20, 20));
+         _game.renderer().draw_rect(0, 0, 800, 480, sf::Color(20, 20, 20));
 
-        // Draw level options as rectangles and text
-        for (size_t i = 0; i < _levels.size(); ++i) {
-            sf::Color rect_color = (static_cast<int>(i) == _selected_index) ? sf::Color(50,50,50) : sf::Color(40,40,40);
-            float x = 300;
-            float y = 150 + static_cast<float>(i) * 100;
-            _game.renderer().draw_rect(x, y, 200, 50, rect_color);
+         // Draw level options as rectangles and text
+         for (size_t i = 0; i < _levels.size(); ++i) {
+             sf::Color rect_color = (static_cast<int>(i) == _selected_index) ? sf::Color(50,50,50) : sf::Color(40,40,40);
+             float x = 300;
+             float y = 150 + static_cast<float>(i) * 100;
 
-            auto& text = _level_texts[i];
-            text.set_position(x + 50, y + 10);
-            text.set_color(sf::Color::White);
-            text.render();
+             // Selection/hover handled in update(); render only paints the rectangle and text.
+             // Draw rectangle
+             _game.renderer().draw_rect(x, y, 200, 50, rect_color);
 
-            // Draw a small indicator for selection
-            if (static_cast<int>(i) == _selected_index) {
-                _game.renderer().draw_rect(270, y + 10, 20, 30, sf::Color::Red);
-            }
-        }
+             auto& text = _level_texts[i];
+             text.set_position(x + 50, y + 10);
+             text.set_color(sf::Color::White);
+             text.render();
 
-        _game.renderer().end_frame();
-    }
+             // Draw a small indicator for selection
+             if (static_cast<int>(i) == _selected_index) {
+                 _game.renderer().draw_rect(270, y + 10, 20, 30, sf::Color::Red);
+             }
+         }
+
+        // end_frame() is called by Game::main_loop()
+     }
 
     bool MenuScene::is_running() const { return _running && _game.renderer().is_open(); }
 } // namespace mario
