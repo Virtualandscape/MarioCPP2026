@@ -3,6 +3,8 @@
 // source-compatible with the rest of the project while introducing an engine abstraction.
 
 #include "mario/engine/Application.hpp"
+#include "mario/engine/adapters/SceneAdapter.hpp"
+#include "mario/core/Scene.hpp"
 
 #include <iostream>
 
@@ -48,7 +50,7 @@ void Application::run() {
     shutdown();
 }
 
-void Application::push_scene(std::shared_ptr<mario::Scene> scene) {
+void Application::push_scene(std::shared_ptr<IScene> scene) {
     if (!scene) return;
     if (const auto current = current_scene()) {
         current->on_exit();
@@ -66,7 +68,7 @@ void Application::pop_scene() {
     }
 }
 
-std::shared_ptr<mario::Scene> Application::current_scene() {
+std::shared_ptr<IScene> Application::current_scene() {
     if (_scenes.empty()) return nullptr;
     return _scenes.back();
 }

@@ -4,6 +4,7 @@
 // This header intentionally lives under include/mario/engine to keep project includes consistent.
 
 #include "mario/core/Scene.hpp"
+#include "mario/engine/IScene.hpp"
 #include "mario/ecs/EntityManager.hpp"
 #include "mario/input/InputManager.hpp"
 #include "mario/render/Renderer.hpp"
@@ -34,10 +35,11 @@ namespace mario::engine {
         // Run the main loop until no scenes remain.
         void run();
 
-        // Scene stack management.
-        void push_scene(std::shared_ptr<mario::Scene> scene);
+        // Scene stack management using engine-agnostic IScene pointers.
+        void push_scene(std::shared_ptr<IScene> scene);
+        // (Note) To push game-specific scenes, wrap them in an engine::adapters::SceneAdapter.
         void pop_scene();
-        std::shared_ptr<mario::Scene> current_scene();
+        std::shared_ptr<IScene> current_scene();
 
         // Accessors for subsystems (non-owning references returned).
         mario::Renderer &renderer();
@@ -63,7 +65,7 @@ namespace mario::engine {
         std::unique_ptr<mario::EntityManager> _entities;
 
         // Active scene stack (shared ownership of scenes keeps interfaces simple).
-        std::vector<std::shared_ptr<mario::Scene>> _scenes;
+        std::vector<std::shared_ptr<IScene>> _scenes;
 
         // Clock used by ImGui/SFML integration.
         sf::Clock _imgui_clock;

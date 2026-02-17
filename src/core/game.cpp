@@ -4,6 +4,7 @@
 
 #include "mario/core/Game.hpp"
 #include "mario/core/Menuscene.hpp"
+#include "mario/engine/adapters/SceneAdapter.hpp"
 
 #include <SFML/System/Clock.hpp>
 #include <SFML/System/Sleep.hpp>
@@ -38,7 +39,8 @@ namespace mario {
 
     // Forward scene management to the engine application.
     void Game::push_scene(std::shared_ptr<Scene> scene) {
-        _app->push_scene(std::move(scene));
+        // Wrap the game-specific Scene into the engine adapter before pushing.
+        _app->push_scene(std::make_shared<engine::adapters::SceneAdapter>(std::move(scene)));
     }
 
     void Game::pop_scene() {
@@ -46,7 +48,14 @@ namespace mario {
     }
 
     std::shared_ptr<Scene> Game::current_scene() {
-        return _app->current_scene();
+        auto iscene = _app->current_scene();
+        if (!iscene) return nullptr;
+        // Try to cast to SceneAdapter to obtain the underlying concrete mario::Scene.
+        if (auto adapter = std::dynamic_pointer_cast<engine::adapters::SceneAdapter>(iscene)) {
+            return adapter->underlying();
+        }
+        // Not an adapter-wrapped scene: cannot provide a concrete mario::Scene pointer.
+        return nullptr;
     }
 
     Renderer &Game::renderer() {
@@ -68,7 +77,7 @@ namespace mario {
     // Hook: if no scene is present, maintain previous behavior and push MenuScene.
     void Game::before_loop() {
         if (!_app->current_scene()) {
-            _app->push_scene(std::make_shared<MenuScene>(*this));
+            push_scene(std::make_shared<MenuScene>(*this));
         }
     }
 } // namespace mario
