@@ -73,9 +73,18 @@ namespace zia {
                 end_y = static_cast<int>(std::floor((max_pos + size_axis) / tile_size_f));
             }
 
-            for (int ty = start_y; ty <= end_y; ++ty) {
+            // Clamp start indices to prevent negative tile accesses.
+            start_x = std::max(start_x, 0);
+            start_y = std::max(start_y, 0);
+
+            // Flag to stop after the first collision resolution on this axis.
+            bool collided = false;
+
+            for (int ty = start_y; ty <= end_y && !collided; ++ty) {
                 for (int tx = start_x; tx <= end_x; ++tx) {
+                    // Skip non-solid tiles quickly.
                     if (!map.is_solid(tx, ty)) continue;
+
                     const float tile_left = static_cast<float>(tx) * tile_size_f;
                     const float tile_top = static_cast<float>(ty) * tile_size_f;
 
@@ -84,15 +93,21 @@ namespace zia {
                     const float test_w = horizontal ? size_axis : size_fixed;
                     const float test_h = horizontal ? size_fixed : size_axis;
 
+                    // If intersection occurs, resolve immediately and stop searching further tiles on this axis.
                     if (!rects_intersect(test_x, test_y, test_w, test_h, tile_left, tile_top, tile_size_f, tile_size_f)) continue;
 
-                    // Adjust position to the edge of the tile and set velocity on this axis to zero.
+                    // Adjust position to the edge of the tile depending on movement direction.
                     if (horizontal) {
                         new_pos = (new_vel > 0.0f) ? tile_left - size_axis : tile_left + tile_size_f;
                     } else {
                         new_pos = (new_vel > 0.0f) ? tile_top - size_axis : tile_top + tile_size_f;
                     }
+
+                    // Nullify velocity along this axis after collision resolution.
                     new_vel = 0.0f;
+
+                    collided = true;
+                    break;
                 }
             }
         };
@@ -102,4 +117,4 @@ namespace zia {
 
         return {new_x, new_y, new_vx, new_vy};
     }
-} // namespace Zia
+} // namespace zia

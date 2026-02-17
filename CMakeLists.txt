@@ -54,7 +54,6 @@ set(SOURCES
         src/game/world/camera.cpp
         src/game/world/level.cpp
         src/game/world/tile_map.cpp
-        src/game/helpers/Quadtree.cpp
         src/game/helpers/TileSweep.cpp
         src/game/systems/background_system.cpp
         src/game/systems/sprite_render_system.cpp
@@ -66,9 +65,10 @@ set(SOURCES
         src/game/systems/animation_system.cpp
         src/game/world/JsonHelper.cpp
         src/game/systems/inspector_system.cpp
-        src/engine/ui_manager.cpp
+        src/engine/ui/ui_manager.cpp
         src/engine/Application.cpp
         src/game/world/level.cpp
+        src/engine/spatial/Quadtree.cpp
 )
 
 set(HEADERS
@@ -91,6 +91,7 @@ set(HEADERS
         include/Zia/engine/ecs/components/BackgroundComponent.hpp
         include/Zia/game/systems/BackgroundSystem.hpp
         include/Zia/game/helpers/quadtree.h
+        include/Zia/game/helpers/QuadTile.h
 )
 
 add_executable(Mario ${SOURCES} ${HEADERS})

@@ -9,7 +9,7 @@
 #include "Zia/engine/input/InputManager.hpp"
 #include "Zia/engine/render/Renderer.hpp"
 #include "Zia/engine/resources/AssetManager.hpp"
-#include "Zia/engine/UIManager.hpp"
+#include "ui/UIManager.hpp"
 #include "Zia/engine/IRenderer.hpp"
 #include "Zia/engine/IInput.hpp"
 #include "Zia/engine/IAssetManager.hpp"

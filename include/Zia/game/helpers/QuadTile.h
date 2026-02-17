@@ -1,27 +1,12 @@
-#ifndef QUADTILE_H
-#define QUADTILE_H
+#ifndef GAME_QUADTILE_H
+#define GAME_QUADTILE_H
 
-#include <string>
-#include <cstdint>
-#include <utility>
-#include <SFML/Graphics/Rect.hpp>
+// QuadTile was moved to the engine spatial namespace; include the authoritative header.
+#include "Zia/engine/spatial/QuadTile.h"
 
-struct QuadTile
-{
-    sf::FloatRect bounds;
-    std::string type;
-    std::uint32_t id = 0;
+// Re-export into the zia global namespace for compatibility.
+namespace zia {
+    using ::QuadTile; // global struct from engine header is in the global namespace; keep compatibility.
+}
 
-    QuadTile(const sf::FloatRect& bounds, std::string type)
-        : bounds(bounds), type(std::move(type))
-    {
-    }
-
-    QuadTile(const sf::FloatRect& bounds, std::uint32_t id)
-        : bounds(bounds), id(id)
-    {
-    }
-};
-
-#endif // QUADTILE_H
-
+#endif // GAME_QUADTILE_H

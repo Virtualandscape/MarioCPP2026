@@ -5,7 +5,7 @@
 #include "Zia/engine/input/InputManager.hpp"
 #include "Zia/engine/render/Renderer.hpp"
 #include "Zia/engine/resources/AssetManager.hpp"
-#include "Zia/engine/UIManager.hpp"
+#include "../engine/ui/UIManager.hpp"
 #include "Zia/engine/Application.hpp" // Use the engine-level application as backend
 
 #include "Zia/engine/IRenderer.hpp"
