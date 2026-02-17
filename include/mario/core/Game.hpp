@@ -5,6 +5,7 @@
 #include "mario/input/InputManager.hpp"
 #include "mario/render/Renderer.hpp"
 #include "mario/resources/AssetManager.hpp"
+#include "mario/core/UIManager.hpp"
 
 #include <memory>
 #include <vector>
@@ -58,5 +59,7 @@ namespace mario {
         EntityManager _entities;
         std::vector<std::shared_ptr<Scene>> _scenes;
         sf::Clock _imgui_clock;
+        // Centralized UI manager that wraps ImGui-SFML usage.
+        UIManager _ui;
     };
 } // namespace mario

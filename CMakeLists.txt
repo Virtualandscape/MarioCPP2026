@@ -66,6 +66,7 @@ set(SOURCES
         src/systems/animation_system.cpp
         src/world/JsonHelper.cpp
         src/systems/inspector_system.cpp
+        src/core/ui_manager.cpp
 )
 
 set(HEADERS

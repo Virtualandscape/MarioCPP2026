@@ -7,8 +7,8 @@
 #include <SFML/System/Sleep.hpp>
 
 #include <memory>
-#include <imgui.h>
-#include <imgui-SFML.h>
+
+// ImGui is accessed via UIManager to centralize lifecycle and rendering.
 
 namespace mario {
     // Used by: main.cpp (instantiates mario::Game)
@@ -24,24 +24,25 @@ namespace mario {
     void Game::initialize() {
         // Mark the main loop as running; actual setup is minimal here.
         _running = true;
-        if (!ImGui::SFML::Init(_renderer.window())) {
-            // Handle error if needed
+        if (!_ui.init(_renderer.window())) {
+            // If UI fails to initialize, we continue but log a message.
+            // The game can still run without ImGui visuals.
         }
     }
 
     // Used by: Game::run(), main.cpp (explicit shutdown)
     // Shutdown the game, releasing or clearing owned resources and scenes.
     void Game::shutdown() {
-        ImGui::SFML::Shutdown();
-        // Clear active scenes to trigger their destructors and on_exit semantics.
-        _scenes.clear();
-        // Unload loaded assets (textures/sounds) from the asset manager.
-        _assets.unload_all();
-        // Clear the entity manager's storage (ECS reset).
-        _entities.clear();
-        // Mark as not running to stop any loops.
-        _running = false;
-    }
+        _ui.shutdown();
+         // Clear active scenes to trigger their destructors and on_exit semantics.
+         _scenes.clear();
+         // Unload loaded assets (textures/sounds) from the asset manager.
+         _assets.unload_all();
+         // Clear the entity manager's storage (ECS reset).
+         _entities.clear();
+         // Mark as not running to stop any loops.
+         _running = false;
+     }
 
     // Used by: main.cpp
     // Run the whole lifecycle: initialize, enter the loop, then shutdown.
@@ -142,28 +143,25 @@ namespace mario {
             // ImGui process events
             sf::RenderWindow& window = _renderer.window();
             while (const auto event = window.pollEvent()) {
-                ImGui::SFML::ProcessEvent(window, *event);
-                if (event->is<sf::Event::Closed>()) {
-                    window.close();
-                }
+                _ui.process_event(window, *event);
+                 if (event->is<sf::Event::Closed>()) {
+                     window.close();
+                 }
             }
 
             // Compute delta time in seconds since the last frame.
             const float dt = clock.restart().asSeconds();
 
-            // ImGui Update
-            ImGui::SFML::Update(window, _imgui_clock.restart());
-
-            // Simple demo window
-            ImGui::Begin("ImGui working!");
-            ImGui::Text("Hello, SFML 3 + ImGui!");
-            ImGui::End();
-
+            // Update scene logic first so UI can reflect the latest state.
             scene->update(dt);
+
+            // ImGui Update (drives internal ImGui timing) and build UI based on updated state.
+            _ui.update(window, _imgui_clock);
+            _ui.build();
 
             _renderer.begin_frame();
             scene->render();
-            ImGui::SFML::Render(window);
+            _ui.render(window);
             _renderer.end_frame();
 
             const sf::Time elapsed = clock.getElapsedTime();
