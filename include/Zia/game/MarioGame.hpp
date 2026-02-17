@@ -19,6 +19,9 @@
 #include <SFML/System/Clock.hpp>
 
 namespace zia {
+    // forward
+    namespace engine { class EngineConfig; }
+
     // Core application harness that owns the loop, managers, and active scene stack.
     // This Game class is now a thin wrapper that forwards to an engine::Application instance.
     class Game {
@@ -54,6 +57,9 @@ namespace zia {
         // Access to the underlying concrete entity manager if needed by legacy code.
         zia::EntityManager &underlying_entity_manager();
 
+        // Expose engine-wide settings manager
+        std::shared_ptr<zia::engine::EngineConfig> settings();
+
     protected:
         // Hook for derived classes to prepare an initial scene before the loop begins.
         virtual void before_loop();
@@ -62,5 +68,8 @@ namespace zia {
         // The previous implementation lived here; we now forward to an engine::Application.
         // The engine application is owned via unique_ptr to enforce single ownership.
         std::unique_ptr<engine::Application> _app;
+
+        // Game-owned settings manager
+        std::shared_ptr<zia::engine::EngineConfig> _settings;
     };
 } // namespace Zia

@@ -28,6 +28,14 @@ namespace zia {
         bool _up_pressed = false;
         bool _down_pressed = false;
         bool _enter_pressed = false;
+
+        // Show the settings ImGui window
+        bool _show_settings = false;
+        // Cached UI values for settings
+        int _ui_width = 800;
+        int _ui_height = 480;
+        bool _ui_fullscreen = false;
+        float _ui_master_volume = 1.0f;
     };
 } // namespace Zia
 

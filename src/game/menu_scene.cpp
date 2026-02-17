@@ -7,6 +7,8 @@
 #include "Zia/game/helpers/Constants.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
+#include "Zia/engine/EngineConfig.hpp"
+#include <imgui.h>
 
 namespace zia {
     // Constructor initializes the menu with available levels and prepares text objects for rendering.
@@ -16,6 +18,14 @@ namespace zia {
             _level_texts.emplace_back(_game.renderer());
             _level_texts.back().set_string("Level " + std::to_string(i + 1));
             _level_texts.back().set_size(24);
+        }
+
+        // Initialize UI cached values from settings
+        if (auto s = _game.settings()) {
+            _ui_width = s->window_width();
+            _ui_height = s->window_height();
+            _ui_fullscreen = s->fullscreen();
+            _ui_master_volume = s->master_volume();
         }
     }
 
@@ -45,6 +55,7 @@ namespace zia {
         }
         if (enter && !_enter_pressed) {
             // Start the selected level by pushing a new PlayScene.
+            // Keep behavior: if user presses Enter on menu, start the selected level.
             _game.push_scene(std::make_shared<PlayScene>(_game, _levels[_selected_index]));
             return;
         }
@@ -104,6 +115,70 @@ namespace zia {
                  _game.renderer().draw_rect(270, y + 10, 20, 30, sf::Color::Red);
              }
          }
+
+        // ImGui top main menu bar: Play + Settings
+        if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("Play")) {
+                if (ImGui::MenuItem("Start Level 1")) {
+                    // Always start the game at level 1
+                    if (!_levels.empty()) {
+                        // Convert constexpr string_view to std::string explicitly to match PlayScene ctor
+                        _game.push_scene(std::make_shared<PlayScene>(_game, std::string(zia::constants::LEVEL_PATHS.at(0))));
+                        ImGui::EndMenu();
+                        ImGui::EndMainMenuBar();
+                        return; // Early return to avoid drawing settings window in same frame
+                    }
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Settings")) {
+                if (ImGui::MenuItem("Open Settings")) {
+                    _show_settings = true;
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
+
+        // Settings window
+        if (_show_settings) {
+            ImGui::Begin("Settings", &_show_settings, ImGuiWindowFlags_AlwaysAutoResize);
+
+            // Synchronize cached values with settings manager at window open
+            static bool initialized = false;
+            if (!initialized) {
+                if (auto s = _game.settings()) {
+                    _ui_width = s->window_width();
+                    _ui_height = s->window_height();
+                    _ui_fullscreen = s->fullscreen();
+                    _ui_master_volume = s->master_volume();
+                }
+                initialized = true;
+            }
+
+            // Window size
+            ImGui::InputInt("Width", &_ui_width);
+            ImGui::InputInt("Height", &_ui_height);
+            ImGui::Checkbox("Fullscreen", &_ui_fullscreen);
+
+            // Audio
+            ImGui::SliderFloat("Master Volume", &_ui_master_volume, 0.0f, 1.0f);
+
+            if (ImGui::Button("Apply")) {
+                if (auto s = _game.settings()) {
+                    s->set_window_size(_ui_width, _ui_height);
+                    s->set_fullscreen(_ui_fullscreen);
+                    s->set_master_volume(_ui_master_volume);
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Close")) {
+                _show_settings = false;
+                initialized = false;
+            }
+
+            ImGui::End();
+        }
 
         // end_frame() is called by Game::main_loop()
      }

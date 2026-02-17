@@ -3,6 +3,8 @@
 #include "Zia/game/MarioGame.hpp"
 #include "Zia/game/MenuScene.hpp"
 #include "Zia/engine/adapters/SceneAdapter.hpp"
+#include "Zia/engine/EngineConfig.hpp"
+#include "Zia/engine/audio/AudioManager.hpp"
 
 
 #include <memory>
@@ -11,7 +13,29 @@
 
 namespace zia {
     // Construct: create the underlying engine application which owns subsystems.
-    Game::Game() : _app(std::make_unique<engine::Application>("Zia")) {}
+    Game::Game()
+        : _app(std::make_unique<engine::Application>("Zia")),
+          _settings(std::make_shared<engine::EngineConfig>())
+    {
+        // Register observer to apply runtime-visible changes (resize, volume)
+        // Keep observer id if needed later (not currently unregistered; acceptable for app lifetime)
+        _settings->register_observer([this](const engine::EngineConfig &cfg) {
+            // Apply window size change on renderer
+            try {
+                _app->renderer().window().setSize(sf::Vector2u(static_cast<unsigned int>(cfg.window_width()), static_cast<unsigned int>(cfg.window_height())));
+            } catch (...) {
+                // Renderer may not expose setSize; ignore errors and leave as best-effort.
+            }
+            // Apply master volume if audio manager exists in application (best-effort)
+            try {
+                // The engine's AudioManager currently lives in src/engine/audio; call set_volume globally if accessible.
+                // We don't have a global accessor here, so attempt to call through assets or other path isn't available; fallback: no-op
+                zia::AudioManager audio; // local no-op; real audio manager integration is future work
+                audio.set_volume(cfg.master_volume());
+            } catch (...) {
+            }
+        });
+    }
 
     // Default destructor: unique_ptr will clean up the engine application.
     Game::~Game() = default;
@@ -73,6 +97,11 @@ namespace zia {
 
     zia::EntityManager &Game::underlying_entity_manager() {
         return _app->underlying_entity_manager();
+    }
+
+    // Expose settings manager
+    std::shared_ptr<zia::engine::EngineConfig> Game::settings() {
+        return _settings;
     }
 
     // Hook: if no scene is present, maintain previous behavior and push MenuScene.

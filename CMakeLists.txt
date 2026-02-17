@@ -69,6 +69,7 @@ set(SOURCES
         src/engine/Application.cpp
         src/game/world/level.cpp
         src/engine/spatial/Quadtree.cpp
+        src/engine/EngineConfig.cpp
 )
 
 set(HEADERS

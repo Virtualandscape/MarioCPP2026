@@ -31,7 +31,7 @@ namespace zia {
     // x, y: current position; vx, vy: velocity; w, h: size; map: tile map; dt: delta time.
     // Returns the new position and velocity after collision.
     TileCollisionResult resolve_tile_collision(float x, float y, float vx, float vy,
-                                               float w, float h, const TileMap& map, float dt) {
+                                               float w, float h, const TileMap &map, float dt) {
         const float prev_x = x - vx * dt; // Previous X position
         const float prev_y = y - vy * dt; // Previous Y position
         const int tile_size = map.tile_size();
@@ -49,7 +49,7 @@ namespace zia {
         // prev_pos: previous position on this axis; fixed_pos: position on the other axis;
         // size_axis: size on the axis to correct; size_fixed: size on the other axis;
         // horizontal: true for X, false for Y.
-        auto resolve_axis = [&](float& new_pos, float& new_vel, float prev_pos, float fixed_pos,
+        auto resolve_axis = [&](float &new_pos, float &new_vel, float prev_pos, float fixed_pos,
                                 float size_axis, float size_fixed, bool horizontal) {
             if (new_vel == 0.0f) return;
 
@@ -94,7 +94,8 @@ namespace zia {
                     const float test_h = horizontal ? size_fixed : size_axis;
 
                     // If intersection occurs, resolve immediately and stop searching further tiles on this axis.
-                    if (!rects_intersect(test_x, test_y, test_w, test_h, tile_left, tile_top, tile_size_f, tile_size_f)) continue;
+                    if (!rects_intersect(test_x, test_y, test_w, test_h, tile_left, tile_top, tile_size_f,
+                                         tile_size_f)) continue;
 
                     // Adjust position to the edge of the tile depending on movement direction.
                     if (horizontal) {
@@ -112,8 +113,8 @@ namespace zia {
             }
         };
 
-        resolve_axis(new_x, new_vx, prev_x, prev_y, w, h, true);   // X axis
-        resolve_axis(new_y, new_vy, prev_y, new_x, h, w, false);   // Y axis
+        resolve_axis(new_x, new_vx, prev_x, prev_y, w, h, true); // X axis
+        resolve_axis(new_y, new_vy, prev_y, new_x, h, w, false); // Y axis
 
         return {new_x, new_y, new_vx, new_vy};
     }
