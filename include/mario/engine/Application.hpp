@@ -10,6 +10,10 @@
 #include "mario/render/Renderer.hpp"
 #include "mario/resources/AssetManager.hpp"
 #include "mario/core/UIManager.hpp"
+#include "mario/engine/IRenderer.hpp"
+#include "mario/engine/IInput.hpp"
+#include "mario/engine/IAssetManager.hpp"
+#include "mario/engine/IEntityManager.hpp"
 
 #include <memory>
 #include <vector>
@@ -22,6 +26,12 @@ namespace mario::engine {
     public:
         // Construct the application. Title is optional and forwarded to the renderer.
         explicit Application(std::string_view title = {});
+
+        // Construct the application with injected interface adaptors.
+        Application(std::shared_ptr<IRenderer> renderer,
+                    std::shared_ptr<IInput> input,
+                    std::shared_ptr<IAssetManager> assets,
+                    std::shared_ptr<IEntityManager> entities);
 
         // Default destructor: RAII cleans up owned members.
         virtual ~Application();
@@ -58,11 +68,18 @@ namespace mario::engine {
         // Running flag for the main loop.
         bool _running = false;
 
-        // Owned subsystems. Unique ownership ensures clear RAII semantics.
-        std::unique_ptr<mario::Renderer> _renderer;
-        std::unique_ptr<mario::InputManager> _input;
-        std::unique_ptr<mario::AssetManager> _assets;
-        std::unique_ptr<mario::EntityManager> _entities;
+        // Owned concrete subsystems (created when no adapter is provided).
+        std::shared_ptr<mario::Renderer> _renderer;
+        std::shared_ptr<mario::InputManager> _input;
+        std::shared_ptr<mario::AssetManager> _assets;
+        std::shared_ptr<mario::EntityManager> _entities;
+
+        // Optional adapters provided by the caller. When set, their underlying concrete
+        // implementations will be used by the engine.
+        std::shared_ptr<IRenderer> _renderer_adapter;
+        std::shared_ptr<IInput> _input_adapter;
+        std::shared_ptr<IAssetManager> _assets_adapter;
+        std::shared_ptr<IEntityManager> _entities_adapter;
 
         // Active scene stack (shared ownership of scenes keeps interfaces simple).
         std::vector<std::shared_ptr<IScene>> _scenes;

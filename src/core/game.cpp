@@ -1,13 +1,9 @@
 // Connects the platformer Game implementation to the reusable engine infrastructure.
 
-#include <iostream>
-
 #include "mario/core/Game.hpp"
 #include "mario/core/Menuscene.hpp"
 #include "mario/engine/adapters/SceneAdapter.hpp"
 
-#include <SFML/System/Clock.hpp>
-#include <SFML/System/Sleep.hpp>
 
 #include <memory>
 

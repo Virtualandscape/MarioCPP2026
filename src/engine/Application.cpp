@@ -4,7 +4,11 @@
 
 #include "mario/engine/Application.hpp"
 #include "mario/engine/adapters/SceneAdapter.hpp"
-#include "mario/core/Scene.hpp"
+
+#include "mario/engine/adapters/RendererAdapter.hpp"
+#include "mario/engine/adapters/InputAdapter.hpp"
+#include "mario/engine/adapters/AssetManagerAdapter.hpp"
+#include "mario/engine/adapters/EntityManagerAdapter.hpp"
 
 #include <iostream>
 
@@ -13,7 +17,8 @@
 
 namespace mario::engine {
 
-Application::Application(std::string_view title) {
+Application::Application(std::string_view title)
+    : _renderer_adapter(nullptr), _input_adapter(nullptr), _assets_adapter(nullptr), _entities_adapter(nullptr) {
     // Create owned subsystems. Renderer constructed with default constructor.
     _renderer = std::make_unique<mario::Renderer>();
     // If a title was provided, update the renderer window title.
@@ -23,6 +28,44 @@ Application::Application(std::string_view title) {
     _input = std::make_unique<mario::InputManager>();
     _assets = std::make_unique<mario::AssetManager>();
     _entities = std::make_unique<mario::EntityManager>();
+}
+
+Application::Application(std::shared_ptr<IRenderer> renderer,
+                         std::shared_ptr<IInput> input,
+                         std::shared_ptr<IAssetManager> assets,
+                         std::shared_ptr<IEntityManager> entities)
+    : _renderer_adapter(std::move(renderer)), _input_adapter(std::move(input)),
+      _assets_adapter(std::move(assets)), _entities_adapter(std::move(entities)) {
+    // If adapters expose underlying concrete objects via their adapter classes, prefer them.
+    // Otherwise, fall back to creating concrete subsystem instances.
+    if (_renderer_adapter) {
+        // Try to get concrete renderer from known Adapter type
+        if (auto ra = std::dynamic_pointer_cast<engine::adapters::RendererAdapter>(_renderer_adapter)) {
+            _renderer = ra->underlying();
+        }
+    }
+    if (!_renderer) _renderer = std::make_shared<mario::Renderer>();
+
+    if (_input_adapter) {
+        if (auto ia = std::dynamic_pointer_cast<engine::adapters::InputAdapter>(_input_adapter)) {
+            _input = ia->underlying();
+        }
+    }
+    if (!_input) _input = std::make_shared<mario::InputManager>();
+
+    if (_assets_adapter) {
+        if (auto aa = std::dynamic_pointer_cast<engine::adapters::AssetManagerAdapter>(_assets_adapter)) {
+            _assets = aa->underlying();
+        }
+    }
+    if (!_assets) _assets = std::make_shared<mario::AssetManager>();
+
+    if (_entities_adapter) {
+        if (auto ea = std::dynamic_pointer_cast<engine::adapters::EntityManagerAdapter>(_entities_adapter)) {
+            _entities = ea->underlying();
+        }
+    }
+    if (!_entities) _entities = std::make_shared<mario::EntityManager>();
 }
 
 Application::~Application() = default;
