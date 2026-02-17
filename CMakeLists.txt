@@ -67,6 +67,8 @@ set(SOURCES
         src/world/JsonHelper.cpp
         src/systems/inspector_system.cpp
         src/core/ui_manager.cpp
+        src/engine/Application.cpp
+        src/engine/Application.cpp
 )
 
 set(HEADERS

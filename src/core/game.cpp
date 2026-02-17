@@ -1,5 +1,7 @@
 // Connects the platformer Game implementation to the reusable engine infrastructure.
 
+#include <iostream>
+
 #include "mario/core/Game.hpp"
 #include "mario/core/Menuscene.hpp"
 
@@ -11,163 +13,62 @@
 // ImGui is accessed via UIManager to centralize lifecycle and rendering.
 
 namespace mario {
-    // Used by: main.cpp (instantiates mario::Game)
-    // Default constructor: behavior is provided by the header/defaulted.
-    Game::Game() = default;
+    // Construct: create the underlying engine application which owns subsystems.
+    Game::Game() : _app(std::make_unique<engine::Application>("Mario")) {}
 
-    // Used by: main.cpp (destructed when the Game instance goes out of scope)
-    // Default destructor: ensure RAII-managed members are destroyed cleanly.
+    // Default destructor: unique_ptr will clean up the engine application.
     Game::~Game() = default;
 
-    // Used by: Game::run()
-    // Initialize runtime flags and any subsystems that need an explicit start.
+    // Initialize runtime via the engine application.
     void Game::initialize() {
-        // Mark the main loop as running; actual setup is minimal here.
-        _running = true;
-        if (!_ui.init(_renderer.window())) {
-            // If UI fails to initialize, we continue but log a message.
-            // The game can still run without ImGui visuals.
-        }
+        _app->initialize();
     }
 
-    // Used by: Game::run(), main.cpp (explicit shutdown)
-    // Shutdown the game, releasing or clearing owned resources and scenes.
+    // Shutdown is forwarded to the engine application.
     void Game::shutdown() {
-        _ui.shutdown();
-         // Clear active scenes to trigger their destructors and on_exit semantics.
-         _scenes.clear();
-         // Unload loaded assets (textures/sounds) from the asset manager.
-         _assets.unload_all();
-         // Clear the entity manager's storage (ECS reset).
-         _entities.clear();
-         // Mark as not running to stop any loops.
-         _running = false;
-     }
+        _app->shutdown();
+    }
 
-    // Used by: main.cpp
-    // Run the whole lifecycle: initialize, enter the loop, then shutdown.
+    // Run the full lifecycle through the engine application.
     void Game::run() {
-        // Prepare runtime
-        initialize();
-        // Allow derived classes to set up an initial scene (push the menu/scene).
+        // Allow Game to perform any game-specific setup before run if needed.
         before_loop();
-        // Enter the fixed-timestep main loop which runs until _running is false.
-        main_loop();
-        // Perform cleanup after the loop ends.
-        shutdown();
+        _app->run();
     }
 
-    // Used by: menu_scene(push play_scene), Game::before_loop()
-    // Push a new scene onto the stack and call lifecycle hooks.
+    // Forward scene management to the engine application.
     void Game::push_scene(std::shared_ptr<Scene> scene) {
-        if (!scene) {
-            return;
-        }
-        // If a scene is currently active, notify it that it loses focus.
-        if (const auto current = current_scene()) {
-            current->on_exit();
-        }
-        // Store the new scene (shared ownership) and notify it that it becomes active.
-        _scenes.push_back(std::move(scene));
-        _scenes.back()->on_enter();
+        _app->push_scene(std::move(scene));
     }
 
-    // Used by: play_scene(to exit the current scene)
-    // Pop the current scene and stop the game if no more scenes remain.
     void Game::pop_scene() {
-        if (_scenes.empty()) {
-            return;
-        }
-        // Notify the top scene it is exiting, then remove it.
-        _scenes.back()->on_exit();
-        _scenes.pop_back();
-        // If no scenes remain, the game loop should terminate.
-        if (_scenes.empty()) {
-            _running = false;
-        }
+        _app->pop_scene();
     }
 
-    // Used by: Game::push_scene(), Game::before_loop(), Game::main_loop()
-    // Return the currently active scene (or nullptr when none).
     std::shared_ptr<Scene> Game::current_scene() {
-        if (_scenes.empty()) {
-            return nullptr;
-        }
-        return _scenes.back();
+        return _app->current_scene();
     }
 
-    // Used by: play_scene, menu_scene, rendering systems and HUD
-    // Accessor for the renderer owned by Game.
     Renderer &Game::renderer() {
-        return _renderer;
+        return _app->renderer();
     }
 
-    // Used by: play_scene::update(), menu_scene::update()
-    // Accessor for the input manager owned by Game.
     InputManager &Game::input() {
-        return _input;
+        return _app->input();
     }
 
-    // Used by: play_scene::on_enter() (loads textures), render systems
-    // Accessor for the asset manager owned by Game.
     AssetManager &Game::assets() {
-        return _assets;
+        return _app->assets();
     }
 
-    // Used by: play_scene(update/render systems)
-    // Accessor for the entity manager (ECS registry) owned by Game.
     EntityManager &Game::entity_manager() {
-        return _entities;
+        return _app->entity_manager();
     }
 
-    // Used by: Game::run(); can be overridden by derived classes to push an initial scene
-    // Hook called before entering the main loop: ensure an initial scene exists.
+    // Hook: if no scene is present, maintain previous behavior and push MenuScene.
     void Game::before_loop() {
-        // If no scene is present, push the menu scene as initial.
-        if (!current_scene()) {
-            push_scene(std::make_shared<MenuScene>(*this));
-        }
-    }
-
-    // Used by: Game::run()
-    // The main fixed-timestep loop: updates and renders the current scene.
-    // Cache the current scene per-frame and use clock.restart() for clearer dt.
-    void Game::main_loop() {
-        sf::Clock clock;
-        constexpr sf::Time target_frame_time = sf::seconds(1.0f / 60.0f);
-
-        while (_running) {
-            const auto scene = current_scene();
-            if (!scene) break;
-
-            // ImGui process events
-            sf::RenderWindow& window = _renderer.window();
-            while (const auto event = window.pollEvent()) {
-                _ui.process_event(window, *event);
-                 if (event->is<sf::Event::Closed>()) {
-                     window.close();
-                 }
-            }
-
-            // Compute delta time in seconds since the last frame.
-            const float dt = clock.restart().asSeconds();
-
-            // Update scene logic first so UI can reflect the latest state.
-            scene->update(dt);
-
-            // ImGui Update (drives internal ImGui timing) and build UI based on updated state.
-            _ui.update(window, _imgui_clock);
-            _ui.build();
-
-            _renderer.begin_frame();
-            scene->render();
-            _ui.render(window);
-            _renderer.end_frame();
-
-            const sf::Time elapsed = clock.getElapsedTime();
-            if (elapsed < target_frame_time) {
-                sf::sleep(target_frame_time - elapsed);
-            }
+        if (!_app->current_scene()) {
+            _app->push_scene(std::make_shared<MenuScene>(*this));
         }
     }
 } // namespace mario

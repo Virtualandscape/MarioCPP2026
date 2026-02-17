@@ -6,6 +6,7 @@
 #include "mario/render/Renderer.hpp"
 #include "mario/resources/AssetManager.hpp"
 #include "mario/core/UIManager.hpp"
+#include "mario/engine/Application.hpp" // Use the engine-level application as backend
 
 #include <memory>
 #include <vector>
@@ -14,6 +15,7 @@
 
 namespace mario {
     // Core application harness that owns the loop, managers, and active scene stack.
+    // This Game class is now a thin wrapper that forwards to an engine::Application instance.
     class Game {
     public:
         Game();
@@ -49,17 +51,8 @@ namespace mario {
         virtual void before_loop();
 
     private:
-        // Implements the fixed-timestep loop and frame throttling.
-        void main_loop();
-
-        bool _running = false;
-        Renderer _renderer;
-        InputManager _input;
-        AssetManager _assets;
-        EntityManager _entities;
-        std::vector<std::shared_ptr<Scene>> _scenes;
-        sf::Clock _imgui_clock;
-        // Centralized UI manager that wraps ImGui-SFML usage.
-        UIManager _ui;
+        // The previous implementation lived here; we now forward to an engine::Application.
+        // The engine application is owned via unique_ptr to enforce single ownership.
+        std::unique_ptr<engine::Application> _app;
     };
 } // namespace mario
