@@ -11,7 +11,8 @@ namespace zia::engine {
         using Observer = std::function<void(const EngineConfig&)>;
         using ObserverId = std::size_t;
 
-        EngineConfig(int width = 800, int height = 480, bool fullscreen = false, float masterVolume = 1.0f);
+        // Default resolution set to 800x600
+        EngineConfig(int width = 800, int height = 600, bool fullscreen = false, float masterVolume = 1.0f);
 
         // Getters
         int window_width() const;
@@ -40,4 +41,3 @@ namespace zia::engine {
         void notify_all() const;
     };
 } // namespace zia::engine
-

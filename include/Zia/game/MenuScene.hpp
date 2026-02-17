@@ -31,9 +31,8 @@ namespace zia {
 
         // Show the settings ImGui window
         bool _show_settings = false;
-        // Cached UI values for settings
-        int _ui_width = 800;
-        int _ui_height = 480;
+        // Resolution choices: index into this list
+        int _ui_resolution_index = 0; // 0 = 800x600, 1 = 1024x768, 2 = 1280x720, 3 = fullscreen
         bool _ui_fullscreen = false;
         float _ui_master_volume = 1.0f;
     };

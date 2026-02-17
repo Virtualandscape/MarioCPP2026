@@ -22,10 +22,23 @@ namespace zia {
 
         // Initialize UI cached values from settings
         if (auto s = _game.settings()) {
-            _ui_width = s->window_width();
-            _ui_height = s->window_height();
-            _ui_fullscreen = s->fullscreen();
+            // Determine resolution index from settings
+            const int w = s->window_width();
+            const int h = s->window_height();
             _ui_master_volume = s->master_volume();
+            _ui_fullscreen = s->fullscreen();
+            if (_ui_fullscreen) {
+                _ui_resolution_index = 3;
+            } else if (w == 800 && h == 600) {
+                _ui_resolution_index = 0;
+            } else if (w == 1024 && h == 768) {
+                _ui_resolution_index = 1;
+            } else if (w == 1280 && h == 720) {
+                _ui_resolution_index = 2;
+            } else {
+                // Unknown resolution: pick closest (default 0)
+                _ui_resolution_index = 0;
+            }
         }
     }
 
@@ -144,37 +157,40 @@ namespace zia {
         if (_show_settings) {
             ImGui::Begin("Settings", &_show_settings, ImGuiWindowFlags_AlwaysAutoResize);
 
-            // Synchronize cached values with settings manager at window open
-            static bool initialized = false;
-            if (!initialized) {
-                if (auto s = _game.settings()) {
-                    _ui_width = s->window_width();
-                    _ui_height = s->window_height();
-                    _ui_fullscreen = s->fullscreen();
-                    _ui_master_volume = s->master_volume();
-                }
-                initialized = true;
-            }
+            // Resolution options
+            const char* resolutions[] = { "800 x 600", "1024 x 768", "1280 x 720", "Fullscreen" };
+            ImGui::Combo("Resolution", &_ui_resolution_index, resolutions, IM_ARRAYSIZE(resolutions));
 
-            // Window size
-            ImGui::InputInt("Width", &_ui_width);
-            ImGui::InputInt("Height", &_ui_height);
-            ImGui::Checkbox("Fullscreen", &_ui_fullscreen);
+            // Fullscreen checkbox kept in sync with resolution selection for clarity
+            bool fs = (_ui_resolution_index == 3) ? true : _ui_fullscreen;
+            if (ImGui::Checkbox("Fullscreen (override)", &fs)) {
+                _ui_fullscreen = fs;
+                if (_ui_fullscreen) _ui_resolution_index = 3;
+            }
 
             // Audio
             ImGui::SliderFloat("Master Volume", &_ui_master_volume, 0.0f, 1.0f);
 
             if (ImGui::Button("Apply")) {
                 if (auto s = _game.settings()) {
-                    s->set_window_size(_ui_width, _ui_height);
-                    s->set_fullscreen(_ui_fullscreen);
+                    if (_ui_resolution_index == 0) {
+                        s->set_fullscreen(false);
+                        s->set_window_size(800, 600);
+                    } else if (_ui_resolution_index == 1) {
+                        s->set_fullscreen(false);
+                        s->set_window_size(1024, 768);
+                    } else if (_ui_resolution_index == 2) {
+                        s->set_fullscreen(false);
+                        s->set_window_size(1280, 720);
+                    } else if (_ui_resolution_index == 3) {
+                        s->set_fullscreen(true);
+                    }
                     s->set_master_volume(_ui_master_volume);
                 }
             }
             ImGui::SameLine();
             if (ImGui::Button("Close")) {
                 _show_settings = false;
-                initialized = false;
             }
 
             ImGui::End();
