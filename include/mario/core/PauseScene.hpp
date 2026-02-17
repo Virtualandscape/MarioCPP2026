@@ -1,15 +1,4 @@
 #pragma once
 
-#include "mario/core/Scene.hpp"
-
-namespace mario {
-    // Scene representing a paused game; no-op implementations by default.
-    class PauseScene : public Scene {
-    public:
-        void on_enter() override;
-        void on_exit() override;
-        void update(float dt) override;
-        void render() override;
-    };
-} // namespace mario
-
+// Backward compatibility adapter: include the new game-scoped PauseScene header.
+#include "mario/game/PauseScene.hpp"

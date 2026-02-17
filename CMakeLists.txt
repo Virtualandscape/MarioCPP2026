@@ -22,7 +22,7 @@ FetchContent_Declare(imgui
 
 FetchContent_GetProperties(imgui)
 if(NOT imgui_POPULATED)
-    FetchContent_Populate(imgui)
+    FetchContent_MakeAvailable(imgui)
 endif()
 
 FetchContent_Declare(imgui-sfml
@@ -38,9 +38,9 @@ set(SOURCES
         main.cpp
         src/audio/audio_manager.cpp
         src/core/game.cpp
-        src/core/menu_scene.cpp
-        src/core/pause_scene.cpp
-        src/core/play_scene.cpp
+        src/game/menu_scene.cpp
+        src/game/pause_scene.cpp
+        src/game/play_scene.cpp
         src/input/input_manager.cpp
         src/render/renderer.cpp
         src/resources/asset_manager.cpp
@@ -67,7 +67,6 @@ set(SOURCES
         src/world/JsonHelper.cpp
         src/systems/inspector_system.cpp
         src/core/ui_manager.cpp
-        src/engine/Application.cpp
         src/engine/Application.cpp
 )
 
