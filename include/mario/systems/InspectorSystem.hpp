@@ -1,8 +1,9 @@
 #pragma once
 
-#include "mario/render/Renderer.hpp"
-#include "mario/ecs/EntityManager.hpp"
+#include "mario/engine/EntityManagerFacade.hpp"
 #include "mario/world/Camera.hpp"
+#include "mario/engine/IRenderer.hpp"
+#include "mario/engine/IAssetManager.hpp"
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/Text.hpp>
 #include <optional>
@@ -11,20 +12,18 @@
 #include <memory>
 
 namespace mario {
-    class AssetManager; // forward declare to avoid including heavy header in this small system header
-
     class InspectorSystem {
     public:
         InspectorSystem();
 
         // Load assets (font) if needed
-        void initialize(AssetManager& assets);
+        void initialize(mario::engine::IAssetManager& assets);
 
         // Update internal state (selection, scrolling) if needed
-        void update(EntityManager& registry, float dt);
+        void update(mario::engine::EntityManagerFacade& registry, float dt);
 
         // Render overlay: draw inspected components for player and enemies
-        void render(Renderer& renderer, const Camera& camera, EntityManager& registry, AssetManager& assets);
+        void render(mario::engine::IRenderer& renderer, const Camera& camera, mario::engine::EntityManagerFacade& registry, mario::engine::IAssetManager& assets);
 
         void set_enabled(bool en) { _enabled = en; }
         bool enabled() const { return _enabled; }
@@ -43,6 +42,6 @@ namespace mario {
         std::shared_ptr<const sf::Font> _font_ptr;
 
         // Helper to build the overlay lines
-        void build_lines(const std::vector<EntityID>& entities, EntityManager& registry, std::vector<std::string>& out_lines, AssetManager& assets) const;
+        void build_lines(const std::vector<EntityID>& entities, mario::engine::EntityManagerFacade& registry, std::vector<std::string>& out_lines, mario::engine::IAssetManager& assets) const;
     };
 }

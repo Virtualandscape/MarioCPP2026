@@ -8,7 +8,7 @@
 
 namespace mario {
 
-void AnimationSystem::update(EntityManager& registry, float dt) const {
+void AnimationSystem::update(mario::engine::EntityManagerFacade& registry, float dt) const {
     static thread_local std::vector<EntityID> entities;
     registry.get_entities_with_all<AnimationComponent, SpriteComponent>(entities);
 

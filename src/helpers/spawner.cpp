@@ -37,7 +37,7 @@ namespace mario {
     // Spawns a player entity at a tile position with all required components.
     // Component composition: Position, Velocity, Size, Input, JumpState, PlayerStats, Type, Collision, Sprite.
     // This ensures the entity will be correctly processed by all relevant systems (movement, physics, input, collision, render).
-    EntityID Spawner::spawn_player(EntityManager &registry, const EntitySpawn &spawn, AssetManager& assets) {
+    EntityID Spawner::spawn_player(mario::engine::EntityManagerFacade &registry, const EntitySpawn &spawn, mario::engine::IAssetManager& assets) {
         using namespace mario::constants;
 
         // Do not load textures here during spawn; assume assets are preloaded by the caller.
@@ -87,7 +87,7 @@ namespace mario {
     // Used by: PlayState (fallback when explicit spawn not found)
     // Spawns a player entity at the default position (used for initial/fallback spawning).
     // Same component composition as spawn_player but at fixed coordinates.
-    EntityID Spawner::spawn_player_default(EntityManager &registry, AssetManager& assets) {
+    EntityID Spawner::spawn_player_default(mario::engine::EntityManagerFacade &registry, mario::engine::IAssetManager& assets) {
         using namespace mario::constants;
 
         // Do not load textures here during spawn; assume the caller preloads assets.
@@ -132,7 +132,7 @@ namespace mario {
     // Spawns an enemy entity at a tile position with type-specific rendering.
     // Component composition: Position, Velocity, Size, Collision, Enemy, Type, Sprite.
     // Enemies follow platforms and reverse direction on collision (see EnemySystem).
-    void Spawner::spawn_enemy(EntityManager &registry, const EntitySpawn &spawn) {
+    void Spawner::spawn_enemy(mario::engine::EntityManagerFacade &registry, const EntitySpawn &spawn) {
         using namespace mario::constants;
 
         const std::string type_str = to_lower(spawn.type);
@@ -166,7 +166,7 @@ namespace mario {
     // Used by: CloudSystem (initialization)
     // Spawns all cloud entities with randomized positions and loads textures.
     // Creates three layers of clouds (Big, Medium, Small) for parallax depth effect.
-    void Spawner::spawn_clouds(EntityManager& registry, AssetManager& assets) {
+    void Spawner::spawn_clouds(mario::engine::EntityManagerFacade& registry, mario::engine::IAssetManager& assets) {
         using namespace mario::constants;
 
         // Load cloud textures into asset manager

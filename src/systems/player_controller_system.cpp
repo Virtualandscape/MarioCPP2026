@@ -9,13 +9,13 @@
 
 namespace mario {
 
-void PlayerControllerSystem::update(EntityManager& registry, const InputManager& input, float /*dt*/) const {
+void PlayerControllerSystem::update(mario::engine::EntityManagerFacade& registry, const mario::engine::IInput& input, float /*dt*/) const {
     static thread_local std::vector<EntityID> entities;
     registry.get_entities_with_all<PlayerControllerComponent, VelocityComponent>(entities);
 
-    const bool jump_pressed = input.is_pressed(InputManager::Action::Jump);
-    const float move_axis = (input.is_pressed(InputManager::Action::MoveRight) ? 1.0f : 0.0f) -
-                            (input.is_pressed(InputManager::Action::MoveLeft) ? 1.0f : 0.0f);
+    const bool jump_pressed = input.is_pressed(mario::InputManager::Action::Jump);
+    const float move_axis = (input.is_pressed(mario::InputManager::Action::MoveRight) ? 1.0f : 0.0f) -
+                            (input.is_pressed(mario::InputManager::Action::MoveLeft) ? 1.0f : 0.0f);
 
     for (const auto entity : entities) {
         auto controller_opt = registry.get_component<PlayerControllerComponent>(entity);

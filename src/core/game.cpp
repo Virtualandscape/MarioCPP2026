@@ -54,20 +54,25 @@ namespace mario {
         return nullptr;
     }
 
-    Renderer &Game::renderer() {
+    mario::engine::IRenderer &Game::renderer() {
         return _app->renderer();
     }
 
-    InputManager &Game::input() {
+    mario::engine::IInput &Game::input() {
         return _app->input();
     }
 
-    AssetManager &Game::assets() {
+    mario::engine::IAssetManager &Game::assets() {
         return _app->assets();
     }
 
-    EntityManager &Game::entity_manager() {
+    // Provide both facade and, for compatibility, access to the underlying concrete EntityManager.
+    mario::engine::EntityManagerFacade &Game::entity_manager() {
         return _app->entity_manager();
+    }
+
+    mario::EntityManager &Game::underlying_entity_manager() {
+        return _app->underlying_entity_manager();
     }
 
     // Hook: if no scene is present, maintain previous behavior and push MenuScene.

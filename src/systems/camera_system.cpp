@@ -10,7 +10,7 @@
 namespace mario {
     // Updates camera viewport and positioning to follow the target entity.
     // Applies camera smoothing and keeps target visible within viewport.
-    void CameraSystem::update(EntityManager& registry, Camera& camera, float dt, float viewport_w, float viewport_h, EntityID target) {
+    void CameraSystem::update(mario::engine::EntityManagerFacade& registry, Camera& camera, float dt, float viewport_w, float viewport_h, EntityID target) {
         // Update viewport size and apply any camera animations (damping, smoothing)
         camera.set_viewport(viewport_w, viewport_h);
         camera.update(dt);
@@ -30,7 +30,7 @@ namespace mario {
 
     // Initializes camera viewport and target position with optional offset animation.
     // Used when entering a new level to position camera with entrance animation (offset damping).
-    void CameraSystem::initialize(EntityManager& registry, Camera& camera, float viewport_w, float viewport_h, EntityID target,
+    void CameraSystem::initialize(mario::engine::EntityManagerFacade& registry, Camera& camera, float viewport_w, float viewport_h, EntityID target,
                                   float initial_offset_x, float initial_offset_y) {
         // Set initial viewport size
         camera.set_viewport(viewport_w, viewport_h);

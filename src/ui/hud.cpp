@@ -2,11 +2,10 @@
 // HUD displays lives, coins, score, timer, and level name. Text handles rendering individual text elements.
 
 #include "mario/ui/HUD.hpp"
-#include "mario/render/Renderer.hpp"
 
 namespace mario {
     // HUD constructor initializes with a reference to the renderer.
-    HUD::HUD(Renderer& renderer) : _renderer(renderer) {}
+    HUD::HUD(mario::engine::IRenderer& renderer) : _renderer(renderer) {}
 
     // Setters for HUD information.
     void HUD::set_lives(int lives) { _lives = lives; }
@@ -24,7 +23,7 @@ namespace mario {
     }
 
     // Text class constructor initializes with a reference to the renderer.
-    Text::Text(Renderer& renderer) : _renderer(renderer) {}
+    Text::Text(mario::engine::IRenderer& renderer) : _renderer(renderer) {}
 
     // Setters for text properties.
     void Text::set_string(std::string_view text) { _text = text; }

@@ -3,14 +3,12 @@
 #include <string_view>
 #include <string>
 #include <SFML/Graphics/Color.hpp>
+#include "mario/engine/IRenderer.hpp"
 
 namespace mario {
-    class Renderer;
-
-    // Lives, coins, score, timer
     class HUD {
     public:
-        HUD(Renderer& renderer);
+        HUD(mario::engine::IRenderer& renderer);
 
         void set_lives(int lives);
 
@@ -25,7 +23,7 @@ namespace mario {
         void render();
 
     private:
-        Renderer& _renderer;
+        mario::engine::IRenderer& _renderer;
         std::string _level_name;
         int _lives = 0;
         int _coins = 0;
@@ -35,7 +33,7 @@ namespace mario {
 
     class Text {
     public:
-        Text(Renderer& renderer);
+        Text(mario::engine::IRenderer& renderer);
 
         void set_string(std::string_view text);
 
@@ -48,7 +46,7 @@ namespace mario {
         void render();
 
     private:
-        Renderer& _renderer;
+        mario::engine::IRenderer& _renderer;
         std::string _text;
         float _x = 0;
         float _y = 0;

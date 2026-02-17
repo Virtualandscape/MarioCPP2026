@@ -1,16 +1,15 @@
 #pragma once
 
-#include "mario/ecs/EntityManager.hpp"
-#include "mario/render/Renderer.hpp"
+#include "mario/engine/EntityManagerFacade.hpp"
 #include "mario/world/Camera.hpp"
+#include "mario/engine/IRenderer.hpp"
+#include "mario/engine/IAssetManager.hpp"
 
 namespace mario {
-    class AssetManager;
-
     class CloudSystem {
     public:
-        void initialize(AssetManager& assets, EntityManager& registry);
-        void update(EntityManager& registry, float dt);
-        void render(Renderer& renderer, const Camera& camera, AssetManager& assets, EntityManager& registry);
+        void initialize(mario::engine::IAssetManager& assets, mario::engine::EntityManagerFacade& registry);
+        void update(mario::engine::EntityManagerFacade& registry, float dt);
+        void render(mario::engine::IRenderer& renderer, const Camera& camera, mario::engine::IAssetManager& assets, mario::engine::EntityManagerFacade& registry);
     };
 } // namespace mario

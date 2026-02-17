@@ -1,10 +1,10 @@
 #pragma once
 
-#include "mario/ecs/EntityManager.hpp"
+#include "mario/engine/EntityManagerFacade.hpp"
 
 namespace mario {
     class AnimationSystem {
     public:
-        void update(EntityManager& registry, float dt) const;
+        void update(mario::engine::EntityManagerFacade& registry, float dt) const;
     };
 } // namespace mario

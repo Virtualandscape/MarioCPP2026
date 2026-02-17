@@ -14,7 +14,7 @@
 namespace mario {
     // Updates all enemy entities: reverses direction on collision and constrains movement to platform bounds.
     // Follows ECS principle: systems operate on components, not entity types (though we use EnemyComponent as a marker).
-    void EnemySystem::update(EntityManager& registry, const TileMap& map, float dt) const {
+    void EnemySystem::update(mario::engine::EntityManagerFacade& registry, const TileMap& map, float dt) const {
         static thread_local std::vector<EntityID> entities;
         // Query entities that have EnemyComponent (all required components should exist for valid enemies)
         registry.get_entities_with<EnemyComponent>(entities);

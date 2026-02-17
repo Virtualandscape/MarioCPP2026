@@ -8,7 +8,7 @@
 #include <vector>
 
 namespace mario {
-    void DebugDrawSystem::render(Renderer& renderer, const Camera& camera, EntityManager& registry) {
+    void DebugDrawSystem::render(mario::engine::IRenderer& renderer, const Camera& camera, mario::engine::EntityManagerFacade& registry) {
         // Only draw if debug bboxes enabled
         if (!renderer.is_debug_bboxes_enabled()) return;
 

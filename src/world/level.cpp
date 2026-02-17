@@ -103,7 +103,7 @@ namespace mario {
 
     // Used by: PlayScene::render, TileMap::render (delegation), tests
     // Renders the visible solid tiles of the level within the camera's viewport.
-    void Level::render(Renderer &renderer) {
+    void Level::render(mario::engine::IRenderer &renderer) {
         if (!_tile_map || !_camera) return;
 
         const int tile_size = _tile_map->tile_size();
@@ -129,7 +129,8 @@ namespace mario {
                         static_cast<float>(tx * tile_size),
                         static_cast<float>(ty * tile_size),
                         static_cast<float>(tile_size),
-                        static_cast<float>(tile_size));
+                        static_cast<float>(tile_size),
+                        sf::Color::White);
                 }
             }
         }

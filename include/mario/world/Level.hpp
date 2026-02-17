@@ -6,11 +6,11 @@
 #include <string>
 
 #include "mario/world/EntitySpawn.hpp"
+#include "mario/engine/IRenderer.hpp"
 
 namespace mario {
     class TileMap;
     class Camera;
-    class Renderer;
 
     // Loads tilemaps, spawns entities, manages checkpoints.
     class Level {
@@ -29,7 +29,7 @@ namespace mario {
 
         void update(float dt);
 
-        void render(Renderer& renderer);
+        void render(mario::engine::IRenderer &renderer);
 
         std::shared_ptr<TileMap> tile_map() const;
 

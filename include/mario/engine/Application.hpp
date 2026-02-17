@@ -20,6 +20,8 @@
 
 #include <SFML/System/Clock.hpp>
 
+#include "EntityManagerFacade.hpp"
+
 namespace mario::engine {
     // A small reusable application class that owns global managers and the main loop.
     class Application {
@@ -52,10 +54,12 @@ namespace mario::engine {
         std::shared_ptr<IScene> current_scene();
 
         // Accessors for subsystems (non-owning references returned).
-        mario::Renderer &renderer();
-        mario::InputManager &input();
-        mario::AssetManager &assets();
-        mario::EntityManager &entity_manager();
+        IRenderer &renderer();
+        IInput &input();
+        IAssetManager &assets();
+        EntityManagerFacade &entity_manager();
+        // Return the underlying concrete EntityManager for code that depends on concrete APIs.
+        mario::EntityManager &underlying_entity_manager();
 
     protected:
         // Hook for derived classes to prepare an initial scene before the loop begins.
@@ -73,6 +77,8 @@ namespace mario::engine {
         std::shared_ptr<mario::InputManager> _input;
         std::shared_ptr<mario::AssetManager> _assets;
         std::shared_ptr<mario::EntityManager> _entities;
+        // Facade that forwards to the concrete EntityManager implementation.
+        std::unique_ptr<EntityManagerFacade> _entities_facade;
 
         // Optional adapters provided by the caller. When set, their underlying concrete
         // implementations will be used by the engine.
@@ -80,6 +86,12 @@ namespace mario::engine {
         std::shared_ptr<IInput> _input_adapter;
         std::shared_ptr<IAssetManager> _assets_adapter;
         std::shared_ptr<IEntityManager> _entities_adapter;
+
+        // Runtime interface pointers (point to either adapter or default wrapper) used by engine loops.
+        std::shared_ptr<IRenderer> _renderer_iface;
+        std::shared_ptr<IInput> _input_iface;
+        std::shared_ptr<IAssetManager> _assets_iface;
+        std::shared_ptr<IEntityManager> _entities_iface;
 
         // Active scene stack (shared ownership of scenes keeps interfaces simple).
         std::vector<std::shared_ptr<IScene>> _scenes;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "mario/render/Renderer.hpp"
-#include "mario/ecs/EntityManager.hpp"
+#include "mario/engine/EntityManagerFacade.hpp"
+#include "mario/engine/IRenderer.hpp"
 
 namespace mario {
     class Camera; // forward declaration
@@ -12,6 +12,6 @@ namespace mario {
         DebugDrawSystem() = default;
 
         // Draw bounding boxes for entities that have Position and Size components.
-        void render(Renderer& renderer, const Camera& camera, EntityManager& registry);
+        void render(mario::engine::IRenderer& renderer, const Camera& camera, mario::engine::EntityManagerFacade& registry);
     };
 }

@@ -11,6 +11,8 @@ namespace mario::engine::adapters {
         explicit EntityManagerAdapter(std::shared_ptr<mario::EntityManager> e) : _entities(std::move(e)) {}
         ~EntityManagerAdapter() override = default;
 
+        void clear() override { if (_entities) _entities->clear(); }
+
         [[nodiscard]] std::shared_ptr<mario::EntityManager> underlying() const { return _entities; }
 
     private:

@@ -11,6 +11,9 @@ namespace mario::engine::adapters {
         explicit InputAdapter(std::shared_ptr<mario::InputManager> i) : _input(std::move(i)) {}
         ~InputAdapter() override = default;
 
+        void poll() override { if (_input) _input->poll(); }
+        bool is_pressed(mario::InputManager::Action action) const override { return _input ? _input->is_pressed(action) : false; }
+
         [[nodiscard]] std::shared_ptr<mario::InputManager> underlying() const { return _input; }
 
     private:

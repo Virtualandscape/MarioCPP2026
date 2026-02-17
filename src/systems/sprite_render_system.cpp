@@ -9,7 +9,7 @@
 namespace mario {
     // Renders all sprites by querying entities with all sprite-related components (SpriteComponent, PositionComponent, SizeComponent).
     // This follows the ECS pattern: systems operate on entities with required component combinations.
-    void SpriteRenderSystem::render(Renderer& renderer, const Camera& camera, EntityManager& registry, AssetManager& assets) {
+    void SpriteRenderSystem::render(mario::engine::IRenderer& renderer, const Camera& camera, mario::engine::EntityManagerFacade& registry, mario::engine::IAssetManager& assets) {
         // Set camera for world-space rendering
         renderer.set_camera(camera.x(), camera.y());
 

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "mario/render/Renderer.hpp"
+#include "mario/engine/IRenderer.hpp"
 
 namespace mario {
     // Mushroom, fire flower, etc.
     class PowerUp {
     public:
         void update(float dt) ;
-        void render(Renderer& renderer) ;
+        void render(mario::engine::IRenderer& renderer) ;
         virtual void apply_to_player() = 0;
     };
 
@@ -15,7 +15,7 @@ namespace mario {
     class Item {
     public:
         void update(float dt) ;
-        void render(Renderer& renderer);
+        void render(mario::engine::IRenderer& renderer);
         void collect();
     };
 
@@ -23,6 +23,6 @@ namespace mario {
     class Projectile {
     public:
         void update(float dt);
-        void render(Renderer& renderer);
+        void render(mario::engine::IRenderer& renderer);
     };
 } // namespace mario

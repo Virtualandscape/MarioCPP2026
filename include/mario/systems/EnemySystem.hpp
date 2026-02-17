@@ -1,12 +1,12 @@
 #pragma once
 
-#include "mario/ecs/EntityManager.hpp"
+#include "mario/engine/EntityManagerFacade.hpp"
 
 namespace mario {
     class TileMap;
 
     class EnemySystem {
     public:
-        void update(EntityManager& registry, const TileMap& map, float dt) const;
+        void update(mario::engine::EntityManagerFacade& registry, const TileMap& map, float dt) const;
     };
 } // namespace mario

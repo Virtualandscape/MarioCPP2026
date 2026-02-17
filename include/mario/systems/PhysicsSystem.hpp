@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mario/ecs/EntityManager.hpp"
+#include "mario/engine/EntityManagerFacade.hpp"
 #include "mario/helpers/Constants.hpp"
 
 namespace mario {
@@ -8,7 +8,7 @@ namespace mario {
     // Integrates movement, gravity, friction.
     class PhysicsSystem {
     public:
-        void update(EntityManager& registry, float dt) const;
+        void update(mario::engine::EntityManagerFacade& registry, float dt) const;
 
         void set_gravity(float g);
 

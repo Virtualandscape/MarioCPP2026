@@ -1,14 +1,13 @@
 #pragma once
 
-#include "mario/ecs/EntityManager.hpp"
+#include "mario/engine/EntityManagerFacade.hpp"
+#include "mario/engine/IInput.hpp"
 
 namespace mario {
-    class InputManager;
-
-    // Coordinates player input, movement, and animation hints in one ECS pass.
+    // Handles player input components and applies velocities/forces
     class PlayerControllerSystem {
     public:
-        void update(EntityManager& registry, const InputManager& input, float dt) const;
+        void update(mario::engine::EntityManagerFacade& registry, const mario::engine::IInput& input, float /*dt*/) const;
     };
 } // namespace mario
 

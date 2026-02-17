@@ -8,6 +8,11 @@
 #include "mario/core/UIManager.hpp"
 #include "mario/engine/Application.hpp" // Use the engine-level application as backend
 
+#include "mario/engine/IRenderer.hpp"
+#include "mario/engine/IInput.hpp"
+#include "mario/engine/IAssetManager.hpp"
+#include "mario/engine/EntityManagerFacade.hpp"
+
 #include <memory>
 #include <vector>
 
@@ -41,10 +46,13 @@ namespace mario {
         // Returns the currently active scene or nullptr when empty.
         std::shared_ptr<Scene> current_scene();
 
-        Renderer &renderer();
-        InputManager &input();
-        AssetManager &assets();
-        EntityManager &entity_manager();
+        // Return engine-level interfaces
+        mario::engine::IRenderer &renderer();
+        mario::engine::IInput &input();
+        mario::engine::IAssetManager &assets();
+        mario::engine::EntityManagerFacade &entity_manager();
+        // Access to the underlying concrete entity manager if needed by legacy code.
+        mario::EntityManager &underlying_entity_manager();
 
     protected:
         // Hook for derived classes to prepare an initial scene before the loop begins.

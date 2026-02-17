@@ -22,7 +22,7 @@ InspectorSystem::InspectorSystem()
     _max_entries = 32;
 }
 
-void InspectorSystem::initialize(AssetManager& assets) {
+void InspectorSystem::initialize(mario::engine::IAssetManager& assets) {
     // Prefer AssetManager-managed font
     const int font_id = constants::FONT_MONTSERRAT_BLACK_ID;
     bool loaded = false;
@@ -33,7 +33,6 @@ void InspectorSystem::initialize(AssetManager& assets) {
             loaded = true;
         }
     } else {
-        // Try to instruct AssetManager to load the font for reuse across the project
         if (assets.load_font(font_id, "assets/fonts/Montserrat-Black.ttf")) {
             _font_ptr = assets.get_font(font_id);
             if (_font_ptr) {
@@ -72,12 +71,12 @@ void InspectorSystem::initialize(AssetManager& assets) {
     _text.setFillColor(sf::Color::White);
 }
 
-void InspectorSystem::update(EntityManager& /*registry*/, float /*dt*/) {
+void InspectorSystem::update(mario::engine::EntityManagerFacade& /*registry*/, float /*dt*/) {
     // No internal state for now.
 }
 
 // Helper: build a list of human-readable lines for the provided entities
-void InspectorSystem::build_lines(const std::vector<EntityID>& entities, EntityManager& registry, std::vector<std::string>& out_lines, AssetManager& /*assets*/) const {
+void InspectorSystem::build_lines(const std::vector<EntityID>& entities, mario::engine::EntityManagerFacade& registry, std::vector<std::string>& out_lines, mario::engine::IAssetManager& /*assets*/) const {
     // registry, entities and out_lines are used below
 
     out_lines.clear();
@@ -142,7 +141,7 @@ void InspectorSystem::build_lines(const std::vector<EntityID>& entities, EntityM
     }
 }
 
-void InspectorSystem::render(Renderer& renderer, const Camera& /*camera*/, EntityManager& registry, AssetManager& assets) {
+void InspectorSystem::render(mario::engine::IRenderer& renderer, const Camera& /*camera*/, mario::engine::EntityManagerFacade& registry, mario::engine::IAssetManager& assets) {
     if (!_enabled) return;
 
     // Collect candidate entities: entities with TypeComponent and EnemyComponent.

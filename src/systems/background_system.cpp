@@ -9,7 +9,7 @@
 namespace mario {
 
     // Renders the background based on the BackgroundComponent settings, handling parallax, scaling, and tiling.
-    void BackgroundSystem::render(Renderer& renderer, const Camera& camera, AssetManager& assets, const BackgroundComponent& bg) {
+    void BackgroundSystem::render(mario::engine::IRenderer& renderer, const Camera& camera, mario::engine::IAssetManager& assets, const BackgroundComponent& bg) {
         // Get viewport dimensions
         const auto viewport = renderer.viewport_size();
         // Retrieve the texture for the background (returns shared_ptr)
@@ -112,21 +112,21 @@ namespace mario {
     }
 
     // Create a background entity and attach a BackgroundComponent (moved from PlayState)
-    void BackgroundSystem::create_background_entity(EntityManager& registry, int texture_id, bool preserve_aspect,
-                                                    BackgroundComponent::ScaleMode scale_mode, float scale_multiplier, float parallax,
-                                                    bool repeat, bool repeat_x, float offset_x, float offset_y) {
-        auto id = registry.create_entity();
-        BackgroundComponent bc;
-        bc.texture_id = texture_id;
-        bc.preserve_aspect = preserve_aspect;
-        bc.scale_mode = scale_mode;
-        bc.scale_multiplier = scale_multiplier;
-        bc.parallax = parallax;
-        bc.repeat = repeat;
-        bc.repeat_x = repeat_x;
-        bc.offset_x = offset_x;
-        bc.offset_y = offset_y;
-        registry.add_component(id, bc);
-    }
+    void BackgroundSystem::create_background_entity(mario::engine::EntityManagerFacade& registry, int texture_id, bool preserve_aspect,
+                                                     BackgroundComponent::ScaleMode scale_mode, float scale_multiplier, float parallax,
+                                                     bool repeat, bool repeat_x, float offset_x, float offset_y) {
+         auto id = registry.create_entity();
+         BackgroundComponent bc;
+         bc.texture_id = texture_id;
+         bc.preserve_aspect = preserve_aspect;
+         bc.scale_mode = scale_mode;
+         bc.scale_multiplier = scale_multiplier;
+         bc.parallax = parallax;
+         bc.repeat = repeat;
+         bc.repeat_x = repeat_x;
+         bc.offset_x = offset_x;
+         bc.offset_y = offset_y;
+         registry.add_component(id, bc);
+     }
 
 } // namespace mario

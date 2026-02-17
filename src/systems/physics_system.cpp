@@ -8,7 +8,7 @@
 
 namespace mario {
 
-void PhysicsSystem::update(EntityManager& registry, float dt) const
+void PhysicsSystem::update(mario::engine::EntityManagerFacade& registry, float dt) const
 {
     // Query entities that have both Position and Velocity components
     static thread_local std::vector<EntityID> entities;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mario/ecs/EntityManager.hpp"
+#include "mario/engine/EntityManagerFacade.hpp"
 #include "mario/ecs/components/PositionComponent.hpp"
 #include "mario/ecs/components/SizeComponent.hpp"
 
@@ -21,7 +21,7 @@ namespace mario {
         //   - dt: delta time in seconds for camera smoothing
         //   - viewport_w/viewport_h: current viewport dimensions
         //   - target: EntityID of the entity to follow (0 = no target)
-        void update(EntityManager& registry, Camera& camera, float dt, float viewport_w, float viewport_h, EntityID target = 0);
+        void update(mario::engine::EntityManagerFacade& registry, Camera& camera, float dt, float viewport_w, float viewport_h, EntityID target = 0);
 
         // Initializes camera viewport and target position with optional offset animation.
         // Used when entering a new level to position camera with entrance animation.
@@ -31,7 +31,7 @@ namespace mario {
         //   - viewport_w/viewport_h: current viewport dimensions
         //   - target: EntityID of the entity to follow (0 = no target)
         //   - initial_offset_x/y: initial position offset for entrance animation
-        void initialize(EntityManager& registry, Camera& camera, float viewport_w, float viewport_h, EntityID target = 0,
+        void initialize(mario::engine::EntityManagerFacade& registry, Camera& camera, float viewport_w, float viewport_h, EntityID target = 0,
                         float initial_offset_x = 0.0f, float initial_offset_y = 0.0f);
 
     private:

@@ -2,15 +2,15 @@
 
 namespace mario {
     void PowerUp::update(float dt) { (void) dt; }
-    void PowerUp::render(Renderer& renderer) {}
+    void PowerUp::render(mario::engine::IRenderer& /*renderer*/) {}
 
     void Item::update(float dt) { (void) dt; }
-    void Item::render(Renderer& renderer) {}
+    void Item::render(mario::engine::IRenderer& /*renderer*/) {}
     void Item::collect() {
     }
 
     void Projectile::update(float dt) { (void) dt; }
 
-    void Projectile::render(Renderer& renderer) {
+    void Projectile::render(mario::engine::IRenderer& /*renderer*/) {
     }
 } // namespace mario
