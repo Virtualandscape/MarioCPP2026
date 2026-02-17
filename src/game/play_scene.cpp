@@ -291,10 +291,7 @@ namespace zia {
         _update_systems.emplace_back([this](zia::engine::IEntityManager& registry, float dt) {
              _player_controller.update(registry, _game.input(), dt);
          });
-        // Update animations after player and AI logic so they reflect the current state.
-        _update_systems.emplace_back([this](zia::engine::IEntityManager& registry, float dt) {
-             _animation_system.update(registry, dt);
-         });
+        // (animation update will be scheduled later so it can consume queued one-shot plays after collisions)
         // Run enemy AI and movement which may depend on the current tilemap.
         _update_systems.emplace_back([this](zia::engine::IEntityManager& registry, float dt) {
              if (const auto tile_map = _level.tile_map()) {
@@ -315,10 +312,14 @@ namespace zia {
                  CollisionSystem::update(registry, *tile_map, dt);
              }
          });
+        // Update animations after collisions so queued one-shot plays enqueued by collisions are consumed immediately.
+        _update_systems.emplace_back([this](zia::engine::IEntityManager& registry, float dt) {
+             _animation_system.update(registry, dt);
+         });
         // Level transitions check should run after all simulation so it can act on final state.
         _update_systems.emplace_back([this](zia::engine::IEntityManager& registry, float dt) {
-            if (LevelSystem::handle_transitions(registry, _player_id, _level, _current_level_path, _level_transition_delay, dt)) {
-                 _level_transition_pending = true;
+             if (LevelSystem::handle_transitions(registry, _player_id, _level, _current_level_path, _level_transition_delay, dt)) {
+                  _level_transition_pending = true;
              }
          });
 

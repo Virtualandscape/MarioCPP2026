@@ -20,5 +20,9 @@ namespace zia {
         bool needs_rect_update = true; // To force initial rect update
         // If true, this animation will play once and then the system will clear the flag
         bool is_one_shot = false;
+        // Number of additional one-shot plays queued (allows playing the same one-shot multiple times)
+        int one_shot_queue = 0;
+        // Set to true when the animation state was just switched this frame; used to prevent advancing frames immediately.
+        bool just_started = false;
     };
 } // namespace Zia

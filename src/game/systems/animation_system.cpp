@@ -61,6 +61,13 @@ void AnimationSystem::update(zia::engine::IEntityManager& registry, float dt) co
             next_state = anim.current_state;
         }
 
+        // If there are queued one-shot plays and we're not currently playing one, start Celebrate now.
+        if (!anim.is_one_shot && anim.one_shot_queue > 0) {
+            // Consume one queued play and request the Celebrate state for this frame.
+            anim.one_shot_queue -= 1;
+            next_state = AnimationComponent::State::Celebrate;
+        }
+
         // State transition logic
         if (next_state != anim.current_state) {
             anim.current_state = next_state;
@@ -70,6 +77,8 @@ void AnimationSystem::update(zia::engine::IEntityManager& registry, float dt) co
 
             // Clear any previous one-shot flag when a new explicit state is requested
             anim.is_one_shot = false;
+            // Mark that we just started this state so we don't advance frames immediately this tick
+            anim.just_started = true;
 
             // Set state-specific values
             switch (anim.current_state) {
@@ -97,55 +106,77 @@ void AnimationSystem::update(zia::engine::IEntityManager& registry, float dt) co
                     anim.is_one_shot = true;
                     break;
             }
+            // We've just transitioned — avoid advancing frames or finishing the animation in the same tick.
+            continue;
         }
 
         // Update frame timer
         anim.frame_timer += dt;
         if (anim.frame_timer >= anim.frame_duration) {
             anim.frame_timer -= anim.frame_duration;
-
-            // For one-shot animations, advance until the last frame then stop and restore Idle.
-            if (anim.is_one_shot) {
-                if (anim.current_frame + 1 < anim.frame_count) {
-                    anim.current_frame = anim.current_frame + 1;
-                    anim.needs_rect_update = true;
-                } else {
-                    // Reached the last frame of the one-shot. Finish the animation and restore Idle visuals.
-                    anim.is_one_shot = false;
-                    anim.current_frame = 0;
-                    anim.needs_rect_update = true;
-                    anim.current_state = AnimationComponent::State::Idle;
-                    sprite.texture_id = constants::PLAYER_IDLE_ID;
-                    anim.frame_count = 1;
-                    anim.frame_duration = 1.0f;
-                }
-            } else {
-                // Normal looping animations use modulo to wrap frames.
-                anim.current_frame = (anim.current_frame + 1) % anim.frame_count;
+            // If we just started this state this tick, skip advancing frames this tick but clear the flag.
+            if (anim.just_started) {
+                anim.just_started = false;
+                // do not advance frame this tick; wait for next tick
                 anim.needs_rect_update = true;
-            }
-        }
+            } else {
+                // For one-shot animations, advance until the last frame then stop and restore Idle.
+                if (anim.is_one_shot) {
+                    if (anim.current_frame + 1 < anim.frame_count) {
+                        anim.current_frame = anim.current_frame + 1;
+                        anim.needs_rect_update = true;
+                    } else {
+                        // Reached the last frame of the one-shot. Finish the animation and restore Idle visuals.
+                        // If there are queued extra plays, start Celebrate again; otherwise restore Idle
+                        if (anim.one_shot_queue > 0) {
+                            anim.one_shot_queue -= 1;
+                             // Restart celebrate animation
+                             anim.current_frame = 0;
+                             anim.frame_timer = 0.0f;
+                             anim.frame_count = constants::PLAYER_CELEBRATE_FRAMES;
+                             anim.frame_duration = constants::PLAYER_FRAME_DURATION;
+                             anim.needs_rect_update = true;
+                             anim.is_one_shot = true;
+                             sprite.texture_id = constants::PLAYER_CELEBRATE_ID;
+                         } else {
+                            anim.is_one_shot = false;
+                            anim.current_frame = 0;
+                            anim.needs_rect_update = true;
+                            anim.current_state = AnimationComponent::State::Idle;
+                            sprite.texture_id = constants::PLAYER_IDLE_ID;
+                            anim.frame_count = 1;
+                            anim.frame_duration = 1.0f;
+                            anim.one_shot_queue = 0;
+                         }
+                     }
+                 } else {
+                     // Normal looping animations use modulo to wrap frames.
+                     anim.current_frame = (anim.current_frame + 1) % anim.frame_count;
+                     anim.needs_rect_update = true;
+                 }
+             }
+         }
 
-        // Update the sprite's texture_rect based on the current frame and flip state.
-        if (anim.needs_rect_update) {
-            int left = anim.current_frame * constants::PLAYER_FRAME_WIDTH;
-            int top = 0;
-            int width = constants::PLAYER_FRAME_WIDTH;
-            int height = constants::PLAYER_FRAME_HEIGHT;
+         // Update the sprite's texture_rect based on the current frame and flip state.
+         if (anim.needs_rect_update) {
+             int left = anim.current_frame * constants::PLAYER_FRAME_WIDTH;
+             int top = 0;
+             int width = constants::PLAYER_FRAME_WIDTH;
+             int height = constants::PLAYER_FRAME_HEIGHT;
 
-            // We use the absolute frame size in texture_rect and let the Renderer handle flipping.
-            sprite.texture_rect = sf::IntRect({left, top}, {width, height});
+             // We use the absolute frame size in texture_rect and let the Renderer handle flipping.
+             sprite.texture_rect = sf::IntRect({left, top}, {width, height});
 
-            // To signal flipping to the renderer, we could use negative width in texture_rect
-            // as Renderer::draw_sprite currently checks for texture_rect.size.x < 0
-            if (anim.flip_x) {
-                sprite.texture_rect.position.x += width;
-                sprite.texture_rect.size.x = -width;
-            }
+             // To signal flipping to the renderer, we could use negative width in texture_rect
+             // as Renderer::draw_sprite currently checks for texture_rect.size.x < 0
+             if (anim.flip_x) {
+                 sprite.texture_rect.position.x += width;
+                 sprite.texture_rect.size.x = -width;
+             }
 
-            anim.needs_rect_update = false;
-        }
-    }
-}
+             anim.needs_rect_update = false;
+         }
+     }
+ }
 
-} // namespace Zia
+ } // namespace Zia

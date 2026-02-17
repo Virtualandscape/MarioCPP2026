@@ -311,16 +311,10 @@ namespace zia {
              if (auto anim_opt = registry.get_component<AnimationComponent>(player_id)) {
                  if (auto sprite_opt = registry.get_component<SpriteComponent>(player_id)) {
                      auto &anim = anim_opt->get();
-                     auto &sprite = sprite_opt->get();
-                     // Set celebrate state and initialize animation playback
-                     anim.current_state = AnimationComponent::State::Celebrate;
-                     anim.current_frame = 0;
-                     anim.frame_timer = 0.0f;
-                     anim.frame_count = constants::PLAYER_CELEBRATE_FRAMES;
-                     anim.frame_duration = constants::PLAYER_FRAME_DURATION;
-                     anim.needs_rect_update = true;
-                     anim.is_one_shot = true;
-                     sprite.texture_id = constants::PLAYER_CELEBRATE_ID;
+                     // Only increment the queued plays (AnimationSystem will start plays from the queue).
+                     (void)sprite_opt; // avoid unused variable warning
+                     // Add configured number of Celebrate plays per stomp (default defined in Constants.hpp).
+                     anim.one_shot_queue = std::max(0, anim.one_shot_queue) + constants::PLAYER_CELEBRATE_REPEAT_ON_STOMP;
                  }
              }
 
