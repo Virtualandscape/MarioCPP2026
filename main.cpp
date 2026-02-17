@@ -1,5 +1,5 @@
 // Include the Game class which provides the main application lifecycle (initialization, run loop, shutdown).
-#include "mario/core/Game.hpp"
+#include "mario/game/MarioGame.hpp"
 
 // Program entry point.
 // Creates the game object, runs the main loop, performs shutdown, and returns an exit code.

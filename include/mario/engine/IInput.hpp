@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mario/input/InputManager.hpp"
+#include "mario/engine/input/InputManager.hpp"
 
 namespace mario::engine {
     class IInput {

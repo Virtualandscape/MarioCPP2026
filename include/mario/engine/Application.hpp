@@ -3,12 +3,12 @@
 // Engine-level application harness. Provides the main loop, managers and scene stack.
 // This header intentionally lives under include/mario/engine to keep project includes consistent.
 
-#include "mario/core/Scene.hpp"
+#include "mario/engine/Scene.hpp"
 #include "mario/engine/IScene.hpp"
-#include "mario/ecs/EntityManager.hpp"
-#include "mario/input/InputManager.hpp"
-#include "mario/render/Renderer.hpp"
-#include "mario/resources/AssetManager.hpp"
+#include "mario/engine/ecs/EntityManager.hpp"
+#include "mario/engine/input/InputManager.hpp"
+#include "mario/engine/render/Renderer.hpp"
+#include "mario/engine/resources/AssetManager.hpp"
 #include "mario/engine/UIManager.hpp"
 #include "mario/engine/IRenderer.hpp"
 #include "mario/engine/IInput.hpp"

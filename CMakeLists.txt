@@ -36,60 +36,61 @@ FetchContent_MakeAvailable(imgui-sfml)
 
 set(SOURCES
         main.cpp
-        src/audio/audio_manager.cpp
-        src/core/game.cpp
+        src/engine/audio/audio_manager.cpp
+        src/game/MarioGame.cpp
         src/game/menu_scene.cpp
         src/game/pause_scene.cpp
         src/game/play_scene.cpp
-        src/input/input_manager.cpp
-        src/render/renderer.cpp
-        src/resources/asset_manager.cpp
-        src/systems/collision_system.cpp
-        src/systems/physics_system.cpp
-        src/systems/player_controller_system.cpp
-        src/systems/enemy_system.cpp
-        src/systems/level_system.cpp
-        src/helpers/spawner.cpp
-        src/ui/hud.cpp
-        src/world/camera.cpp
-        src/world/level.cpp
-        src/world/tile_map.cpp
-        src/helpers/Quadtree.cpp
-        src/helpers/TileSweep.cpp
-        src/systems/background_system.cpp
-        src/systems/sprite_render_system.cpp
-        src/systems/camera_system.cpp
-        src/render/sprite.cpp
-        src/gameplay/power_up.cpp
-        src/systems/cloud_system.cpp
-        src/systems/debug_draw_system.cpp
-        src/systems/animation_system.cpp
-        src/world/JsonHelper.cpp
-        src/systems/inspector_system.cpp
+        src/engine/input/input_manager.cpp
+        src/engine/render/renderer.cpp
+        src/engine/resources/asset_manager.cpp
+        src/game/systems/collision_system.cpp
+        src/game/systems/physics_system.cpp
+        src/game/systems/player_controller_system.cpp
+        src/game/systems/enemy_system.cpp
+        src/game/systems/level_system.cpp
+        src/game/helpers/spawner.cpp
+        src/game/ui/hud.cpp
+        src/game/world/camera.cpp
+        src/game/world/level.cpp
+        src/game/world/tile_map.cpp
+        src/game/helpers/Quadtree.cpp
+        src/game/helpers/TileSweep.cpp
+        src/game/systems/background_system.cpp
+        src/game/systems/sprite_render_system.cpp
+        src/game/systems/camera_system.cpp
+        src/engine/render/sprite.cpp
+        src/game/gameplay/power_up.cpp
+        src/game/systems/cloud_system.cpp
+        src/game/systems/debug_draw_system.cpp
+        src/game/systems/animation_system.cpp
+        src/game/world/JsonHelper.cpp
+        src/game/systems/inspector_system.cpp
         src/engine/ui_manager.cpp
         src/engine/Application.cpp
-        src/engine/ui_manager.cpp
+        src/game/world/level.cpp
 )
 
 set(HEADERS
-        include/mario/ecs/EntityTypeComponent.hpp
-        include/mario/ecs/EntityManager.hpp
-        include/mario/ecs/components/PositionComponent.hpp
-        include/mario/ecs/components/VelocityComponent.hpp
-        include/mario/ecs/components/SizeComponent.hpp
-        include/mario/ecs/components/CollisionInfoComponent.hpp
-        include/mario/ecs/components/PlayerControllerComponent.hpp
-        include/mario/ecs/components/TypeComponent.hpp
-        include/mario/ecs/components/SpriteComponent.hpp
-        include/mario/ecs/components/AnimationComponent.hpp
-        include/mario/ecs/components/EnemyComponent.hpp
-        include/mario/systems/PlayerControllerSystem.hpp
-        include/mario/systems/EnemySystem.hpp
-        include/mario/systems/LevelSystem.hpp
-        include/mario/systems/AnimationSystem.hpp
-        include/mario/helpers/Spawner.hpp
-        include/mario/ecs/components/BackgroundComponent.hpp
-        include/mario/systems/BackgroundSystem.hpp
+        include/mario/engine/ecs/EntityTypeComponent.hpp
+        include/mario/engine/ecs/EntityManager.hpp
+        include/mario/engine/ecs/components/PositionComponent.hpp
+        include/mario/engine/ecs/components/VelocityComponent.hpp
+        include/mario/engine/ecs/components/SizeComponent.hpp
+        include/mario/engine/ecs/components/CollisionInfoComponent.hpp
+        include/mario/engine/ecs/components/PlayerControllerComponent.hpp
+        include/mario/engine/ecs/components/TypeComponent.hpp
+        include/mario/engine/ecs/components/SpriteComponent.hpp
+        include/mario/engine/ecs/components/AnimationComponent.hpp
+        include/mario/engine/ecs/components/EnemyComponent.hpp
+        include/mario/game/systems/PlayerControllerSystem.hpp
+        include/mario/game/systems/EnemySystem.hpp
+        include/mario/game/systems/LevelSystem.hpp
+        include/mario/game/systems/AnimationSystem.hpp
+        include/mario/game/helpers/Spawner.hpp
+        include/mario/engine/ecs/components/BackgroundComponent.hpp
+        include/mario/game/systems/BackgroundSystem.hpp
+        include/mario/game/helpers/quadtree.h
 )
 
 add_executable(Mario ${SOURCES} ${HEADERS})

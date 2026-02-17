@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mario/core/Scene.hpp"
+#include "mario/engine/Scene.hpp"
 
 namespace mario {
     // Scene representing a paused game; no-op implementations by default.

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "mario/engine/IEntityManager.hpp"
-#include "mario/ecs/EntityManager.hpp"
+#include "mario/engine/ecs/EntityManager.hpp"
 #include <memory>
 
 namespace mario::engine::adapters {

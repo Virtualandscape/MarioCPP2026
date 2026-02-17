@@ -1,7 +1,7 @@
 #pragma once
 
 #include "mario/engine/IScene.hpp"
-#include "mario/core/Scene.hpp"
+#include "mario/engine/Scene.hpp"
 
 #include <memory>
 

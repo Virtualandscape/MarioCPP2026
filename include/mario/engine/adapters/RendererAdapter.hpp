@@ -1,7 +1,7 @@
 #pragma once
 
 #include "mario/engine/IRenderer.hpp"
-#include "mario/render/Renderer.hpp"
+#include "mario/engine/render/Renderer.hpp"
 
 #include <memory>
 

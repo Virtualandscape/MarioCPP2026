@@ -2,15 +2,15 @@
 // Handles entering and exiting the play scene, updating game logic, and rendering the game world and HUD.
 
 #include "mario/game/PlayScene.hpp"
-#include "mario/core/Game.hpp"
-#include "mario/world/Camera.hpp"
-#include "mario/ecs/components/BackgroundComponent.hpp"
-#include "mario/helpers/Spawner.hpp"
-#include "mario/world/TileMap.hpp"
-#include "mario/helpers/Constants.hpp"
-#include "mario/resources/AssetManager.hpp"
-#include "mario/systems/CollisionSystem.hpp"
-#include "mario/systems/InspectorSystem.hpp"
+#include "mario/game/MarioGame.hpp"
+#include "mario/game/world/Camera.hpp"
+#include "mario/engine/ecs/components/BackgroundComponent.hpp"
+#include "mario/game/helpers/Spawner.hpp"
+#include "mario/game/world/TileMap.hpp"
+#include "mario/game/helpers/Constants.hpp"
+#include "mario/engine/resources/AssetManager.hpp"
+#include "mario/game/systems/CollisionSystem.hpp"
+#include "mario/game/systems/InspectorSystem.hpp"
 
 #include <algorithm>
 #include <string>

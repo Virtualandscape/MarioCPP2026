@@ -1,7 +1,7 @@
 #pragma once
 
 #include "mario/engine/IInput.hpp"
-#include "mario/input/InputManager.hpp"
+#include "mario/engine/input/InputManager.hpp"
 
 #include <memory>
 

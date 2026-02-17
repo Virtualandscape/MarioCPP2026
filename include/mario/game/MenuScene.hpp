@@ -1,7 +1,7 @@
 #pragma once
 
-#include "mario/core/Scene.hpp"
-#include "mario/ui/HUD.hpp"
+#include "mario/engine/Scene.hpp"
+#include "mario/game/ui/HUD.hpp"
 #include <string>
 #include <vector>
 

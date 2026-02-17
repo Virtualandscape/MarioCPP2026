@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mario/ecs/EntityManager.hpp"
+#include "mario/engine/ecs/EntityManager.hpp"
 #include <vector>
 #include <functional>
 #include <optional>

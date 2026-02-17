@@ -2,9 +2,9 @@
 // Handles rendering menu options and transitioning to the PlayScene when a level is selected.
 
 #include "mario/game/MenuScene.hpp"
-#include "mario/core/Game.hpp"
+#include "mario/game/MarioGame.hpp"
 #include "mario/game/PlayScene.hpp"
-#include "mario/helpers/Constants.hpp"
+#include "mario/game/helpers/Constants.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 

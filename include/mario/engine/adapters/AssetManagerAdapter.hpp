@@ -1,7 +1,7 @@
 #pragma once
 
 #include "mario/engine/IAssetManager.hpp"
-#include "mario/resources/AssetManager.hpp"
+#include "mario/engine/resources/AssetManager.hpp"
 
 #include <memory>
 
