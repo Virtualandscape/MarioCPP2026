@@ -55,6 +55,9 @@
         // Keep as constexpr so it can be used in compile-time contexts.
         inline constexpr int BACKGROUND_TEXTURE_ID = 1000;
 
+        // Menu background texture id base: three variants for the settings dropdown (800x600, 1024x768, 1280x720)
+        inline constexpr int MENU_BACKGROUND_TEXTURE_ID = 1001;
+
         // Clouds
         inline constexpr int CLOUD_BIG_ID = 2000;
         inline constexpr int CLOUD_MEDIUM_ID = 2001;

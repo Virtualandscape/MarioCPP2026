@@ -35,6 +35,9 @@ namespace zia {
         int _ui_resolution_index = 0; // 0 = 800x600, 1 = 1024x768, 2 = 1280x720, 3 = fullscreen
         bool _ui_fullscreen = false;
         float _ui_master_volume = 1.0f;
+
+        // Whether to render the menu background image (toggle in Settings)
+        bool _use_menu_background = true;
     };
 } // namespace Zia
 

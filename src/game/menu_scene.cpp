@@ -9,6 +9,8 @@
 #include <SFML/Window/Mouse.hpp>
 #include "Zia/engine/EngineConfig.hpp"
 #include <imgui.h>
+#include <iostream>
+#include <SFML/Graphics/Sprite.hpp>
 
 namespace zia {
     // Constructor initializes the menu with available levels and prepares text objects for rendering.
@@ -45,6 +47,25 @@ namespace zia {
     // Called when entering the menu scene.
     void MenuScene::on_enter() {
         _running = true;
+
+        // Load menu background images (one per resolution choice). Use AssetManager IDs starting at MENU_BACKGROUND_TEXTURE_ID.
+        using namespace zia::constants;
+        const std::array<std::pair<int, const char*>, 3> bg_files = {
+            std::make_pair(MENU_BACKGROUND_TEXTURE_ID + 0, "assets/Backgrounds/menu_background-800x600.png"),
+            std::make_pair(MENU_BACKGROUND_TEXTURE_ID + 1, "assets/Backgrounds/menu_background-1024x768.png"),
+            std::make_pair(MENU_BACKGROUND_TEXTURE_ID + 2, "assets/Backgrounds/menu_background-1280x720.png")
+        };
+
+        for (const auto &p : bg_files) {
+            const int id = p.first;
+            const std::string path = p.second;
+            // Avoid redundant loads
+            if (!_game.assets().has_texture(id)) {
+                if (!_game.assets().load_texture(id, path)) {
+                    std::cerr << "MenuScene: failed to load background texture '" << path << "' (id=" << id << ")\n";
+                }
+            }
+        }
     }
 
     // Called when exiting the menu scene.
@@ -105,29 +126,79 @@ namespace zia {
     void MenuScene::render() {
         // Render only: the Game loop handles frame begin/end.
 
-        // Draw background
-         _game.renderer().draw_rect(0, 0, 800, 480, sf::Color(20, 20, 20));
+        // Draw background: use menu image (fill) when enabled and available, otherwise fallback to solid rect.
+        const auto viewport = _game.renderer().viewport_size();
 
-         // Draw level options as rectangles and text
-         for (size_t i = 0; i < _levels.size(); ++i) {
-             sf::Color rect_color = (static_cast<int>(i) == _selected_index) ? sf::Color(50,50,50) : sf::Color(40,40,40);
-             float x = 300;
-             float y = 150 + static_cast<float>(i) * 100;
+        // Choose texture variant based on current UI resolution index. For fullscreen, fall back to the largest provided.
+        int tex_index = _ui_resolution_index;
+        if (tex_index < 0) tex_index = 0;
+        if (tex_index > 2) tex_index = 2; // 3 == fullscreen -> use 1280x720 variant
 
-             // Selection/hover handled in update(); render only paints the rectangle and text.
-             // Draw rectangle
-             _game.renderer().draw_rect(x, y, 200, 50, rect_color);
+        const int tex_id = zia::constants::MENU_BACKGROUND_TEXTURE_ID + tex_index;
 
-             auto& text = _level_texts[i];
-             text.set_position(x + 50, y + 10);
-             text.set_color(sf::Color::White);
-             text.render();
+        if (_use_menu_background) {
+            auto tex_ptr = _game.assets().get_texture(tex_id);
+            if (tex_ptr) {
+                // Draw the texture stretched to fill the viewport (fill behavior requested).
+                // Draw in UI/screen space (default view) so camera/world transforms do not affect scaling.
+                sf::RenderWindow &window = _game.renderer().window();
+                auto old_view = window.getView();
 
-             // Draw a small indicator for selection
-             if (static_cast<int>(i) == _selected_index) {
-                 _game.renderer().draw_rect(270, y + 10, 20, 30, sf::Color::Red);
+                // Query window and texture sizes first
+                const auto win_size = window.getSize();
+                const float win_w = static_cast<float>(win_size.x);
+                const float win_h = static_cast<float>(win_size.y);
+                const auto tex_size = tex_ptr->getSize();
+                const float tex_w = static_cast<float>(tex_size.x);
+                const float tex_h = static_cast<float>(tex_size.y);
+
+                // Use an explicit UI view mapped 1:1 to window pixels to avoid any camera/world transforms
+                sf::View ui_view;
+                ui_view.setSize({win_w, win_h});
+                ui_view.setCenter({win_w * 0.5f, win_h * 0.5f});
+                window.setView(ui_view);
+
+                sf::Sprite sprite(*tex_ptr);
+                // Ensure origin is top-left; sprite uses full texture by default so explicit texture rect is unnecessary.
+                sprite.setOrigin({0.0f, 0.0f});
+
+                // Scale to window pixel size (fill)
+                if (tex_w > 0.0f && tex_h > 0.0f) {
+                    const float scale_x = win_w / tex_w;
+                    const float scale_y = win_h / tex_h;
+                    sprite.setScale({ scale_x, scale_y });
+                }
+                sprite.setPosition({0.0f, 0.0f});
+                window.draw(sprite);
+                window.setView(old_view);
+             } else {
+                 // Fallback: solid color covering the whole viewport
+                 _game.renderer().draw_rect(0.0f, 0.0f, viewport.x, viewport.y, sf::Color(20, 20, 20));
              }
+         } else {
+            _game.renderer().draw_rect(0.0f, 0.0f, viewport.x, viewport.y, sf::Color(20, 20, 20));
          }
+
+        // Draw level options as rectangles and text
+        /*for (size_t i = 0; i < _levels.size(); ++i) {
+            sf::Color rect_color = (static_cast<int>(i) == _selected_index) ? sf::Color(50,50,50) : sf::Color(40,40,40);
+            float x = 300;
+            float y = 150 + static_cast<float>(i) * 100;
+
+            // Selection/hover handled in update(); render only paints the rectangle and text.
+            // Draw rectangle
+            _game.renderer().draw_rect(x, y, 200, 50, rect_color);
+
+            auto& text = _level_texts[i];
+            text.set_position(x + 50, y + 10);
+            text.set_color(sf::Color::White);
+            text.render();
+
+            // Draw a small indicator for selection
+            if (static_cast<int>(i) == _selected_index) {
+                _game.renderer().draw_rect(270, y + 10, 20, 30, sf::Color::Red);
+            }
+        }*/
 
         // ImGui top main menu bar: Play + Settings
         if (ImGui::BeginMainMenuBar()) {
@@ -167,6 +238,9 @@ namespace zia {
                 _ui_fullscreen = fs;
                 if (_ui_fullscreen) _ui_resolution_index = 3;
             }
+
+            // Toggle to enable/disable menu background image
+            ImGui::Checkbox("Use menu background image", &_use_menu_background);
 
             // Audio
             ImGui::SliderFloat("Master Volume", &_ui_master_volume, 0.0f, 1.0f);
