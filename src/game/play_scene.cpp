@@ -180,14 +180,10 @@ namespace zia {
                         player_spawned = true;
                     } else {
                         // Spawn a generic enemy entity according to the spawn entry.
-                        EntityID eid = registry.create_entity();
-                        // Use Spawner helper to populate components; prefer existing API which returns void for enemies.
+                        // Spawner::spawn_enemy creates and configures the entity internally.
                         Spawner::spawn_enemy(registry, spawn);
-                        // If the level provided a name for this spawn (rare for enemies), attach it.
-                        if (!spawn.name.empty()) {
-                            // Attempt to find the last created entity id — here Spawner::spawn_enemy created its own id so we cannot know it.
-                            // Safer approach: modify Spawner::spawn_enemy to return the EntityID. But to avoid broader change, skip for now.
-                        }
+                        // NOTE: If you need named enemies, change Spawner::spawn_enemy to return the created EntityID
+                        // so the caller can attach a NameComponent here.
                     }
                 }
             }
