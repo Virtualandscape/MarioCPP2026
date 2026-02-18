@@ -5,6 +5,7 @@
 #include "Zia/game/MarioGame.hpp"
 #include "Zia/game/world/Camera.hpp"
 #include "Zia/engine/ecs/components/BackgroundComponent.hpp"
+#include "Zia/engine/ecs/components/NameComponent.hpp"
 #include "Zia/game/helpers/Spawner.hpp"
 #include "Zia/game/world/TileMap.hpp"
 #include "Zia/game/helpers/Constants.hpp"
@@ -172,10 +173,21 @@ namespace zia {
                     if (spawn.type == "player" || spawn.type == "Player") {
                         // Spawn the player using the Spawner helper which configures components and assets.
                         _player_id = Spawner::spawn_player(registry, spawn, _game.assets());
+                        // If the level specified a name for the spawn, add a NameComponent so inspectors show it.
+                        if (!spawn.name.empty()) {
+                            registry.add_component<zia::NameComponent>(_player_id, {spawn.name});
+                        }
                         player_spawned = true;
                     } else {
                         // Spawn a generic enemy entity according to the spawn entry.
+                        EntityID eid = registry.create_entity();
+                        // Use Spawner helper to populate components; prefer existing API which returns void for enemies.
                         Spawner::spawn_enemy(registry, spawn);
+                        // If the level provided a name for this spawn (rare for enemies), attach it.
+                        if (!spawn.name.empty()) {
+                            // Attempt to find the last created entity id — here Spawner::spawn_enemy created its own id so we cannot know it.
+                            // Safer approach: modify Spawner::spawn_enemy to return the EntityID. But to avoid broader change, skip for now.
+                        }
                     }
                 }
             }

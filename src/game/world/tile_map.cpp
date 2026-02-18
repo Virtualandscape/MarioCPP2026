@@ -125,6 +125,7 @@ namespace zia {
                 int tile_x = 0;
                 int tile_y = 0;
                 std::string type;
+                std::string name;
 
                 if (!extract_string_field(object, "type", type) ||
                     !extract_int_field_any(object, x_keys, tile_x) ||
@@ -132,6 +133,9 @@ namespace zia {
                     pos = end + 1;
                     continue;
                 }
+
+                // Try to extract optional name field
+                extract_string_field(object, "name", name);
 
                 std::transform(type.begin(), type.end(), type.begin(), [](unsigned char ch) {
                     return static_cast<char>(std::tolower(ch));
@@ -145,6 +149,7 @@ namespace zia {
                 spawn.type = "player";
                 spawn.tile_x = tile_x;
                 spawn.tile_y = tile_y;
+                spawn.name = name;
                 return true;
             }
 
