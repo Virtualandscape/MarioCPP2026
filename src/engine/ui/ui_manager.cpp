@@ -23,6 +23,13 @@ namespace zia::engine {
 
     void UIManager::update(sf::RenderWindow &window, sf::Clock &clock) {
         ImGui::SFML::Update(window, clock.restart());
+        // Measure a reasonable default menu bar height from ImGui metrics. This uses the standard frame height
+        // which corresponds to the height of typical widgets (buttons) and works well for the main menu bar.
+        if (ImGui::GetCurrentContext()) {
+            // Add a small padding to ensure the menu does not overlap content
+            const float fh = ImGui::GetFrameHeight();
+            _menu_bar_height = static_cast<int>(fh + 4.0f);
+        }
     }
 
     void UIManager::render(sf::RenderWindow &window) {

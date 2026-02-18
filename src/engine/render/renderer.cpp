@@ -53,7 +53,7 @@ namespace zia {
         if (_window.isOpen()) {
             const auto size = _window.getSize();
             const float w = static_cast<float>(size.x);
-            const float h = static_cast<float>(size.y);
+            const float h = static_cast<float>(size.y - _top_inset_pixels);
             float world_w = 0.0f;
             float world_h = 0.0f;
             if (_camera_tiles_w > 0.0f) {
@@ -183,7 +183,7 @@ namespace zia {
     sf::Vector2f Renderer::viewport_size() const {
         const auto size = _window.getSize();
         const float w = static_cast<float>(size.x);
-        const float h = static_cast<float>(size.y);
+        const float h = static_cast<float>(size.y - _top_inset_pixels);
         if (_camera_tiles_w > 0.0f) {
             const float world_w = _camera_tiles_w * static_cast<float>(zia::constants::TILE_SIZE);
             const float aspect = h > 0.0f ? (w / h) : 1.0f;

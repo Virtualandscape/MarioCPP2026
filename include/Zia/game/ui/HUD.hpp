@@ -20,7 +20,8 @@ namespace zia {
 
         void set_level_name(std::string_view name);
 
-        void render();
+        // Render HUD; top_inset (pixels) reserves UI space at top so HUD draws below menu bar.
+        void render(int top_inset = 0);
 
     private:
         zia::engine::IRenderer& _renderer;

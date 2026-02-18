@@ -24,6 +24,8 @@ namespace zia {
         sf::Vector2f viewport_size() const override;
         void set_camera_scale(float s) override { _camera_scale = s; }
         float camera_scale() const override { return _camera_scale; }
+        void set_top_inset_pixels(int px) override { _top_inset_pixels = px; }
+        int top_inset_pixels() const override { return _top_inset_pixels; }
 
         // Draw using a texture reference (avoids raw pointer parameters in public API)
         void draw_sprite(const sf::Texture& texture, float x, float y, float width, float height, const sf::IntRect& texture_rect) override;
@@ -60,6 +62,7 @@ namespace zia {
     private:
         sf::RenderWindow _window;
         sf::Font _font;
+        int _top_inset_pixels = 0;
         sf::Color _clear_color = sf::Color(30, 30, 36);
         float _camera_x = 0.0f;
         float _camera_y = 0.0f;

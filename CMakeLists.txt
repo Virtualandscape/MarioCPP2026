@@ -73,6 +73,7 @@ set(SOURCES
         src/editor/EditorScene.cpp
         src/editor/EditorUI.cpp
         src/editor/EditorUI.cpp
+        src/game/ui/MainMenuBar.cpp
 )
 
 set(HEADERS

@@ -104,15 +104,17 @@ namespace zia {
 
     // Used by: PlayScene::render, TileMap::render (delegation), tests
     // Renders the visible solid tiles of the level within the camera's viewport.
-    void Level::render(zia::engine::IRenderer &renderer) {
-        if (!_tile_map || !_camera) return;
+    void Level::render(zia::engine::IRenderer &renderer, const Camera &camera) {
+        if (!_tile_map) return;
 
         const int tile_size = _tile_map->tile_size();
-        const auto viewport = renderer.viewport_size();
-        const float view_left = _camera->x();
-        const float view_top = _camera->y();
-        const float view_right = view_left + viewport.x;
-        const float view_bottom = view_top + viewport.y;
+        // Use camera viewport (world units) rather than renderer global viewport so the top inset is respected.
+        const auto viewport_w = camera.viewport_width();
+        const auto viewport_h = camera.viewport_height();
+        const float view_left = camera.x();
+        const float view_top = camera.y();
+        const float view_right = view_left + viewport_w;
+        const float view_bottom = view_top + viewport_h;
 
         // Calculate visible tile range based on camera viewport
         const int max_tx = std::max(0, _tile_map->width() - 1);
@@ -135,6 +137,12 @@ namespace zia {
                 }
             }
         }
+    }
+
+    // Old render kept for compatibility: delegate to camera-aware variant using current camera if available.
+    void Level::render(zia::engine::IRenderer &renderer) {
+        if (!_camera) return;
+        render(renderer, *_camera);
     }
 
     // Used by: LevelSystem, PlayScene

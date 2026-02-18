@@ -5,6 +5,7 @@
 #include "Zia/game/MarioGame.hpp"
 #include "Zia/game/PlayScene.hpp"
 #include "Zia/game/helpers/Constants.hpp"
+#include "Zia/game/ui/MainMenuBar.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include "Zia/engine/EngineConfig.hpp"
@@ -182,90 +183,10 @@ namespace zia {
             _game.renderer().draw_rect(0.0f, 0.0f, viewport.x, viewport.y, sf::Color(20, 20, 20));
          }
 
-        // ImGui top main menu bar: Play + Settings
-        if (ImGui::BeginMainMenuBar()) {
-            if (ImGui::BeginMenu("Play")) {
-                if (ImGui::MenuItem("Start Level 1")) {
-                    // Always start the game at level 1
-                    if (!_levels.empty()) {
-                        // Convert constexpr string_view to std::string explicitly to match PlayScene ctor
-                        _game.push_scene(std::make_shared<PlayScene>(_game, std::string(zia::constants::LEVEL_PATHS.at(0))));
-                        ImGui::EndMenu();
-                        ImGui::EndMainMenuBar();
-                        return; // Early return to avoid drawing settings window in same frame
-                    }
-                }
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Settings")) {
-                if (ImGui::MenuItem("Open Settings")) {
-                    _show_settings = true;
-                }
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("View")) {
-                bool vis = zia::InspectorSystem::is_inspector_visible();
-                if (ImGui::MenuItem("Inspector", nullptr, vis)) {
-                    zia::InspectorSystem::set_inspector_visible(!vis);
-                }
-                ImGui::EndMenu();
-            }
-            // Editor menu: open/close integrated Scene Editor
-            if (ImGui::BeginMenu("Editor")) {
-                bool vis = zia::editor::is_editor_visible();
-                if (ImGui::MenuItem("Open Scene Editor", nullptr, vis)) {
-                    zia::editor::set_editor_visible(!vis);
-                }
-                ImGui::EndMenu();
-            }
-            ImGui::EndMainMenuBar();
-        }
+        // The global UI overlay draws the main menu bar. MenuScene no longer draws the top bar
+        // to avoid duplicate menu entries when the overlay is active.
 
-        // Settings window
-        if (_show_settings) {
-            ImGui::Begin("Settings", &_show_settings, ImGuiWindowFlags_AlwaysAutoResize);
-
-            // Resolution options
-            const char* resolutions[] = { "800 x 600", "1024 x 768", "1280 x 720", "Fullscreen" };
-            ImGui::Combo("Resolution", &_ui_resolution_index, resolutions, IM_ARRAYSIZE(resolutions));
-
-            // Fullscreen checkbox kept in sync with resolution selection for clarity
-            bool fs = (_ui_resolution_index == 3) ? true : _ui_fullscreen;
-            if (ImGui::Checkbox("Fullscreen (override)", &fs)) {
-                _ui_fullscreen = fs;
-                if (_ui_fullscreen) _ui_resolution_index = 3;
-            }
-
-            // Toggle to enable/disable menu background image
-            ImGui::Checkbox("Use menu background image", &_use_menu_background);
-
-            // Audio
-            ImGui::SliderFloat("Master Volume", &_ui_master_volume, 0.0f, 1.0f);
-
-            if (ImGui::Button("Apply")) {
-                if (auto s = _game.settings()) {
-                    if (_ui_resolution_index == 0) {
-                        s->set_fullscreen(false);
-                        s->set_window_size(800, 600);
-                    } else if (_ui_resolution_index == 1) {
-                        s->set_fullscreen(false);
-                        s->set_window_size(1024, 768);
-                    } else if (_ui_resolution_index == 2) {
-                        s->set_fullscreen(false);
-                        s->set_window_size(1280, 720);
-                    } else if (_ui_resolution_index == 3) {
-                        s->set_fullscreen(true);
-                    }
-                    s->set_master_volume(_ui_master_volume);
-                }
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Close")) {
-                _show_settings = false;
-            }
-
-            ImGui::End();
-        }
+        // Note: Menu-specific UI (level selection grid) is still drawn via this scene's other code paths.
 
         // end_frame() is called by Game::main_loop()
      }

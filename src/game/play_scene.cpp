@@ -189,7 +189,11 @@ namespace zia {
         if (auto camera = _level.camera()) {
             const auto viewport = _game.renderer().viewport_size();
             // Apply an initial horizontal offset to make enter-damping visible to the player.
-            _camera_system.initialize(registry, *camera, viewport.x, viewport.y, _player_id, -100.0f, 0.0f);
+            // Reserve top inset for the main menu bar (convert UI pixels to world units using camera scale).
+            int menu_px = _game.ui().menu_bar_height();
+            const float world_menu_h = static_cast<float>(menu_px) * _game.renderer().camera_scale();
+            const float viewport_h_adj = std::max(0.0f, viewport.y - world_menu_h);
+            _camera_system.initialize(registry, *camera, viewport.x, viewport_h_adj, _player_id, -100.0f, 0.0f);
         }
 
 
@@ -243,7 +247,10 @@ namespace zia {
         // Update camera systems after core simulation so camera follows the player smoothly.
         if (auto camera_ptr = _level.camera()) {
             const auto viewport = _game.renderer().viewport_size();
-            _camera_system.update(registry, *camera_ptr, dt, viewport.x, viewport.y, _player_id);
+            int menu_px = _game.ui().menu_bar_height();
+            const float world_menu_h = static_cast<float>(menu_px) * _game.renderer().camera_scale();
+            const float viewport_h_adj = std::max(0.0f, viewport.y - world_menu_h);
+            _camera_system.update(registry, *camera_ptr, dt, viewport.x, viewport_h_adj, _player_id);
         }
 
         // Let level perform any temporal updates (animations, timers, transitions).
@@ -351,20 +358,22 @@ namespace zia {
                 if (auto bg_opt = registry.get_component<BackgroundComponent>(entity)) {
                     _background_system.render(renderer, camera, assets, bg_opt->get());
                 }
-            }
-            // Render clouds, level geometry, sprites and debug overlays.
-            _cloud_system.render(renderer, camera, assets, registry);
-            _level.render(renderer);
-            _sprite_render_system.render(renderer, camera, registry, assets);
-            _debug_draw_system.render(renderer, camera, registry);
+                // Render clouds, level geometry, sprites and debug overlays.
+                _cloud_system.render(renderer, camera, assets, registry);
+                _level.render(renderer, camera);
+                _sprite_render_system.render(renderer, camera, registry, assets);
+                _debug_draw_system.render(renderer, camera, registry);
 
-            // Update and draw HUD elements (level name, score, etc.).
-            std::string level_name = "Level 1";
-            if (_current_level_path == zia::constants::LEVEL2_PATH) {
-                level_name = "Level 2";
+                // Update and draw HUD elements (level name, score, etc.).
+                std::string level_name = "Level 1";
+                if (_current_level_path == zia::constants::LEVEL2_PATH) {
+                    level_name = "Level 2";
+                }
+                _hud.set_level_name(level_name);
+                // Draw the HUD below the menu bar inset.
+                const int menu_px = _game.ui().menu_bar_height();
+                _hud.render(menu_px);
             }
-            _hud.set_level_name(level_name);
-            _hud.render();
         });
     }
 

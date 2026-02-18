@@ -15,11 +15,13 @@ namespace zia {
     void HUD::set_level_name(std::string_view name) { _level_name = name; }
 
     // Renders the HUD, currently only displays the level name.
-    void HUD::render() {
+    void HUD::render(int top_inset) {
         if (!_level_name.empty()) {
-            _renderer.draw_text(_level_name, 10, 10, 24, sf::Color::White);
+            // Offset HUD Y position by top_inset so HUD elements are drawn below the menu bar.
+            const float y = 10.0f + static_cast<float>(top_inset);
+            _renderer.draw_text(_level_name, 10, y, 24, sf::Color::White);
         }
-        // Future: render lives, coins, etc.
+        // Future: render lives, coins, etc., applying the same top_inset offset.
     }
 
     // Text class constructor initializes with a reference to the renderer.

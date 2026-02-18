@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <vector>
+#include <functional>
 
 #include <SFML/System/Clock.hpp>
 
@@ -62,6 +63,11 @@ namespace zia::engine {
         // Access to the UI manager.
         UIManager& ui();
 
+        // Register a global UI overlay builder callback. This callback will be invoked once per-frame
+        // after the UIManager::build() call and before ImGui is rendered. The callback should build any
+        // ImGui widgets it needs (e.g. main menu bar). Use a std::function to keep ownership simple.
+        void set_ui_overlay(std::function<void()> cb) { _ui_overlay_cb = std::move(cb); }
+
     protected:
         // Hook for derived classes to prepare an initial scene before the loop begins.
         virtual void before_loop();
@@ -87,6 +93,9 @@ namespace zia::engine {
 
         // Centralized UI manager that wraps ImGui-SFML usage.
         std::unique_ptr<UIManager> _ui;
+
+        // Optional global overlay callback invoked each frame to build ImGui widgets.
+        std::function<void()> _ui_overlay_cb;
     };
 } // namespace Zia::engine
 

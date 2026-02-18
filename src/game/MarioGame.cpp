@@ -5,6 +5,8 @@
 #include "Zia/engine/adapters/SceneAdapter.hpp"
 #include "Zia/engine/EngineConfig.hpp"
 #include "Zia/engine/audio/AudioManager.hpp"
+// Include shared main menu bar utility so we can register it as a global overlay.
+#include "Zia/game/ui/MainMenuBar.hpp"
 
 
 #include <memory>
@@ -34,6 +36,11 @@ namespace zia {
                 audio.set_volume(cfg.master_volume());
             } catch (...) {
             }
+        });
+
+        // Register overlay using the MainMenuBar utility (namespaced in zia::ui)
+        _app->set_ui_overlay([this]() {
+            zia::ui::draw_main_menu_bar(*this, _menu_show_settings);
         });
     }
 

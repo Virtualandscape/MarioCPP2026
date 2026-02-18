@@ -31,6 +31,9 @@ namespace zia {
 
         void render(zia::engine::IRenderer &renderer);
 
+        // Render with camera context so Level can compute visible tiles relative to camera viewport.
+        void render(zia::engine::IRenderer &renderer, const Camera &camera);
+
         std::shared_ptr<TileMap> tile_map() const;
 
         std::shared_ptr<Camera> camera() const;

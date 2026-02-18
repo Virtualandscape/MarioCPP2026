@@ -9,6 +9,8 @@ namespace zia {
         void set_bounds(float left, float top, float right, float bottom);
 
         void set_viewport(float width, float height);
+        [[nodiscard]] float viewport_width() const noexcept { return _viewport_w; }
+        [[nodiscard]] float viewport_height() const noexcept { return _viewport_h; }
 
         void update(float dt);
 

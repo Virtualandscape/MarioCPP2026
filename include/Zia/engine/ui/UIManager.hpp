@@ -30,6 +30,14 @@ namespace zia::engine {
 
         // Render ImGui draw data on top of the current frame; call after scene rendering.
         void render(sf::RenderWindow& window);
+
+        // Menu bar height helpers: UI can report measured menu bar height in pixels
+        // so other subsystems can reserve UI space at the top of the window.
+        void set_menu_bar_height(int px) { _menu_bar_height = px; }
+        int menu_bar_height() const { return _menu_bar_height; }
+
+    private:
+        int _menu_bar_height = 0;
     };
 } // namespace Zia::engine
 

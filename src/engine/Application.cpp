@@ -151,6 +151,15 @@ namespace zia::engine {
             if (_ui) {
                 _ui->update(window, _imgui_clock);
                 _ui->build();
+                // Invoke optional global overlay builder while ImGui frame is active so callbacks may create windows/menus.
+                if (_ui_overlay_cb) {
+                    _ui_overlay_cb();
+                }
+                // Ensure renderer knows about the current UI top inset (menu bar height) so viewport calculations are consistent.
+                try {
+                    const int inset = _ui->menu_bar_height();
+                    _renderer_iface->set_top_inset_pixels(inset);
+                } catch (...) { /* best-effort */ }
             }
 
             _renderer_iface->begin_frame();

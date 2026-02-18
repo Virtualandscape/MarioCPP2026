@@ -60,6 +60,9 @@ namespace zia {
         // Expose engine-wide settings manager
         std::shared_ptr<zia::engine::EngineConfig> settings();
 
+        // Expose UI manager for querying menu height and other UI-related helpers
+        zia::engine::UIManager& ui() { return _app->ui(); }
+
     protected:
         // Hook for derived classes to prepare an initial scene before the loop begins.
         virtual void before_loop();
@@ -71,5 +74,8 @@ namespace zia {
 
         // Game-owned settings manager
         std::shared_ptr<zia::engine::EngineConfig> _settings;
+
+        // UI state shared by overlay (e.g. whether settings window is open)
+        bool _menu_show_settings = false;
     };
 } // namespace Zia
