@@ -5,7 +5,7 @@
 #include "Zia/engine/Application.hpp"
 #include "Zia/engine/adapters/SceneAdapter.hpp"
 
-#include "Zia/engine/adapters/RendererAdapter.hpp"
+#include "Zia/engine/render/Renderer.hpp" // Use concrete renderer directly; Renderer now implements IRenderer
 #include "Zia/engine/adapters/InputAdapter.hpp"
 #include "Zia/engine/adapters/AssetManagerAdapter.hpp"
 #include "Zia/engine/adapters/EntityManagerAdapter.hpp"
@@ -28,7 +28,8 @@ namespace zia::engine {
         auto entities = std::make_shared<zia::EntityManager>();
 
         // Initialize interface adapters.
-        _renderer_iface = std::make_shared<engine::adapters::RendererAdapter>(renderer);
+        // Renderer now implements IRenderer, so we can assign it directly to the interface pointer.
+        _renderer_iface = std::static_pointer_cast<IRenderer>(renderer);
         _input_iface = std::make_shared<engine::adapters::InputAdapter>(input);
         _assets_iface = std::make_shared<engine::adapters::AssetManagerAdapter>(assets);
         _entities_iface = std::make_shared<engine::adapters::EntityManagerAdapter>(entities);
@@ -47,7 +48,7 @@ namespace zia::engine {
 
         // Ensure we have a valid interface for each subsystem.
         if (!_renderer_iface) {
-            _renderer_iface = std::make_shared<engine::adapters::RendererAdapter>(std::make_shared<zia::Renderer>());
+            _renderer_iface = std::static_pointer_cast<IRenderer>(std::make_shared<zia::Renderer>());
         }
         if (!_input_iface) {
             _input_iface = std::make_shared<engine::adapters::InputAdapter>(std::make_shared<zia::InputManager>());

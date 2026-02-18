@@ -20,9 +20,9 @@ namespace zia::engine {
 
         // Camera and viewport helpers
         virtual void set_camera(float x, float y) = 0;
-        virtual sf::Vector2f viewport_size() const = 0;
+        [[nodiscard]] virtual sf::Vector2f viewport_size() const = 0;
         virtual void set_camera_scale(float s) = 0;
-        virtual float camera_scale() const = 0;
+        [[nodiscard]] virtual float camera_scale() const = 0;
 
         // Drawing helpers used by scenes
         virtual void draw_rect(float x, float y, float width, float height, sf::Color color) = 0;
@@ -34,8 +34,7 @@ namespace zia::engine {
 
         // Debug
         virtual void toggle_debug_bboxes() = 0;
-        virtual bool is_debug_bboxes_enabled() const = 0;
-        virtual bool is_open() const = 0;
+        [[nodiscard]] virtual bool is_debug_bboxes_enabled() const = 0;
+        [[nodiscard]] virtual bool is_open() const = 0;
     };
 } // namespace Zia::engine
-

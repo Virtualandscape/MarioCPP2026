@@ -136,7 +136,7 @@ Le projet utilise des interfaces pour découpler la logique game de l'implément
 - Méthodes clés : `create_entity()`, `add_component<T>()`, `get_component<T>()`, `get_entities_with<T>()`
 
 #### **Adaptateurs** (`engine::adapters::`)
-- `RendererAdapter` : Enveloppe `Renderer` → `IRenderer`
+- `RendererAdapter` : Enveloppe `Renderer` → `IRenderer` (DEPRECATED — `Renderer` implémente désormais `IRenderer`; l'adaptateur est conservé temporairement comme shim de compatibilité)
 - `InputAdapter` : Enveloppe `InputManager` → `IInput`
 - `AssetManagerAdapter` : Enveloppe `AssetManager` → `IAssetManager`
 - `EntityManagerAdapter` : Enveloppe `EntityManager` → `IEntityManager`
