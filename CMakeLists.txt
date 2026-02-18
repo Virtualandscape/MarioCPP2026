@@ -70,6 +70,7 @@ set(SOURCES
         src/game/world/level.cpp
         src/engine/spatial/Quadtree.cpp
         src/engine/EngineConfig.cpp
+        src/editor/EditorScene.cpp
 )
 
 set(HEADERS
@@ -91,6 +92,8 @@ set(HEADERS
         include/Zia/game/helpers/Spawner.hpp
         include/Zia/engine/ecs/components/BackgroundComponent.hpp
         include/Zia/game/systems/BackgroundSystem.hpp
+        include/Zia/editor/ISceneEditor.hpp
+        include/Zia/editor/EditorScene.hpp
 )
 
 add_executable(Mario ${SOURCES} ${HEADERS})
