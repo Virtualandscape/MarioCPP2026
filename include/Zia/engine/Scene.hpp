@@ -1,24 +1,13 @@
 #pragma once
 
+// Include the canonical engine interface.
+#include "IScene.hpp"
+
 namespace zia {
-    // Interface that every game scene must implement to integrate with the main loop.
-    class Scene {
-    public:
-        virtual ~Scene() = default;
-
-        // Called whenever the scene becomes the active scene.
-        virtual void on_enter() = 0;
-
-        // Invoked when the scene is removed or another scene gains focus.
-        virtual void on_exit() = 0;
-
-        // Performs per-frame logic updates.
-        virtual void update(float dt) = 0;
-
-        // Draws the scene when it is active.
-        virtual void render() = 0;
-
-        // Signals whether the scene should continue running.
-        [[nodiscard]] virtual bool is_running() const { return true; }
-    };
-} // namespace Zia
+    // Deprecated alias to preserve backward compatibility with code that used `zia::Scene`.
+    // Prefer `zia::engine::IScene` (engine-agnostic interface) instead.
+    // NOTE: the compiler-specific deprecated attribute caused build errors on some toolchains,
+    // so we keep a clear comment here. Consider adding a compiler-specific deprecation macro
+    // if you want a compile-time warning in your environment.
+    using Scene = zia::engine::IScene;
+} // namespace zia

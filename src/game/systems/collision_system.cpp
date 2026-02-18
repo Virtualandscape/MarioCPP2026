@@ -6,11 +6,12 @@
 #include "Zia/engine/ecs/components/SizeComponent.hpp"
 #include "Zia/engine/ecs/components/CollisionInfoComponent.hpp"
 #include "Zia/engine/ecs/components/TypeComponent.hpp"
-#include "Zia/engine/ecs/components/TypeComponent.hpp"
 #include "Zia/engine/ecs/components/PlayerControllerComponent.hpp"
 #include "Zia/engine/ecs/EntityTypeComponent.hpp"
 #include "Zia/game/world/TileMap.hpp"
-#include "Zia/game/helpers/quadtree.h"
+// Use engine spatial headers directly instead of game/helpers wrapper
+#include "Zia/engine/spatial/Quadtree.hpp"
+#include "Zia/engine/spatial/QuadTile.h"
 #include "Zia/game/helpers/tileSweep.hpp"
 // Access to player animation/texture constants
 #include "Zia/game/helpers/Constants.hpp"
@@ -230,7 +231,8 @@ namespace zia {
          // Build a quadtree covering the world for broadphase collision queries
          const auto world_w = static_cast<float>(map.width() * map.tile_size());
          const auto world_h = static_cast<float>(map.height() * map.tile_size());
-         quadtree quadtree(0, sf::FloatRect({0.0f, 0.0f}, {world_w, world_h}));
+         // Use fully-qualified engine quadtree type to avoid relying on the deprecated wrapper alias
+         ::zia::engine::spatial::Quadtree quadtree(0, sf::FloatRect({0.0f, 0.0f}, {world_w, world_h}));
 
          // Insert AABBs with their collidable index as payload.
          for (std::size_t i = 0; i < collidables.size(); ++i) {

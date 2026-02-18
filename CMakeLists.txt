@@ -91,8 +91,6 @@ set(HEADERS
         include/Zia/game/helpers/Spawner.hpp
         include/Zia/engine/ecs/components/BackgroundComponent.hpp
         include/Zia/game/systems/BackgroundSystem.hpp
-        include/Zia/game/helpers/quadtree.h
-        include/Zia/game/helpers/QuadTile.h
 )
 
 add_executable(Mario ${SOURCES} ${HEADERS})
