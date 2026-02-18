@@ -9,6 +9,7 @@
 #include "Zia/engine/adapters/InputAdapter.hpp"
 #include "Zia/engine/adapters/AssetManagerAdapter.hpp"
 #include "Zia/engine/adapters/EntityManagerAdapter.hpp"
+#include "Zia/editor/EditorUI.hpp"
 
 #include <iostream>
 
@@ -35,7 +36,7 @@ namespace zia::engine {
         _entities_iface = std::make_shared<engine::adapters::EntityManagerAdapter>(entities);
 
         // Initialize UI manager with default implementation.
-        _ui = std::make_unique<UIManager>();
+        _ui = std::make_unique<zia::editor::EditorUI>(_entities_iface, _assets_iface);
     }
 
     Application::Application(std::shared_ptr<IRenderer> renderer,
@@ -44,7 +45,7 @@ namespace zia::engine {
                              std::shared_ptr<IEntityManager> entities)
         : _renderer_iface(std::move(renderer)), _input_iface(std::move(input)),
           _assets_iface(std::move(assets)), _entities_iface(std::move(entities)),
-          _ui(std::make_unique<UIManager>()) {
+          _ui(std::make_unique<zia::editor::EditorUI>(_entities_iface, _assets_iface)) {
 
         // Ensure we have a valid interface for each subsystem.
         if (!_renderer_iface) {

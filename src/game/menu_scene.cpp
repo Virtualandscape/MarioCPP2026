@@ -11,6 +11,8 @@
 #include <imgui.h>
 #include <iostream>
 #include <SFML/Graphics/Sprite.hpp>
+// Editor UI toggle
+#include "Zia/editor/EditorUI.hpp"
 
 namespace zia {
     // Constructor initializes the menu with available levels and prepares text objects for rendering.
@@ -218,6 +220,14 @@ namespace zia {
             if (ImGui::BeginMenu("Settings")) {
                 if (ImGui::MenuItem("Open Settings")) {
                     _show_settings = true;
+                }
+                ImGui::EndMenu();
+            }
+            // Editor menu: open/close integrated Scene Editor
+            if (ImGui::BeginMenu("Editor")) {
+                bool vis = zia::editor::is_editor_visible();
+                if (ImGui::MenuItem("Open Scene Editor", nullptr, vis)) {
+                    zia::editor::set_editor_visible(!vis);
                 }
                 ImGui::EndMenu();
             }
