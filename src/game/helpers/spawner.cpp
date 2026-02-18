@@ -8,6 +8,7 @@
 #include "Zia/engine/ecs/components/PositionComponent.hpp"
 #include "Zia/engine/ecs/components/VelocityComponent.hpp"
 #include "Zia/engine/ecs/components/SizeComponent.hpp"
+#include "Zia/engine/ecs/components/ColorComponent.hpp"
 #include "Zia/engine/ecs/components/PlayerControllerComponent.hpp"
 #include "Zia/engine/ecs/components/TypeComponent.hpp"
 #include "Zia/engine/ecs/components/CollisionInfoComponent.hpp"
@@ -157,9 +158,27 @@ namespace zia {
         if (type_str == "goomba") {
             registry.add_component<TypeComponent>(entity, {EntityTypeComponent::Goomba});
             registry.add_component<SpriteComponent>(entity, {SpriteComponent::Shape::Rectangle, ENEMY_SPRITE_COLOR_BLACK});
+            // Assign default editor color component for enemy (normalized floats)
+            {
+                auto c = ENEMY_SPRITE_COLOR_BLACK;
+                float r = static_cast<float>(c.r) / 255.0f;
+                float g = static_cast<float>(c.g) / 255.0f;
+                float b = static_cast<float>(c.b) / 255.0f;
+                float a = static_cast<float>(c.a) / 255.0f;
+                registry.add_component<ColorComponent>(entity, {r, g, b, a});
+            }
         } else if (type_str == "koopa") {
             registry.add_component<TypeComponent>(entity, {EntityTypeComponent::Koopa});
             registry.add_component<SpriteComponent>(entity, {SpriteComponent::Shape::Rectangle, ENEMY_SPRITE_COLOR_RED});
+            // Assign default editor color component for enemy (normalized floats)
+            {
+                auto c = ENEMY_SPRITE_COLOR_RED;
+                float r = static_cast<float>(c.r) / 255.0f;
+                float g = static_cast<float>(c.g) / 255.0f;
+                float b = static_cast<float>(c.b) / 255.0f;
+                float a = static_cast<float>(c.a) / 255.0f;
+                registry.add_component<ColorComponent>(entity, {r, g, b, a});
+            }
         }
     }
 

@@ -98,6 +98,7 @@ set(HEADERS
         include/Zia/editor/ISceneEditor.hpp
         include/Zia/editor/EditorScene.hpp
         include/Zia/editor/EditorUI.hpp
+        include/Zia/engine/ecs/components/ColorComponent.hpp
 )
 
 add_executable(Mario ${SOURCES} ${HEADERS})

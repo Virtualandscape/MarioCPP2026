@@ -2,10 +2,7 @@
 #include "Zia/editor/EditorScene.hpp"
 
 #include "Zia/engine/ecs/components/PositionComponent.hpp"
-#include "Zia/engine/ecs/components/VelocityComponent.hpp"
-#include "Zia/engine/ecs/components/SizeComponent.hpp"
-#include "Zia/engine/ecs/components/TypeComponent.hpp"
-#include "Zia/engine/ecs/EntityTypeComponent.hpp"
+#include "Zia/engine/ecs/components/ColorComponent.hpp"
 #include "Zia/engine/ecs/components/NameComponent.hpp"
 #include "Zia/game/helpers/Constants.hpp"
 
@@ -129,53 +126,26 @@ void EditorUI::draw_inspector() {
             // Show and edit tile coordinates (integers). Editing tiles updates pixel pos.
             const int tile_size = zia::constants::TILE_SIZE;
             int tile_x = static_cast<int>(std::round(px / static_cast<float>(tile_size)));
-            int tile_y = static_cast<int>(std::round(py / static_cast<float>(tile_size)));
-
-            // If entity is player, compute tile_y differently (since player's Y uses feet offset)
-            bool is_player = false;
-            if (auto tc = _entities->get_component<TypeComponent>(_selected)) {
-                if (tc->get().type == zia::EntityTypeComponent::Player) is_player = true;
-            }
-
-            int display_tile_y = tile_y;
-            if (is_player) {
-                // Convert player's world Y (feet aligned at world_y + (PLAYER_HEIGHT - tile_size)) to tile index
-                display_tile_y = static_cast<int>(std::round((py + (zia::constants::PLAYER_HEIGHT - tile_size)) / static_cast<float>(tile_size)));
-            }
+            int display_tile_y = static_cast<int>(std::round(py / static_cast<float>(tile_size)));
 
             if (ImGui::InputInt("Tile X", &tile_x)) {
                 // update pixel position
                 p->get().x = static_cast<float>(tile_x * tile_size);
             }
             if (ImGui::InputInt("Tile Y", &display_tile_y)) {
-                if (is_player) {
-                    // player's world Y is tileY * tile_size - (PLAYER_HEIGHT - tile_size)
-                    p->get().y = static_cast<float>(display_tile_y * tile_size - (zia::constants::PLAYER_HEIGHT - tile_size));
-                } else {
-                    p->get().y = static_cast<float>(display_tile_y * tile_size);
-                }
+                p->get().y = static_cast<float>(display_tile_y * tile_size);
             }
         }
 
-        if (auto v = _entities->get_component<VelocityComponent>(_selected)) {
-            float vx = v->get().vx;
-            float vy = v->get().vy;
-            if (ImGui::InputFloat("VX", &vx)) {
-                v->get().vx = vx;
-            }
-            if (ImGui::InputFloat("VY", &vy)) {
-                v->get().vy = vy;
-            }
-        }
-
-        if (auto s = _entities->get_component<SizeComponent>(_selected)) {
-            float w = s->get().width;
-            float h = s->get().height;
-            if (ImGui::InputFloat("W", &w)) {
-                s->get().width = w;
-            }
-            if (ImGui::InputFloat("H", &h)) {
-                s->get().height = h;
+        // Color component (RGBA in [0..1])
+        if (auto c = _entities->get_component<ColorComponent>(_selected)) {
+            float col[4] = { c->get().r, c->get().g, c->get().b, c->get().a };
+            // ImGui color picker for the entity color
+            if (ImGui::ColorEdit4("Color", col)) {
+                c->get().r = col[0];
+                c->get().g = col[1];
+                c->get().b = col[2];
+                c->get().a = col[3];
             }
         }
     } else {

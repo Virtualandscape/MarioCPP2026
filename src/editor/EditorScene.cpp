@@ -4,9 +4,7 @@
 #include "Zia/game/world/EntitySpawn.hpp"
 
 #include "Zia/engine/ecs/components/PositionComponent.hpp"
-#include "Zia/engine/ecs/components/VelocityComponent.hpp"
-#include "Zia/engine/ecs/components/SizeComponent.hpp"
-#include "Zia/engine/ecs/components/SpriteComponent.hpp"
+#include "Zia/engine/ecs/components/ColorComponent.hpp"
 #include "Zia/engine/ecs/components/NameComponent.hpp"
 #include "Zia/game/helpers/Constants.hpp"
 
@@ -157,24 +155,39 @@ bool EditorScene::open_scene(const std::string& path) {
                 _mgr.add_component<NameComponent>(id, {name});
             }
 
-            // Velocity
-            float vx=0.0f, vy=0.0f;
-            if (extract_array2f(obj, "velocity", vx, vy) || extract_xy_pair(obj, "vx", "vy", vx, vy)) {
-                _mgr.add_component<VelocityComponent>(id, {vx, vy});
-            }
-
-            // Size
-            float sw=0.0f, sh=0.0f;
-            if (extract_array2f(obj, "size", sw, sh) || extract_xy_pair(obj, "width", "height", sw, sh)) {
-                _mgr.add_component<SizeComponent>(id, {sw, sh});
-            }
-
-            // Sprite
-            std::string tex;
-            if (zia::JsonHelper::extract_string_field(obj, "texture", tex)) {
-                SpriteComponent sc;
-                sc.texture_id = -1;
-                _mgr.add_component<SpriteComponent>(id, sc);
+            // Optional color field: expect array [r,g,b,a] in 0..1 range
+            float cr=1.0f, cg=1.0f, cb=1.0f, ca=1.0f;
+            if (extract_array2f(obj, "color", cr, cg)) {
+                // crude parse: extract_array2f reads two floats; try to read third and fourth manually
+                // look for the 'color' array again and parse up to 4 elements
+                const std::string needle = std::string("\"color\"");
+                auto pos = obj.find(needle);
+                if (pos != std::string::npos) {
+                    pos = obj.find('[', pos);
+                    if (pos != std::string::npos) {
+                        ++pos;
+                        try {
+                            // find commas and closing bracket
+                            auto comma1 = obj.find(',', pos);
+                            auto comma2 = obj.find(',', comma1 + 1);
+                            auto comma3 = obj.find(',', comma2 + 1);
+                            auto close = obj.find(']', pos);
+                            std::string s1 = obj.substr(pos, comma1 - pos);
+                            std::string s2 = obj.substr(comma1 + 1, (comma2==std::string::npos?close:comma2) - comma1 - 1);
+                            cr = std::stof(s1);
+                            cg = std::stof(s2);
+                            if (comma2 != std::string::npos) {
+                                std::string s3 = obj.substr(comma2 + 1, (comma3==std::string::npos?close:comma3) - comma2 - 1);
+                                cb = std::stof(s3);
+                            }
+                            if (comma3 != std::string::npos) {
+                                std::string s4 = obj.substr(comma3 + 1, close - comma3 - 1);
+                                ca = std::stof(s4);
+                            }
+                        } catch (...) {}
+                    }
+                }
+                _mgr.add_component<ColorComponent>(id, {cr, cg, cb, ca});
             }
         }
 
@@ -206,14 +219,8 @@ bool EditorScene::save_scene(const std::string& path) {
         if (auto p = _mgr.get_component<PositionComponent>(id)) {
             out << "      \"position\": [" << p->get().x << ", " << p->get().y << "],\n";
         }
-        if (auto v = _mgr.get_component<VelocityComponent>(id)) {
-            out << "      \"velocity\": [" << v->get().vx << ", " << v->get().vy << "],\n";
-        }
-        if (auto s = _mgr.get_component<SizeComponent>(id)) {
-            out << "      \"size\": [" << s->get().width << ", " << s->get().height << "],\n";
-        }
-        if (auto sc = _mgr.get_component<SpriteComponent>(id)) {
-            out << "      \"sprite\": {\"texture_id\": " << sc->get().texture_id << "}\n";
+        if (auto c = _mgr.get_component<ColorComponent>(id)) {
+            out << "      \"color\": [" << c->get().r << ", " << c->get().g << ", " << c->get().b << ", " << c->get().a << "],\n";
         } else {
             // erase trailing comma of previous line if it exists
             out.seekp(-2, std::ios_base::cur);
