@@ -13,6 +13,7 @@
 #include <SFML/Graphics/Sprite.hpp>
 // Editor UI toggle
 #include "Zia/editor/EditorUI.hpp"
+#include "Zia/game/systems/InspectorSystem.hpp"
 
 namespace zia {
     // Constructor initializes the menu with available levels and prepares text objects for rendering.
@@ -100,7 +101,7 @@ namespace zia {
         _down_pressed = down;
         _enter_pressed = enter;
 
-        // Mouse handling
+        /*// Mouse handling
         sf::Vector2i mouse_pos = sf::Mouse::getPosition(_game.renderer().window());
         const auto mx = static_cast<float>(mouse_pos.x);
         const auto my = static_cast<float>(mouse_pos.y);
@@ -117,7 +118,7 @@ namespace zia {
                     return;
                 }
             }
-        }
+        }*/
 
         if (_game.input().is_pressed(InputManager::Action::Escape)) {
             _running = false;
@@ -181,27 +182,6 @@ namespace zia {
             _game.renderer().draw_rect(0.0f, 0.0f, viewport.x, viewport.y, sf::Color(20, 20, 20));
          }
 
-        // Draw level options as rectangles and text
-        /*for (size_t i = 0; i < _levels.size(); ++i) {
-            sf::Color rect_color = (static_cast<int>(i) == _selected_index) ? sf::Color(50,50,50) : sf::Color(40,40,40);
-            float x = 300;
-            float y = 150 + static_cast<float>(i) * 100;
-
-            // Selection/hover handled in update(); render only paints the rectangle and text.
-            // Draw rectangle
-            _game.renderer().draw_rect(x, y, 200, 50, rect_color);
-
-            auto& text = _level_texts[i];
-            text.set_position(x + 50, y + 10);
-            text.set_color(sf::Color::White);
-            text.render();
-
-            // Draw a small indicator for selection
-            if (static_cast<int>(i) == _selected_index) {
-                _game.renderer().draw_rect(270, y + 10, 20, 30, sf::Color::Red);
-            }
-        }*/
-
         // ImGui top main menu bar: Play + Settings
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("Play")) {
@@ -220,6 +200,13 @@ namespace zia {
             if (ImGui::BeginMenu("Settings")) {
                 if (ImGui::MenuItem("Open Settings")) {
                     _show_settings = true;
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("View")) {
+                bool vis = zia::InspectorSystem::is_inspector_visible();
+                if (ImGui::MenuItem("Inspector", nullptr, vis)) {
+                    zia::InspectorSystem::set_inspector_visible(!vis);
                 }
                 ImGui::EndMenu();
             }

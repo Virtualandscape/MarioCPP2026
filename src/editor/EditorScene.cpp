@@ -1,10 +1,14 @@
 #include "Zia/editor/EditorScene.hpp"
 #include "Zia/game/world/JsonHelper.hpp"
+#include "Zia/game/helpers/Spawner.hpp"
+#include "Zia/game/world/EntitySpawn.hpp"
 
 #include "Zia/engine/ecs/components/PositionComponent.hpp"
 #include "Zia/engine/ecs/components/VelocityComponent.hpp"
 #include "Zia/engine/ecs/components/SizeComponent.hpp"
 #include "Zia/engine/ecs/components/SpriteComponent.hpp"
+#include "Zia/engine/ecs/components/NameComponent.hpp"
+#include "Zia/game/helpers/Constants.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -77,11 +81,11 @@ namespace {
     }
 }
 
-std::unique_ptr<ISceneEditor> create_editor_scene(zia::engine::IEntityManager& mgr) {
-    return std::make_unique<EditorScene>(mgr);
+std::unique_ptr<ISceneEditor> create_editor_scene(zia::engine::IEntityManager& mgr, zia::engine::IAssetManager& assets) {
+    return std::make_unique<EditorScene>(mgr, assets);
 }
 
-EditorScene::EditorScene(zia::engine::IEntityManager& mgr) : _mgr(mgr) {}
+EditorScene::EditorScene(zia::engine::IEntityManager& mgr, zia::engine::IAssetManager& assets) : _mgr(mgr), _assets(assets) {}
 
 bool EditorScene::open_scene(const std::string& path) {
     std::ifstream in = zia::JsonHelper::open_level_file(path);
@@ -107,33 +111,71 @@ bool EditorScene::open_scene(const std::string& path) {
         if (obj.empty()) break;
 
         // create entity
-        zia::EntityID id = _mgr.create_entity();
+        zia::EntityID id = 0;
 
-        // Try various position representations: array 'position' or 'x'/'y'
-        float px=0.0f, py=0.0f;
-        if (extract_array2f(obj, "position", px, py) || extract_xy_pair(obj, "x", "y", px, py)) {
-            _mgr.add_component<PositionComponent>(id, {px, py});
+        // Try to detect type first
+        std::string type_str;
+        if (zia::JsonHelper::extract_string_field(obj, "type", type_str)) {
+            std::transform(type_str.begin(), type_str.end(), type_str.begin(), [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
         }
 
-        // Velocity: array or vx/vy
-        float vx=0.0f, vy=0.0f;
-        if (extract_array2f(obj, "velocity", vx, vy) || extract_xy_pair(obj, "vx", "vy", vx, vy)) {
-            _mgr.add_component<VelocityComponent>(id, {vx, vy});
-        }
+        // If it's a player spawn, prefer to use Spawner to create a proper entity composition at tile coords.
+        if (type_str == "player") {
+            int tile_x = 0, tile_y = 0;
+            // try extract tile coordinates (use existing float extract helper and cast)
+            float fx=0.0f, fy=0.0f;
+            if (extract_array2f(obj, "position", fx, fy) || extract_xy_pair(obj, "x", "y", fx, fy)) {
+                tile_x = static_cast<int>(std::lround(fx));
+                tile_y = static_cast<int>(std::lround(fy));
+            }
+            // optional name
+            std::string name;
+            zia::JsonHelper::extract_string_field(obj, "name", name);
+            zia::EntitySpawn spawn;
+            spawn.type = "player";
+            spawn.tile_x = tile_x;
+            spawn.tile_y = tile_y;
+            id = Spawner::spawn_player(_mgr, spawn, _assets);
+            if (!name.empty()) {
+                _mgr.add_component<NameComponent>(id, {name});
+            }
+        } else {
+            id = _mgr.create_entity();
 
-        // Size: array 'size' or width/height
-        float sw=0.0f, sh=0.0f;
-        if (extract_array2f(obj, "size", sw, sh) || extract_xy_pair(obj, "width", "height", sw, sh)) {
-            _mgr.add_component<SizeComponent>(id, {sw, sh});
-        }
+            // Try various position representations: array 'position' or 'x'/'y'
+            float px=0.0f, py=0.0f;
+            if (extract_array2f(obj, "position", px, py) || extract_xy_pair(obj, "x", "y", px, py)) {
+                const float tile_size = static_cast<float>(zia::constants::TILE_SIZE);
+                float world_x = px * tile_size;
+                float world_y = py * tile_size;
+                _mgr.add_component<PositionComponent>(id, {world_x, world_y});
+            }
 
-        // Sprite simple: texture_id or texture
-        std::string tex;
-        if (zia::JsonHelper::extract_string_field(obj, "texture", tex)) {
-            SpriteComponent sc;
-            // attempt to find numeric id after texture (not ideal) - default to -1
-            sc.texture_id = -1;
-            _mgr.add_component<SpriteComponent>(id, sc);
+            // Optional name field
+            std::string name;
+            if (zia::JsonHelper::extract_string_field(obj, "name", name)) {
+                _mgr.add_component<NameComponent>(id, {name});
+            }
+
+            // Velocity
+            float vx=0.0f, vy=0.0f;
+            if (extract_array2f(obj, "velocity", vx, vy) || extract_xy_pair(obj, "vx", "vy", vx, vy)) {
+                _mgr.add_component<VelocityComponent>(id, {vx, vy});
+            }
+
+            // Size
+            float sw=0.0f, sh=0.0f;
+            if (extract_array2f(obj, "size", sw, sh) || extract_xy_pair(obj, "width", "height", sw, sh)) {
+                _mgr.add_component<SizeComponent>(id, {sw, sh});
+            }
+
+            // Sprite
+            std::string tex;
+            if (zia::JsonHelper::extract_string_field(obj, "texture", tex)) {
+                SpriteComponent sc;
+                sc.texture_id = -1;
+                _mgr.add_component<SpriteComponent>(id, sc);
+            }
         }
 
         // move cursor past this object
@@ -157,6 +199,10 @@ bool EditorScene::save_scene(const std::string& path) {
         if (!first) out << ",\n";
         first = false;
         out << "    {\n";
+        // Write name if present (as a top-level string field)
+        if (auto n = _mgr.get_component<NameComponent>(id)) {
+            out << "      \"name\": \"" << n->get().value << "\"," << "\n";
+        }
         if (auto p = _mgr.get_component<PositionComponent>(id)) {
             out << "      \"position\": [" << p->get().x << ", " << p->get().y << "],\n";
         }

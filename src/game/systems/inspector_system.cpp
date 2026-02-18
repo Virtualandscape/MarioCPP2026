@@ -9,12 +9,20 @@
 #include "Zia/engine/resources/AssetManager.hpp"
 #include "Zia/game/helpers/Constants.hpp"
 
+#include "Zia/engine/ecs/components/NameComponent.hpp"
+
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
 #include <filesystem>
 
 namespace zia {
+
+// Static global visibility flag for the inspector overlay
+static bool s_inspector_visible = true;
+
+void InspectorSystem::set_inspector_visible(bool v) { s_inspector_visible = v; }
+bool InspectorSystem::is_inspector_visible() { return s_inspector_visible; }
 
 InspectorSystem::InspectorSystem() {
     _enabled = true;
@@ -38,7 +46,12 @@ void InspectorSystem::build_lines(const std::vector<EntityID>& entities, zia::en
     for (auto entity : entities) {
         if (count++ >= _max_entries) break;
         std::ostringstream oss;
-        oss << "Entity " << entity << ": ";
+        // Prefer entity name when available
+        if (auto name_opt = registry.get_component<NameComponent>(entity)) {
+            oss << name_opt->get().value << " (" << entity << "): ";
+        } else {
+            oss << "Entity " << entity << "): ";
+        }
         // Type
         if (auto type_opt = registry.get_component<TypeComponent>(entity)) {
             auto& t = type_opt->get();
@@ -93,6 +106,7 @@ void InspectorSystem::build_lines(const std::vector<EntityID>& entities, zia::en
 
 void InspectorSystem::render_ui(zia::engine::IEntityManager& registry, zia::engine::IAssetManager& assets) {
     if (!_enabled) return;
+    if (!s_inspector_visible) return;
 
     // Collect candidate entities: entities with TypeComponent and EnemyComponent.
     static thread_local std::vector<EntityID> type_entities;

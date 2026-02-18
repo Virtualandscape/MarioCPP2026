@@ -24,6 +24,10 @@ namespace zia {
         // Configure how many entities to show to avoid overly large overlays
         void set_max_entries(size_t n) { _max_entries = n; }
 
+        // Global visibility helpers (menu can call these to toggle inspector across scenes)
+        static void set_inspector_visible(bool v);
+        static bool is_inspector_visible();
+
     private:
         bool _enabled = true;
         size_t _max_entries = 32;
